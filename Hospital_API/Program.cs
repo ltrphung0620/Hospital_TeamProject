@@ -1,4 +1,7 @@
 using Hospital_API.Data;
+using Hospital_API.Interfaces;
+using Hospital_API.Repositories;
+using Hospital_API.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +19,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<HospitalDbContext>(options => 
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
+//add service Role
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 
 
 var app = builder.Build();
