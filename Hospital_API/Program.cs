@@ -1,11 +1,31 @@
 using Hospital_API.Data;
+using Hospital_API.Interfaces;
+using Hospital_API.Repositories;
+using Hospital_API.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddOpenApi();
 builder.Services.AddControllers();
+builder.Services.AddScoped<IMedicinesRepository, MedicinesRepository>();
+builder.Services.AddScoped<IMedicinesService, MedicinesService>();
+builder.Services.AddScoped<IMedicineSupplierRepository, MedicineSupplierRepository>();
+builder.Services.AddScoped<IMedicineSupplierService, MedicineSupplierService>();
+builder.Services.AddScoped<IMedServiceRepo, MedicalSerRepo>();
+builder.Services.AddScoped<IMedServiceService, MedicalServiceService>();
+builder.Services.AddScoped<ILabTestRepo, LabTestRepo>();
+builder.Services.AddScoped<ILabTestService, LabTestService>();
+builder.Services.AddScoped<IBranchRepository, BranchRepository>();
+builder.Services.AddScoped<IBranchService, BranchService>();
+builder.Services.AddScoped<IRole_PermissionsRepo, Role_PermissionsRepo>();
+builder.Services.AddScoped<IRole_PermissionsService, Role_PermissionsService>();
+// builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+// builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddOpenApi();
@@ -17,21 +37,17 @@ builder.Services.AddDbContext<HospitalDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
-    app.UseSwagger();
+        app.UseSwagger();
     app.UseSwaggerUI();
-
 }
 
 app.UseHttpsRedirection();
 app.MapControllers();
-
 
 var summaries = new[]
 {
