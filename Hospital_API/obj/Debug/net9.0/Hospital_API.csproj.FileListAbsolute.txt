@@ -167,3 +167,5 @@
 /Users/trungnghia4297/Hospital_Project/Hospital_API/obj/Debug/net9.0/Hospital_API.genruntimeconfig.cache
 /Users/trungnghia4297/Hospital_Project/Hospital_API/obj/Debug/net9.0/ref/Hospital_API.dll
 /Users/trungnghia4297/Hospital_Project/Hospital_API/obj/Debug/net9.0/Hospital_API.sourcelink.json
+/Users/trungnghia4297/Hospital_Project/Hospital_API/bin/Debug/net9.0/BCrypt.Net-Next.dll
+/Users/trungnghia4297/Hospital_Project/Hospital_API/bin/Debug/net9.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll
