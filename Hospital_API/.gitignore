@@ -22,3 +22,7 @@ project.assets.json
 
 # Others
 .env
+
+#appsetting
+appsettings.Development.json
+appsettings.json
