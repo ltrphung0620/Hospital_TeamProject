@@ -1,3 +1,4 @@
+
 namespace Hospital_API.Models
 {
     public class Permission
@@ -11,3 +12,4 @@ namespace Hospital_API.Models
         public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
     }
 }
+

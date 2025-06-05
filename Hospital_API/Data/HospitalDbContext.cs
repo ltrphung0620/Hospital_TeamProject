@@ -1,6 +1,6 @@
 using Hospital_API.Models;
 using Microsoft.EntityFrameworkCore;
-
+using Hospital_API.Models;
 namespace Hospital_API.Data
 {
     public class HospitalDbContext : DbContext
@@ -15,7 +15,11 @@ namespace Hospital_API.Data
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
 
-
+        public DbSet<Medicines> Medicines { get; set; }
+        public DbSet<MedicineSupplier> MedicineSuppliers { get; set; }
+        public DbSet<MedicalServiceDb> MedicalServices { get; set; }
+        public DbSet<Branch> Branches { get; set; }
+        public DbSet<LabTest> LabTests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,7 +37,7 @@ namespace Hospital_API.Data
                 .HasOne(ur => ur.Role)
                 .WithMany(r => r.UserRoles)
                 .HasForeignKey(ur => ur.RoleId);
-                
+
             modelBuilder.Entity<RolePermission>()
             .HasKey(rp => new { rp.RoleId, rp.PermissionId });
 
@@ -48,5 +52,8 @@ namespace Hospital_API.Data
                 .HasForeignKey(rp => rp.PermissionId);
 
         }
+
+
+
     }
 }

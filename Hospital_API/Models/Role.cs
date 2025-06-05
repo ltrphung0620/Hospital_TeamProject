@@ -1,3 +1,4 @@
+
 namespace Hospital_API.Models
 {
     public class Role
@@ -6,9 +7,8 @@ namespace Hospital_API.Models
         public string Name { get; set; } = null!;
         public string? Description { get; set; }
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
-        
-        public ICollection<RolePermission> RolePermissions { get; set; }
 
+        public ICollection<RolePermission> RolePermissions { get; set; }
 
     }
 }

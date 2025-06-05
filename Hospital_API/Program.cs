@@ -138,7 +138,16 @@ builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 
-
+builder.Services.AddScoped<IMedicinesRepository, MedicinesRepository>();
+builder.Services.AddScoped<IMedicinesService, MedicinesService>();
+builder.Services.AddScoped<IMedicineSupplierRepository, MedicineSupplierRepository>();
+builder.Services.AddScoped<IMedicineSupplierService, MedicineSupplierService>();
+builder.Services.AddScoped<IMedServiceRepo, MedicalSerRepo>();
+builder.Services.AddScoped<IMedServiceService, MedicalServiceService>();
+builder.Services.AddScoped<ILabTestRepo, LabTestRepo>();
+builder.Services.AddScoped<ILabTestService, LabTestService>();
+builder.Services.AddScoped<IBranchRepository, BranchRepository>();
+builder.Services.AddScoped<IBranchService, BranchService>();
 
 var app = builder.Build();
 
