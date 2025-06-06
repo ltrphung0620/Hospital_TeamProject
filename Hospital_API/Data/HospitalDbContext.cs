@@ -1,6 +1,5 @@
 using Hospital_API.Models;
 using Microsoft.EntityFrameworkCore;
-using Hospital_API.Models;
 namespace Hospital_API.Data
 {
     public class HospitalDbContext : DbContext
@@ -20,6 +19,9 @@ namespace Hospital_API.Data
         public DbSet<MedicalServiceDb> MedicalServices { get; set; }
         public DbSet<Branch> Branches { get; set; }
         public DbSet<LabTest> LabTests { get; set; }
+
+        public DbSet<Patient> Patients { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -50,6 +52,11 @@ namespace Hospital_API.Data
                 .HasOne(rp => rp.Permission)
                 .WithMany(p => p.RolePermissions)
                 .HasForeignKey(rp => rp.PermissionId);
+
+            modelBuilder.Entity<Patient>()
+            .HasOne(p => p.User)
+            .WithOne(u => u.Patient)
+            .HasForeignKey<Patient>(p => p.UserId);
 
         }
 

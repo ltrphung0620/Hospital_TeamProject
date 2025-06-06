@@ -149,6 +149,11 @@ builder.Services.AddScoped<ILabTestService, LabTestService>();
 builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 builder.Services.AddScoped<IBranchService, BranchService>();
 
+
+builder.Services.AddScoped<IPatientRepository, PatientRepository>();
+builder.Services.AddScoped<IPatientService, PatientService>();
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
