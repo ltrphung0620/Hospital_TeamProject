@@ -18,6 +18,7 @@ namespace Hospital_API.Models
 
         public virtual Patient Patient { get; set; } = null!;
 
+        public virtual Doctor Doctor { get; set; } = null!;
 
     }
 

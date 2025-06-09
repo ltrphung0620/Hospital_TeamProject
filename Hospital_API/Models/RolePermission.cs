@@ -6,7 +6,7 @@ namespace Hospital_API.Models
         public int PermissionId { get; set; }
 
         // Navigation properties
-        public  Role Role { get; set; } = null!;
-        public  Permission Permission { get; set; } = null!;
+        public Role Role { get; set; } = null!;
+        public Permission Permission { get; set; } = null!;
     }
 }
