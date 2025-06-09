@@ -4,7 +4,9 @@ using System.Text;
 using Hospital_API.Data;
 using Hospital_API.Interfaces;
 using Hospital_API.Repositories;
+using Hospital_API.Repositories.Interfaces;
 using Hospital_API.Services;
+using Hospital_API.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -152,7 +154,8 @@ builder.Services.AddScoped<IBranchService, BranchService>();
 
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IPatientService, PatientService>();
-
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 
 var app = builder.Build();
 

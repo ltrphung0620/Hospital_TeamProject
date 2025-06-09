@@ -21,7 +21,8 @@ namespace Hospital_API.Data
         public DbSet<LabTest> LabTests { get; set; }
 
         public DbSet<Patient> Patients { get; set; }
-
+        public DbSet<Appointment> Appointments { get; set; }
+        public DbSet<Invoice> Invoices { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -58,6 +59,34 @@ namespace Hospital_API.Data
             .WithOne(u => u.Patient)
             .HasForeignKey<Patient>(p => p.UserId);
 
+            modelBuilder.Entity<Doctor>()
+          .HasOne(p => p.User)
+          .WithOne(u => u.Doctor)
+          .HasForeignKey<Doctor>(p => p.UserId);
+
+            modelBuilder.Entity<Appointment>()
+                .HasOne(a => a.Patient)
+                .WithMany(p => p.Appointments)
+                .HasForeignKey(a => a.PatientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Appointment>()
+                .HasOne(a => a.Doctor)
+                .WithMany(d => d.Appointments)
+                .HasForeignKey(a => a.DoctorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Appointment>()
+                .HasOne(a => a.Branch)
+                .WithMany(b => b.Appointments)
+                .HasForeignKey(a => a.BranchId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Invoice>()
+                    .HasOne(i => i.Appointment)
+                    .WithOne(a => a.Invoice)
+                    .HasForeignKey<Invoice>(i => i.AppointmentId)
+                    .OnDelete(DeleteBehavior.Restrict);
         }
 
 

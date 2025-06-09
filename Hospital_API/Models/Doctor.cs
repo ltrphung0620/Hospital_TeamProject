@@ -1,14 +1,14 @@
 namespace Hospital_API.Models
 {
-    public class Patient
+    public class Doctor
     {
         public int Id { get; set; }
 
         public int UserId { get; set; }
 
-        public string InsuranceCode { get; set; } = string.Empty;
-        public string Address { get; set; } = string.Empty;
-        public string EmergencyContact { get; set; } = string.Empty;
+        public string Specialization { get; set; } = string.Empty;
+        public string Degree { get; set; } = string.Empty;
+        public int YearOfExperience { get; set; }
 
         public virtual User User { get; set; } = null!;
 

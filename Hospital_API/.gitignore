@@ -24,5 +24,7 @@ project.assets.json
 .env
 
 #appsetting
-appsettings.Development.json
-appsettings.json
+# appsettings.Development.json
+# appsettings.json
+
+Migrations/
