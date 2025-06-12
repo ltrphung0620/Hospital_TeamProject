@@ -10,7 +10,7 @@ namespace Hospital_API.Models
 
         public int MedicalRecordID { get; set; }
         [ForeignKey("MedicalRecordID")]
-        public MedicalRecords MedicalRecord { get; set; }
+        public MedicalRecord MedicalRecord { get; set; }
 
         public int LabTestID { get; set; }
         [ForeignKey("LabTestID")]

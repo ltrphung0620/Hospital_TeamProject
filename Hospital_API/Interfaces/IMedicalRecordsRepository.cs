@@ -6,10 +6,10 @@ namespace Hospital_API.Interfaces
 {
     public interface IMedicalRecordsRepository
     {
-        Task<IEnumerable<MedicalRecords>> GetAllAsync();
-        Task<MedicalRecords> GetByIdAsync(int id);
-        Task<MedicalRecords> AddAsync(MedicalRecords record);
-        Task<MedicalRecords> UpdateAsync(MedicalRecords record);
-        Task<MedicalRecords> DeleteAsync(int id);
+        Task<IEnumerable<MedicalRecord>> GetAllAsync();
+        Task<MedicalRecord> GetByIdAsync(int id);
+        Task<MedicalRecord> AddAsync(MedicalRecord record);
+        Task<MedicalRecord> UpdateAsync(MedicalRecord record);
+        Task<MedicalRecord> DeleteAsync(int id);
     }
 }

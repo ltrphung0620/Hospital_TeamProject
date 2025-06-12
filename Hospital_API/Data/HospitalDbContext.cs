@@ -17,7 +17,7 @@ namespace Hospital_API.Data
         public DbSet<Role> Roles { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
-        
+
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
 
@@ -30,8 +30,8 @@ namespace Hospital_API.Data
         public DbSet<Patient> Patients { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
-        
-        
+
+
         public DbSet<TestRequest> TestRequests { get; set; }
         public DbSet<TestResult> TestResults { get; set; }
         public DbSet<WaitingList> WaitingLists { get; set; }
@@ -39,10 +39,8 @@ namespace Hospital_API.Data
         public DbSet<Prescriptions> Prescriptions { get; set; }
         public DbSet<Inventory> Inventories { get; set; }
         public DbSet<MedicalRecord> MedicalRecords { get; set; }
-        public DbSet<MedicalServiceDb> MedicalServices { get; set; }
-        public DbSet<MedicineSupplier> MedicineSuppliers { get; set; }
-        public DbSet<Medicines> Medicines { get; set; }
-        
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

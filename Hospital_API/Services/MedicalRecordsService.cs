@@ -29,7 +29,7 @@ namespace Hospital_API.Services
 
         public async Task<MedicalRecordsDTO> AddAsync(MedicalRecordsDTO dto)
         {
-            var record = new MedicalRecords
+            var record = new MedicalRecord
             {
                 AppointmentID = dto.AppointmentID,
                 Diagnosis = dto.Diagnosis,
@@ -42,7 +42,7 @@ namespace Hospital_API.Services
 
         public async Task<MedicalRecordsDTO> UpdateAsync(MedicalRecordsDTO dto)
         {
-            var record = new MedicalRecords
+            var record = new MedicalRecord
             {
                 Id = dto.Id,
                 AppointmentID = dto.AppointmentID,
@@ -60,7 +60,7 @@ namespace Hospital_API.Services
             return result == null ? null : MapToDTO(result);
         }
 
-        private MedicalRecordsDTO MapToDTO(MedicalRecords record)
+        private MedicalRecordsDTO MapToDTO(MedicalRecord record)
         {
             return new MedicalRecordsDTO
             {

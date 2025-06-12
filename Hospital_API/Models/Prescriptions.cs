@@ -11,7 +11,7 @@ namespace Hospital_API.Models
         public int MedicalRecordID { get; set; }
 
         [ForeignKey("MedicalRecordID")]
-        public MedicalRecords MedicalRecord { get; set; }
+        public MedicalRecord MedicalRecord { get; set; }
 
         public string PrescribedBy { get; set; }
         public DateTime CreatedAt { get; set; }

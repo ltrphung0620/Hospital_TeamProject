@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Hospital_API.Models
 {
-    public class MedicalRecords
+    public class MedicalRecord
     {
         [Key]
         public int Id { get; set; }

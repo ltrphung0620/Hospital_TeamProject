@@ -13,31 +13,31 @@ namespace Hospital_API.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<MedicalRecords>> GetAllAsync()
+        public async Task<IEnumerable<MedicalRecord>> GetAllAsync()
         {
             return await _context.MedicalRecords.Include(m => m.Appointment).ToListAsync();
         }
 
-        public async Task<MedicalRecords> GetByIdAsync(int id)
+        public async Task<MedicalRecord> GetByIdAsync(int id)
         {
             return await _context.MedicalRecords.Include(m => m.Appointment).FirstOrDefaultAsync(m => m.Id == id);
         }
 
-        public async Task<MedicalRecords> AddAsync(MedicalRecords record)
+        public async Task<MedicalRecord> AddAsync(MedicalRecord record)
         {
             await _context.MedicalRecords.AddAsync(record);
             await _context.SaveChangesAsync();
             return record;
         }
 
-        public async Task<MedicalRecords> UpdateAsync(MedicalRecords record)
+        public async Task<MedicalRecord> UpdateAsync(MedicalRecord record)
         {
             _context.MedicalRecords.Update(record);
             await _context.SaveChangesAsync();
             return record;
         }
 
-        public async Task<MedicalRecords> DeleteAsync(int id)
+        public async Task<MedicalRecord> DeleteAsync(int id)
         {
             var record = await _context.MedicalRecords.FindAsync(id);
             if (record != null)
