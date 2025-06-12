@@ -1,16 +1,23 @@
 using Hospital_API.Models;
+
+
+
 using Microsoft.EntityFrameworkCore;
+
 namespace Hospital_API.Data
 {
     public class HospitalDbContext : DbContext
     {
-        //contructor
         public HospitalDbContext(DbContextOptions<HospitalDbContext> options) : base(options) { }
+
+
+
         // add các Model entity
 
         public DbSet<Role> Roles { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
+
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
 
@@ -24,6 +31,16 @@ namespace Hospital_API.Data
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<Payment> Payments { get; set; }
+
+
+
+        public DbSet<TestRequest> TestRequests { get; set; }
+        public DbSet<TestResult> TestResults { get; set; }
+        public DbSet<WaitingList> WaitingLists { get; set; }
+        public DbSet<PrescriptionDetails> PrescriptionDetails { get; set; }
+        public DbSet<Prescriptions> Prescriptions { get; set; }
+        public DbSet<Inventory> Inventories { get; set; }
+        public DbSet<MedicalRecord> MedicalRecords { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
