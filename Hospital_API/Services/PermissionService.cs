@@ -1,69 +1,79 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Hospital_API.DTOs;
-using Hospital_API.Models;
 using Hospital_API.Interfaces;
+using Hospital_API.Models;
 
 namespace Hospital_API.Services
 {
     public class PermissionService : IPermissionService
     {
-        private readonly IPermissionRepository _repository;
-        public PermissionService(IPermissionRepository repository)
+        private readonly IPermissionRepository _permissionRepository;
+
+        public PermissionService(IPermissionRepository permissionRepository)
         {
-            _repository = repository;
+            _permissionRepository = permissionRepository;
         }
 
-        public async Task<IEnumerable<PermissionDTO>> GetAllAsync()
+        public async Task<List<PermissionDto>> GetAllAsync()
         {
-            var permissions = await _repository.GetAllAsync();
-            return permissions.Select(MapToDTO).ToList();
-        }
-
-        public async Task<PermissionDTO> GetByIdAsync(int id)
-        {
-            var permission = await _repository.GetByIdAsync(id);
-            return permission == null ? null : MapToDTO(permission);
-        }
-
-        public async Task<PermissionDTO> AddAsync(PermissionCreateDTO dto)
-        {
-            var permission = new Permission
+            var permissions = await _permissionRepository.GetAllAsync();
+            return permissions.Select(p => new PermissionDto
             {
-                Name = dto.Name,
-                Description = dto.Description
-            };
-            var result = await _repository.AddAsync(permission);
-            return MapToDTO(result);
+                Id = p.Id,
+                Name = p.Name,
+                Code = p.Code,
+                Description = p.Description
+            }).ToList();
         }
 
-        public async Task<PermissionDTO> UpdateAsync(PermissionDTO dto)
+        public async Task<PermissionDto?> GetByIdAsync(int id)
         {
-            var permission = new Permission
-            {
-                Id = dto.Id,
-                Name = dto.Name,
-                Description = dto.Description
-            };
-            var result = await _repository.UpdateAsync(permission);
-            return MapToDTO(result);
-        }
+            var permission = await _permissionRepository.GetByIdAsync(id);
+            if (permission == null) return null;
 
-        public async Task<PermissionDTO> DeleteAsync(int id)
-        {
-            var result = await _repository.DeleteAsync(id);
-            return result == null ? null : MapToDTO(result);
-        }
-
-        private PermissionDTO MapToDTO(Permission permission)
-        {
-            return new PermissionDTO
+            return new PermissionDto
             {
                 Id = permission.Id,
                 Name = permission.Name,
+                Code = permission.Code,
                 Description = permission.Description
             };
         }
+
+        public async Task<bool> CreateAsync(PermissionCreateDto dto)
+        {
+            var permission = new Permission
+            {
+                Name = dto.Name,
+                Code = dto.Code,
+                Description = dto.Description
+            };
+
+            await _permissionRepository.AddAsync(permission);
+            return await _permissionRepository.SaveChangesAsync();
+        }
+
+        public async Task<bool> UpdateAsync(PermmissionUpdateDTO dto)
+        {
+            var permission = await _permissionRepository.GetByIdAsync(dto.Id);
+            if (permission == null) return false;
+
+            permission.Name = dto.Name;
+            permission.Code = dto.Code;
+            permission.Description = dto.Description;
+
+            _permissionRepository.Update(permission);
+            return await _permissionRepository.SaveChangesAsync();
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var permission = await _permissionRepository.GetByIdAsync(id);
+            if (permission == null) return false;
+
+            _permissionRepository.Delete(permission);
+            return await _permissionRepository.SaveChangesAsync();
+        }
     }
+
+
 }
