@@ -39,9 +39,9 @@ namespace Hospital_API.Services
 
             }
             Console.WriteLine("Assigned role names: " + string.Join(", ", roleNames));
-            if (roleNames.Contains("Patients"))
+            if (roleNames.Contains("Patient"))
             {
-                var patient = await _repo.GetByUserIdAsync(dto.UserId);
+                var patient = await _patientRepo.GetByUserIdAsync(dto.UserId);
                 Console.WriteLine("Assigned role patient1: " + string.Join(", ", patient));
 
                 if (patient == null)

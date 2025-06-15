@@ -44,6 +44,10 @@ namespace Hospital_API.Data
         public DbSet<MedicalRecord> MedicalRecords { get; set; }
 
 
+        public DbSet<Doctor> Doctors { get; set; }
+
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
