@@ -11,5 +11,4 @@ namespace Hospital_API.Interfaces
         void Delete(Patient patient);
         Task<bool> SaveChangesAsync();
     }
-
 }

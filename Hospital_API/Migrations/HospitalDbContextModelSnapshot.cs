@@ -121,6 +121,30 @@ namespace Hospital_API.Migrations
                     b.ToTable("Doctor");
                 });
 
+            modelBuilder.Entity("Hospital_API.Models.Inventory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MedicineID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Stock")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MedicineID");
+
+                    b.ToTable("Inventories");
+                });
+
             modelBuilder.Entity("Hospital_API.Models.Invoice", b =>
                 {
                     b.Property<int>("Id")
@@ -178,6 +202,35 @@ namespace Hospital_API.Migrations
                     b.HasKey("LabTestId");
 
                     b.ToTable("LabTests");
+                });
+
+            modelBuilder.Entity("Hospital_API.Models.MedicalRecord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AppointmentID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Conclusion")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Diagnosis")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentID");
+
+                    b.ToTable("MedicalRecords");
                 });
 
             modelBuilder.Entity("Hospital_API.Models.MedicalServiceDb", b =>
@@ -296,6 +349,37 @@ namespace Hospital_API.Migrations
                     b.ToTable("Patients");
                 });
 
+            modelBuilder.Entity("Hospital_API.Models.Payment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("InvoiceId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TransactionCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.ToTable("Payments");
+                });
+
             modelBuilder.Entity("Hospital_API.Models.Permission", b =>
                 {
                     b.Property<int>("Id")
@@ -319,6 +403,65 @@ namespace Hospital_API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Permissions");
+                });
+
+            modelBuilder.Entity("Hospital_API.Models.PrescriptionDetails", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Dosage")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Instructions")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MedicineID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PrescriptionID")
+                        .HasColumnType("int");
+
+                    b.Property<double>("Quantity")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MedicineID");
+
+                    b.HasIndex("PrescriptionID");
+
+                    b.ToTable("PrescriptionDetails");
+                });
+
+            modelBuilder.Entity("Hospital_API.Models.Prescriptions", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MedicalRecordID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PrescribedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MedicalRecordID");
+
+                    b.ToTable("Prescriptions");
                 });
 
             modelBuilder.Entity("Hospital_API.Models.Role", b =>
@@ -354,6 +497,57 @@ namespace Hospital_API.Migrations
                     b.HasIndex("PermissionId");
 
                     b.ToTable("RolePermissions");
+                });
+
+            modelBuilder.Entity("Hospital_API.Models.TestRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("LabTestID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MedicalRecordID")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LabTestID");
+
+                    b.HasIndex("MedicalRecordID");
+
+                    b.ToTable("TestRequests");
+                });
+
+            modelBuilder.Entity("Hospital_API.Models.TestResult", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Result")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ResultDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TestRequestID")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TestRequestID");
+
+                    b.ToTable("TestResults");
                 });
 
             modelBuilder.Entity("Hospital_API.Models.User", b =>
@@ -420,6 +614,31 @@ namespace Hospital_API.Migrations
                     b.ToTable("UserRoles");
                 });
 
+            modelBuilder.Entity("Hospital_API.Models.WaitingList", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AppointmentID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QueueNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentID");
+
+                    b.ToTable("WaitingLists");
+                });
+
             modelBuilder.Entity("Hospital_API.Models.Appointment", b =>
                 {
                     b.HasOne("Hospital_API.Models.Branch", "Branch")
@@ -458,12 +677,34 @@ namespace Hospital_API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Hospital_API.Models.Inventory", b =>
+                {
+                    b.HasOne("Hospital_API.Models.Medicines", "Medicine")
+                        .WithMany()
+                        .HasForeignKey("MedicineID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Medicine");
+                });
+
             modelBuilder.Entity("Hospital_API.Models.Invoice", b =>
                 {
                     b.HasOne("Hospital_API.Models.Appointment", "Appointment")
                         .WithOne("Invoice")
                         .HasForeignKey("Hospital_API.Models.Invoice", "AppointmentId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+                });
+
+            modelBuilder.Entity("Hospital_API.Models.MedicalRecord", b =>
+                {
+                    b.HasOne("Hospital_API.Models.Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentID")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Appointment");
@@ -491,6 +732,47 @@ namespace Hospital_API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Hospital_API.Models.Payment", b =>
+                {
+                    b.HasOne("Hospital_API.Models.Invoice", "Invoice")
+                        .WithMany("Payments")
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Invoice");
+                });
+
+            modelBuilder.Entity("Hospital_API.Models.PrescriptionDetails", b =>
+                {
+                    b.HasOne("Hospital_API.Models.Medicines", "Medicine")
+                        .WithMany()
+                        .HasForeignKey("MedicineID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Hospital_API.Models.Prescriptions", "Prescription")
+                        .WithMany()
+                        .HasForeignKey("PrescriptionID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Medicine");
+
+                    b.Navigation("Prescription");
+                });
+
+            modelBuilder.Entity("Hospital_API.Models.Prescriptions", b =>
+                {
+                    b.HasOne("Hospital_API.Models.MedicalRecord", "MedicalRecord")
+                        .WithMany()
+                        .HasForeignKey("MedicalRecordID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MedicalRecord");
+                });
+
             modelBuilder.Entity("Hospital_API.Models.RolePermission", b =>
                 {
                     b.HasOne("Hospital_API.Models.Permission", "Permission")
@@ -508,6 +790,36 @@ namespace Hospital_API.Migrations
                     b.Navigation("Permission");
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("Hospital_API.Models.TestRequest", b =>
+                {
+                    b.HasOne("Hospital_API.Models.LabTest", "LabTest")
+                        .WithMany()
+                        .HasForeignKey("LabTestID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Hospital_API.Models.MedicalRecord", "MedicalRecord")
+                        .WithMany()
+                        .HasForeignKey("MedicalRecordID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LabTest");
+
+                    b.Navigation("MedicalRecord");
+                });
+
+            modelBuilder.Entity("Hospital_API.Models.TestResult", b =>
+                {
+                    b.HasOne("Hospital_API.Models.TestRequest", "TestRequest")
+                        .WithMany()
+                        .HasForeignKey("TestRequestID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TestRequest");
                 });
 
             modelBuilder.Entity("Hospital_API.Models.UserRole", b =>
@@ -529,6 +841,17 @@ namespace Hospital_API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Hospital_API.Models.WaitingList", b =>
+                {
+                    b.HasOne("Hospital_API.Models.Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+                });
+
             modelBuilder.Entity("Hospital_API.Models.Appointment", b =>
                 {
                     b.Navigation("Invoice");
@@ -542,6 +865,11 @@ namespace Hospital_API.Migrations
             modelBuilder.Entity("Hospital_API.Models.Doctor", b =>
                 {
                     b.Navigation("Appointments");
+                });
+
+            modelBuilder.Entity("Hospital_API.Models.Invoice", b =>
+                {
+                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("Hospital_API.Models.MedicineSupplier", b =>

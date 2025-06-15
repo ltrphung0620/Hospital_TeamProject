@@ -30,9 +30,11 @@ namespace Hospital_API.Data
         public DbSet<Patient> Patients { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
-
+<<<<<<< HEAD
+=======
         public DbSet<Payment> Payments { get; set; }
 
+>>>>>>> f4ccacdcda4f3077f85551faa9332d9597304116
 
 
         public DbSet<TestRequest> TestRequests { get; set; }
@@ -43,7 +45,10 @@ namespace Hospital_API.Data
         public DbSet<Inventory> Inventories { get; set; }
         public DbSet<MedicalRecord> MedicalRecords { get; set; }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> f4ccacdcda4f3077f85551faa9332d9597304116
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

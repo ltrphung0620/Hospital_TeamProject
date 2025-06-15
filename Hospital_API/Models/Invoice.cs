@@ -14,6 +14,8 @@ namespace Hospital_API.Models
         public DateTime CreatedAt { get; set; }
 
         public Appointment Appointment { get; set; } = null!;
+
+        public ICollection<Payment> Payments { get; set; } = new List<Payment>();
     }
 
 }
