@@ -11,11 +11,14 @@ namespace Hospital_API.Services
 
         private readonly IPatientRepository _patientRepo;
 
-        public UserRoleService(IUserRoleRepository repo, IRoleRepository roleRepo, IPatientRepository patientRepo)
+        private readonly IDoctorRepository _doctorRepo;
+
+        public UserRoleService(IUserRoleRepository repo, IRoleRepository roleRepo, IPatientRepository patientRepo, IDoctorRepository docterRepo)
         {
             _repo = repo;
             _roleRepo = roleRepo;
             _patientRepo = patientRepo;
+            _doctorRepo = docterRepo;
         }
 
         public async Task<bool> AssignRolesAsync(AssignRolesDto dto)
@@ -38,15 +41,12 @@ namespace Hospital_API.Services
                 if (role != null) roleNames.Add(role.Name);
 
             }
-            Console.WriteLine("Assigned role names: " + string.Join(", ", roleNames));
             if (roleNames.Contains("Patient"))
             {
                 var patient = await _patientRepo.GetByUserIdAsync(dto.UserId);
-                Console.WriteLine("Assigned role patient1: " + string.Join(", ", patient));
 
                 if (patient == null)
                 {
-                    Console.WriteLine("Assigned role patient: " + string.Join(", ", patient));
 
                     await _patientRepo.AddAsync(new Patient
                     {
@@ -54,6 +54,22 @@ namespace Hospital_API.Services
                         InsuranceCode = "",
                         Address = "",
                         EmergencyContact = ""
+                    });
+                }
+            }
+            if (roleNames.Contains("Doctor"))
+            {
+                var doctor = await _doctorRepo.GetByUserIdAsync(dto.UserId);
+
+                if (doctor == null)
+                {
+
+                    await _doctorRepo.AddAsync(new Doctor
+                    {
+                        UserId = dto.UserId,
+                        Specialization = "",
+                        Degree = "",
+                        YearOfExperience = 0
                     });
                 }
             }

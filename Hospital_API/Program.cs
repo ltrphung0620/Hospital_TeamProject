@@ -14,6 +14,21 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Thêm dịch vụ CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowMyFrontend",
+        policyBuilder =>
+        {
+            policyBuilder.WithOrigins("http://localhost:5173") // Cổng frontend của bạn
+                         .AllowAnyHeader()
+                         .AllowAnyMethod();
+        });
+});
+
+
+
+
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddControllers();
@@ -173,6 +188,8 @@ if (app.Environment.IsDevelopment())
 
 }
 
+// Sử dụng CORS - đặt trước UseAuthentication/UseAuthorization
+app.UseCors("AllowMyFrontend");
 
 // Use Authentication & Authorization
 app.UseAuthentication();

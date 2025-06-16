@@ -118,7 +118,7 @@ namespace Hospital_API.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Doctor");
+                    b.ToTable("Doctors");
                 });
 
             modelBuilder.Entity("Hospital_API.Models.Inventory", b =>
