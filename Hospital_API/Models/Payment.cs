@@ -13,3 +13,6 @@ namespace Hospital_API.Models
         public Invoice Invoice { get; set; } = null!;
     }
 }
+
+
+

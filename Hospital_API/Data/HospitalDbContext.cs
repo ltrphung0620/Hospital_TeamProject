@@ -33,8 +33,6 @@ namespace Hospital_API.Data
 
         public DbSet<Payment> Payments { get; set; }
 
-
-
         public DbSet<TestRequest> TestRequests { get; set; }
         public DbSet<TestResult> TestResults { get; set; }
         public DbSet<WaitingList> WaitingLists { get; set; }
@@ -113,11 +111,11 @@ namespace Hospital_API.Data
                     .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Payment>()
-.HasOne(p => p.Invoice)
-.WithMany(i => i.Payments)
-.HasForeignKey(p => p.InvoiceId)
-.OnDelete(DeleteBehavior.Cascade);
-        }
+                    .HasOne(p => p.Invoice)
+                    .WithMany(i => i.Payments)
+                    .HasForeignKey(p => p.InvoiceId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                            }
 
 
 
