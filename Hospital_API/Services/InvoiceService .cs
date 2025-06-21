@@ -1,16 +1,22 @@
+using Hospital_API.Data;
 using Hospital_API.DTOs;
 using Hospital_API.Interfaces;
 using Hospital_API.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Hospital_API.Services
 {
     public class InvoiceService : IInvoiceService
     {
         private readonly IInvoiceRepository _repo;
+        private readonly HospitalDbContext _context;
 
-        public InvoiceService(IInvoiceRepository repo)
+
+        public InvoiceService(IInvoiceRepository repo,HospitalDbContext context)
         {
             _repo = repo;
+            _context = context;
+
         }
 
         public async Task<IEnumerable<InvoiceDTO>> GetAllAsync()
@@ -33,12 +39,23 @@ namespace Hospital_API.Services
 
         public async Task<InvoiceDTO> CreateAsync(InvoiceCreateDTO dto)
         {
+            // Lấy thông tin Appointment kèm theo PatientId
+            var appointment = await _context.Appointments
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.Id == dto.AppointmentId);
+
+            if (appointment == null)
+                throw new Exception("Appointment not found");
+
+
             var invoice = new Invoice
             {
                 AppointmentId = dto.AppointmentId,
+                PatientId = appointment.PatientId, 
                 TotalAmount = dto.TotalAmount,
-                Status = dto.Status,
+                Status = string.IsNullOrEmpty(dto.Status) ? "Unpaid" : dto.Status,
                 Note = dto.Note,
+                IssuedDate = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow
             };
 

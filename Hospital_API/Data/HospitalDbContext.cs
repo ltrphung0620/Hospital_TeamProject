@@ -43,6 +43,14 @@ namespace Hospital_API.Data
 
 
         public DbSet<Doctor> Doctors { get; set; }
+        public DbSet<Room> Rooms { get; set; }
+
+        public DbSet<InvoiceDetail> InvoiceDetails { get; set; }
+
+        public DbSet<DoctorSchedule> DoctorSchedules { get; set; }
+        public DbSet<RevenueReport> RevenueReports { get; set; }
+
+
 
 
 
@@ -77,14 +85,14 @@ namespace Hospital_API.Data
                 .HasForeignKey(rp => rp.PermissionId);
 
             modelBuilder.Entity<Patient>()
-            .HasOne(p => p.User)
-            .WithOne(u => u.Patient)
-            .HasForeignKey<Patient>(p => p.UserId);
+                .HasOne(p => p.User)
+                .WithOne(u => u.Patient)
+                .HasForeignKey<Patient>(p => p.UserId);
 
             modelBuilder.Entity<Doctor>()
-          .HasOne(p => p.User)
-          .WithOne(u => u.Doctor)
-          .HasForeignKey<Doctor>(p => p.UserId);
+                .HasOne(p => p.User)
+                .WithOne(u => u.Doctor)
+                .HasForeignKey<Doctor>(p => p.UserId);
 
             modelBuilder.Entity<Appointment>()
                 .HasOne(a => a.Patient)
@@ -115,9 +123,33 @@ namespace Hospital_API.Data
                     .WithMany(i => i.Payments)
                     .HasForeignKey(p => p.InvoiceId)
                     .OnDelete(DeleteBehavior.Cascade);
-                            }
 
 
+            modelBuilder.Entity<Invoice>()
+            .HasMany(i => i.InvoiceDetails)
+            .WithOne(d => d.Invoice)
+            .HasForeignKey(d => d.InvoiceId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DoctorSchedule>()
+            .HasOne(ds => ds.Doctor)
+            .WithMany(d => d.Schedules)
+            .HasForeignKey(ds => ds.DoctorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DoctorSchedule>()
+            .HasOne(ds => ds.Room)
+            .WithMany(r => r.DoctorSchedules)
+            .HasForeignKey(ds => ds.RoomId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RevenueReport>()
+            .HasOne(r => r.Branch)
+            .WithMany()
+            .HasForeignKey(r => r.BranchId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        }
 
     }
 }
