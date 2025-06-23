@@ -14,6 +14,21 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Thêm dịch vụ CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowMyFrontend",
+        policyBuilder =>
+        {
+            policyBuilder.WithOrigins("http://localhost:5173") // Cổng frontend của bạn
+                         .AllowAnyHeader()
+                         .AllowAnyMethod();
+        });
+});
+
+
+
+
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddControllers();
@@ -156,6 +171,18 @@ builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
+builder.Services.AddScoped<IDoctorService, DoctorService>();
+builder.Services.AddScoped<IInvoiceDetailService, InvoiceDetailService>();
+builder.Services.AddScoped<IInvoiceDetailRepository, InvoiceDetailRepository>();
+builder.Services.AddScoped<IDoctorScheduleRepository, DoctorScheduleRepository>();
+builder.Services.AddScoped<IDoctorScheduleService, DoctorScheduleService>();
+builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+builder.Services.AddScoped<IRoomService, RoomService>();
+
 
 var app = builder.Build();
 
@@ -168,6 +195,8 @@ if (app.Environment.IsDevelopment())
 
 }
 
+// Sử dụng CORS - đặt trước UseAuthentication/UseAuthorization
+app.UseCors("AllowMyFrontend");
 
 // Use Authentication & Authorization
 app.UseAuthentication();

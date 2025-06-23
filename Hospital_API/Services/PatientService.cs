@@ -42,6 +42,21 @@ namespace Hospital_API.Services
                 EmergencyContact = p.EmergencyContact
             };
         }
+        public async Task<PatientResponse?> GetByUserIdAsync(int userId)
+        {
+            var p = await _repo.GetByUserIdAsync(userId);
+            if (p == null) return null;
+
+            return new PatientResponse
+            {
+                Id = p.Id,
+                UserId = p.UserId,
+                FullName = p.User.FullName,
+                InsuranceCode = p.InsuranceCode,
+                Address = p.Address,
+                EmergencyContact = p.EmergencyContact
+            };
+        }
 
         public async Task<bool> CreateAsync(PatientCreateDTO dto)
         {

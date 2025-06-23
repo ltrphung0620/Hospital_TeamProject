@@ -28,6 +28,14 @@ namespace Hospital_API.Controllers
             var result = await _service.GetByIdAsync(id);
             return result != null ? Ok(result) : NotFound();
         }
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetByUserId(int userId)
+        {
+            var patient = await _service.GetByUserIdAsync(userId);
+            if (patient == null) return NotFound("Patient not found");
+
+            return Ok(patient);
+        }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] PatientCreateDTO dto)
