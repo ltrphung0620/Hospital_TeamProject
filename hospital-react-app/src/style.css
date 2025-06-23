@@ -88,8 +88,8 @@ CSS STRUCTURE:
 
 /* Fonts */
 :root {
-  --body-font: "Poppins", sans-serif;
-  --heading-font: "Poppins", sans-serif;
+  --body-font: "Quicksand", sans-serif;
+  --heading-font: "Quicksand", sans-serif;
 }
 
 /*----------------------------------------------*/
@@ -113,7 +113,7 @@ html {
 body {
   font-family: var(--body-font);
   font-size: 17px;
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.6;
   color: var(--accent-color);
   margin: 0;
@@ -132,6 +132,7 @@ a {
 
 a:hover {
   color: var(--primary-color);
+  text-decoration: none;
 }
 
 a.light {
