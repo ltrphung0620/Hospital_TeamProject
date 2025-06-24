@@ -1,7 +1,59 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const RegisterPage = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+    confirmPassword: '',
+    fullName: '',
+    email: '',
+    phone: '',
+    gender: 'Other',
+    dateOfBirth: '',
+  });
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Passwords do not match.');
+      return;
+    }
+
+    try {
+      const dataToSend = {
+        username: formData.username,
+        password: formData.password,
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        gender: formData.gender,
+        dateOfBirth: formData.dateOfBirth,
+      };
+
+      await axios.post('http://localhost:5247/api/User', dataToSend);
+
+      toast.success('Registration successful! Redirecting to login page...');
+      setTimeout(() => {
+        navigate('/login');
+      }, 3000);
+
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || 'Registration failed. Please try again.';
+      toast.error(errorMessage);
+      console.error('Registration error:', err);
+    }
+  };
+
   return (
     <>
       <section id="intro" style={{ backgroundColor: "#E8F0F1" }}>
@@ -20,52 +72,109 @@ const RegisterPage = () => {
       <section className="contact-us-wrap py-5 mt-5">
         <div className="container">
           <div className="row justify-content-center">
-            <div className="col-md-6">
+            <div className="col-md-8">
               <div className="page-content">
                 <div className="contact-form">
-                  <form name="register-form" action="#" method="post" className="form-group">
+                  <form name="register-form" onSubmit={handleSubmit} className="form-group">
                     <div className="row">
-                      <div className="col-md-12 mb-3">
+                      <div className="col-md-6 mb-3">
                         <input
                           type="text"
-                          name="name"
-                          placeholder="Your Name *"
+                          name="username"
+                          placeholder="Username *"
                           className="form-control"
+                          value={formData.username}
+                          onChange={handleInputChange}
                           required
                         />
                       </div>
-                    </div>
-                    <div className="row">
-                      <div className="col-md-12 mb-3">
+                      <div className="col-md-6 mb-3">
                         <input
-                          type="email"
-                          name="email"
-                          placeholder="Your Email *"
+                          type="text"
+                          name="fullName"
+                          placeholder="Full Name *"
                           className="form-control"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="row">
-                      <div className="col-md-12 mb-3">
-                        <input
-                          type="password"
-                          name="password"
-                          placeholder="Your Password *"
-                          className="form-control"
+                          value={formData.fullName}
+                          onChange={handleInputChange}
                           required
                         />
                       </div>
                     </div>
                      <div className="row">
-                      <div className="col-md-12 mb-3">
+                      <div className="col-md-6 mb-3">
                         <input
-                          type="password"
-                          name="confirm-password"
-                          placeholder="Confirm Password *"
+                          type="email"
+                          name="email"
+                          placeholder="Your Email *"
                           className="form-control"
+                          value={formData.email}
+                          onChange={handleInputChange}
                           required
                         />
+                      </div>
+                       <div className="col-md-6 mb-3">
+                        <input
+                          type="tel"
+                          name="phone"
+                          placeholder="Phone Number *"
+                          className="form-control"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="row">
+                      <div className="col-md-6 mb-3">
+                        <input
+                          type="password"
+                          name="password"
+                          placeholder="Your Password *"
+                          className="form-control"
+                          value={formData.password}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
+                      <div className="col-md-6 mb-3">
+                        <input
+                          type="password"
+                          name="confirmPassword"
+                          placeholder="Confirm Password *"
+                          className="form-control"
+                          value={formData.confirmPassword}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="row">
+                      <div className="col-md-6 mb-3">
+                         <label htmlFor="dateOfBirth" className="form-label">Date of Birth *</label>
+                        <input
+                          type="date"
+                          id="dateOfBirth"
+                          name="dateOfBirth"
+                          className="form-control"
+                          value={formData.dateOfBirth}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
+                       <div className="col-md-6 mb-3">
+                        <label htmlFor="gender" className="form-label">Gender *</label>
+                        <select 
+                          id="gender"
+                          name="gender" 
+                          className="form-select" 
+                          value={formData.gender}
+                          onChange={handleInputChange}
+                          required
+                        >
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                        </select>
                       </div>
                     </div>
 

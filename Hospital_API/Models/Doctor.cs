@@ -13,6 +13,7 @@ namespace Hospital_API.Models
         public virtual User User { get; set; } = null!;
 
         public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+        public ICollection<DoctorSchedule> Schedules { get; set; } = new List<DoctorSchedule>();
 
     }
 }

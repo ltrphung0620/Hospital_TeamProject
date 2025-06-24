@@ -43,9 +43,9 @@ namespace Hospital_API.Services
             return new AppointmentDTO
             {
                 Id = a.Id,
-                PatientName = a.Patient.User.FullName,
-                DoctorName = a.Doctor.User.FullName,
-                BranchName = a.Branch.Name,
+                PatientName = a.Patient?.User?.FullName ?? "",
+                DoctorName = a.Doctor?.User?.FullName ?? "",
+                BranchName = a.Branch?.Name ?? "",
                 AppointmentDate = a.AppointmentDate,
                 StartTime = a.StartTime,
                 EndTime = a.EndTime,
@@ -113,15 +113,7 @@ namespace Hospital_API.Services
             return true;
         }
 
-        Task<IEnumerable<AppointmentDTO>> IAppointmentService.GetAllAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<AppointmentDTO?> IAppointmentService.GetByIdAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
+     
         public async Task<IEnumerable<AppointmentDTO>> GetByDoctorAndDateAsync(int doctorId, DateTime date)
         {
             var appointments = await _appointmentRepo.GetByDoctorAndDateAsync(doctorId, date);

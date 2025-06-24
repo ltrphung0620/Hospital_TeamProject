@@ -1,16 +1,15 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 import SvgSprite from '../SvgSprite';
 
-const Layout = () => {
+const Layout = ({ children }) => {
   return (
     <>
       <SvgSprite />
       <Header />
       <main>
-        <Outlet />
+        {children}
       </main>
       <Footer />
     </>

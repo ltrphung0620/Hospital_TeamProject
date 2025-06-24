@@ -19,7 +19,7 @@ namespace Hospital_API.Models
         public virtual Patient Patient { get; set; } = null!;
         public virtual Doctor Doctor { get; set; } = null!;
         public virtual Branch Branch { get; set; } = null!;
-        public virtual Invoice? Invoice { get; set; } // 1-1 Relationship
+        public virtual Invoice? Invoice { get; set; }
     }
 
 }
