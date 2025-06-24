@@ -1,169 +1,221 @@
 import React, { useState } from 'react';
-import { Table, Button, Modal, Form, Pagination, Image } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination, Badge } from 'react-bootstrap';
+import { FaPlus, FaEdit, FaTrash, FaUsers } from 'react-icons/fa';
 import Avatar from '../../components/common/Avatar';
 
-const UserManagementPage = () => {
-  // Sample data - in a real app, this would come from an API
-  const [users, setUsers] = useState([
-    { id: 1, name: 'Nguyễn Văn A', email: 'nguyenvana@example.com', role: 'Bác sĩ', avatar: 'https://broken.link/a.jpg' },
-    { id: 2, name: 'Trần Thị B', email: 'tranthib@example.com', role: 'Bệnh nhân', avatar: null },
-    { id: 3, name: 'Lê Văn C', email: 'levanc@example.com', role: 'Lễ tân', avatar: 'https://via.placeholder.com/150' },
-    { id: 4, name: 'Phạm Thị D', email: 'phamthid@example.com', role: 'Bệnh nhân', avatar: null },
-    { id: 5, name: 'Hoàng Văn E', email: 'hoangvane@example.com', role: 'Bác sĩ', avatar: null },
-    { id: 6, name: 'Vũ Thị F', email: 'vuthif@example.com', role: 'Y tá', avatar: 'https://another.broken.link/f.png' },
-    { id: 7, name: 'Đặng Văn G', email: 'dangvang@example.com', role: 'Bệnh nhân', avatar: null },
-    { id: 8, name: 'Bùi Thị H', email: 'buithih@example.com', role: 'Bác sĩ', avatar: null },
-  ]);
+// Mock data for non-doctor users
+const initialUsers = [
+  { id: 1, name: 'Admin User', email: 'admin@hospital.com', role: 'Admin', status: 'Active' },
+  { id: 2, name: 'Alice Johnson', email: 'alice.j@hospital.com', role: 'Receptionist', status: 'Active' },
+  { id: 3, name: 'Bob Williams', email: 'bob.w@hospital.com', role: 'Accountant', status: 'Inactive' },
+  { id: 4, name: 'Charlie Brown', email: 'charlie.b@hospital.com', role: 'Receptionist', status: 'Active' },
+];
 
-  // State for modal
+function UserManagementPage() {
+  const [users, setUsers] = useState(initialUsers);
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState(''); // 'add', 'edit', or 'delete'
   const [currentUser, setCurrentUser] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState(null);
 
-  // State for pagination
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const usersPerPage = 5;
+  const itemsPerPage = 10;
 
-  // Modal handlers
-  const handleShowModal = (type, user = null) => {
-    setModalType(type);
-    setCurrentUser(user);
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setCurrentUser(null);
+    setIsEditing(false);
+    setAvatarPreview(null);
+  };
+
+  const handleShowModal = (user = null) => {
+    if (user) {
+      setCurrentUser({ ...user, password: '' });
+      setIsEditing(true);
+      setAvatarPreview(user.avatar);
+    } else {
+      setCurrentUser({ name: '', email: '', password: '', role: 'Receptionist', status: 'Active', avatar: null });
+      setIsEditing(false);
+      setAvatarPreview(null);
+    }
     setShowModal(true);
   };
-  const handleCloseModal = () => setShowModal(false);
 
-  // CRUD operations
-  const handleAddUser = (user) => {
-    setUsers([...users, { ...user, id: users.length + 1 }]);
+  const handleSave = () => {
+    if (isEditing) {
+      setUsers(users.map(u => (u.id === currentUser.id ? currentUser : u)));
+    } else {
+      const newUser = { ...currentUser, id: Math.max(...users.map(u => u.id), 0) + 1 };
+      setUsers([...users, newUser]);
+    }
     handleCloseModal();
   };
 
-  const handleEditUser = (updatedUser) => {
-    setUsers(users.map(u => (u.id === updatedUser.id ? updatedUser : u)));
-    handleCloseModal();
+  const handleDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      setUsers(users.filter(u => u.id !== id));
+    }
   };
 
-  const handleDeleteUser = () => {
-    setUsers(users.filter(u => u.id !== currentUser.id));
-    handleCloseModal();
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setCurrentUser(prev => ({ ...prev, [name]: value }));
+  };
+
+   const handleAvatarChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const newAvatarUrl = URL.createObjectURL(file);
+      setAvatarPreview(newAvatarUrl);
+      setCurrentUser(prev => ({ ...prev, avatar: newAvatarUrl }));
+    }
   };
   
   // Pagination logic
-  const indexOfLastUser = currentPage * usersPerPage;
-  const indexOfFirstUser = indexOfLastUser - usersPerPage;
-  const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
-  const totalPages = Math.ceil(users.length / usersPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = users.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(users.length / itemsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'Active': return <Badge bg="success">Active</Badge>;
+      case 'Inactive': return <Badge bg="danger">Inactive</Badge>;
+      default: return <Badge bg="secondary">{status}</Badge>;
+    }
+  };
+
   return (
-    <div>
-      <div className="admin-header d-flex justify-content-between align-items-center">
-        <h1>Quản lý Người dùng</h1>
-        <Button variant="primary" onClick={() => handleShowModal('add')}>
-          Thêm người dùng
-        </Button>
-      </div>
-      <div className="admin-card">
-        <Table striped bordered hover responsive>
-          <thead>
-            <tr>
-              <th className="text-center">Avatar</th>
-              <th>Tên</th>
-              <th>Email</th>
-              <th>Vai trò</th>
-              <th className="text-center">Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentUsers.map(user => (
-              <tr key={user.id}>
-                <td className="text-center" style={{ verticalAlign: 'middle' }}>
-                  <Avatar src={user.avatar} name={user.name} />
-                </td>
-                <td style={{ verticalAlign: 'middle' }}>{user.name}</td>
-                <td style={{ verticalAlign: 'middle' }}>{user.email}</td>
-                <td style={{ verticalAlign: 'middle' }}>{user.role}</td>
-                <td className="text-center" style={{ verticalAlign: 'middle' }}>
-                  <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleShowModal('edit', user)}>Sửa</Button>
-                  <Button variant="outline-danger" size="sm" onClick={() => handleShowModal('delete', user)}>Xóa</Button>
-                </td>
+    <Container fluid className="p-4">
+      <Row className="mb-4">
+        <Col>
+          <h2 className="admin-page-title">
+            <FaUsers className="me-2" /> User Management
+          </h2>
+          <p className="text-muted">
+            Manage staff accounts (e.g., Admin, Receptionist). To manage doctors, please use the "Doctor Management" page.
+          </p>
+        </Col>
+      </Row>
+
+      <Card className="admin-card">
+        <Card.Header className="d-flex justify-content-between align-items-center">
+          <span>Staff List</span>
+          <Button variant="primary" onClick={() => handleShowModal()}>
+            <FaPlus className="me-2" /> Add User
+          </Button>
+        </Card.Header>
+        <Card.Body>
+          <Table responsive hover className="admin-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
-
+            </thead>
+            <tbody>
+              {currentItems.map((user, index) => (
+                <tr key={user.id}>
+                  <td>{indexOfFirstItem + index + 1}</td>
+                  <td>
+                    <div className="d-flex align-items-center">
+                      <Avatar src={user.avatar} name={user.name} />
+                      <span className='ms-2'>{user.name}</span>
+                    </div>
+                  </td>
+                  <td>{user.email}</td>
+                  <td>{user.role}</td>
+                  <td>{getStatusBadge(user.status)}</td>
+                  <td>
+                    <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleShowModal(user)}>
+                      <FaEdit />
+                    </Button>
+                    <Button variant="outline-danger" size="sm" onClick={() => handleDelete(user.id)}>
+                      <FaTrash />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </Card.Body>
         {totalPages > 1 && (
-            <Pagination className="justify-content-center">
-                {[...Array(totalPages).keys()].map(number => (
-                    <Pagination.Item key={number + 1} active={number + 1 === currentPage} onClick={() => paginate(number + 1)}>
-                        {number + 1}
-                    </Pagination.Item>
-                ))}
+          <Card.Footer>
+            <Pagination className="justify-content-center mb-0">
+              {Array.from({ length: totalPages }, (_, i) => (
+                <Pagination.Item key={i + 1} active={i + 1 === currentPage} onClick={() => paginate(i + 1)}>
+                  {i + 1}
+                </Pagination.Item>
+              ))}
             </Pagination>
+          </Card.Footer>
         )}
-
-      </div>
+      </Card>
 
       {/* Add/Edit Modal */}
-      <UserFormModal show={showModal && (modalType === 'add' || modalType === 'edit')} type={modalType} user={currentUser} onClose={handleCloseModal} onSave={modalType === 'add' ? handleAddUser : handleEditUser} />
-
-      {/* Delete Confirmation Modal */}
-      <Modal show={showModal && modalType === 'delete'} onHide={handleCloseModal}>
+      <Modal show={showModal} onHide={handleCloseModal} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Xác nhận xóa</Modal.Title>
+          <Modal.Title>{isEditing ? 'Edit User' : 'Add New User'}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          Bạn có chắc chắn muốn xóa người dùng <strong>{currentUser?.name}</strong>?
+          <Form>
+            <Form.Group className="mb-3 text-center">
+                <Avatar src={avatarPreview} name={currentUser?.name} size={100} />
+                <Form.Control type="file" name="avatar" onChange={handleAvatarChange} className="mt-3" accept="image/*" />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Full Name</Form.Label>
+              <Form.Control type="text" name="name" value={currentUser?.name || ''} onChange={handleChange} placeholder="Enter full name" />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Email Address</Form.Label>
+              <Form.Control type="email" name="email" value={currentUser?.email || ''} onChange={handleChange} placeholder="Enter email" />
+            </Form.Group>
+             <Form.Group className="mb-3">
+                <Form.Label>Password</Form.Label>
+                <Form.Control type="password" name="password" value={currentUser?.password || ''} onChange={handleChange} placeholder={isEditing ? 'Leave blank to keep current password' : 'Enter password'} />
+            </Form.Group>
+            <Row>
+              <Col>
+                <Form.Group className="mb-3">
+                  <Form.Label>Role</Form.Label>
+                  <Form.Select name="role" value={currentUser?.role || ''} onChange={handleChange}>
+                    <option value="Admin">Admin</option>
+                    <option value="Receptionist">Receptionist</option>
+                    <option value="Accountant">Accountant</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col>
+                 <Form.Group className="mb-3">
+                  <Form.Label>Status</Form.Label>
+                  <Form.Select name="status" value={currentUser?.status || 'Active'} onChange={handleChange}>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+          </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>Hủy</Button>
-          <Button variant="danger" onClick={handleDeleteUser}>Xóa</Button>
+          <Button variant="secondary" onClick={handleCloseModal}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleSave}>
+            {isEditing ? 'Save Changes' : 'Add User'}
+          </Button>
         </Modal.Footer>
       </Modal>
-    </div>
+    </Container>
   );
-};
-
-const UserFormModal = ({ show, type, user, onClose, onSave }) => {
-    const [formData, setFormData] = useState({});
-    const [avatarPreview, setAvatarPreview] = useState(null);
-
-    React.useEffect(() => {
-        const initialData = { id: user?.id || null, name: user?.name || '', email: user?.email || '', role: user?.role || 'Bệnh nhân', avatar: user?.avatar || null };
-        setFormData(initialData);
-        setAvatarPreview(initialData.avatar);
-    }, [user, show]);
-
-    const handleAvatarChange = (e) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            const newAvatarUrl = URL.createObjectURL(file);
-            setAvatarPreview(newAvatarUrl);
-            setFormData({ ...formData, avatar: newAvatarUrl });
-        }
-    };
-
-    const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-    const handleSubmit = (e) => { e.preventDefault(); onSave(formData); };
-
-    return (
-        <Modal show={show} onHide={onClose}>
-            <Modal.Header closeButton><Modal.Title>{type === 'add' ? 'Thêm người dùng mới' : 'Cập nhật thông tin'}</Modal.Title></Modal.Header>
-            <Form onSubmit={handleSubmit}>
-                <Modal.Body>
-                    <Form.Group className="mb-3 text-center">
-                        <Avatar src={avatarPreview} name={formData.name} size={120} />
-                        <Form.Control type="file" name="avatar" onChange={handleAvatarChange} className="mt-3" accept="image/*" />
-                    </Form.Group>
-                    <Form.Group className="mb-3"><Form.Label>Tên</Form.Label><Form.Control type="text" name="name" value={formData.name} onChange={handleChange} required /></Form.Group>
-                    <Form.Group className="mb-3"><Form.Label>Email</Form.Label><Form.Control type="email" name="email" value={formData.email} onChange={handleChange} required /></Form.Group>
-                    <Form.Group className="mb-3"><Form.Label>Vai trò</Form.Label><Form.Select name="role" value={formData.role} onChange={handleChange}><option>Bệnh nhân</option><option>Bác sĩ</option><option>Y tá</option><option>Lễ tân</option></Form.Select></Form.Group>
-                </Modal.Body>
-                <Modal.Footer><Button variant="secondary" onClick={onClose}>Đóng</Button><Button variant="primary" type="submit">Lưu thay đổi</Button></Modal.Footer>
-            </Form>
-        </Modal>
-    );
-};
+}
 
 export default UserManagementPage;
