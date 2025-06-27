@@ -721,6 +721,12 @@ namespace Hospital_API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ResetToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ResetTokenExpired")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Token")
                         .HasColumnType("nvarchar(max)");
 

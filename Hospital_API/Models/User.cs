@@ -13,6 +13,8 @@ namespace Hospital_API.Models
         public string Gender { get; set; } = null!;
         public DateTime DateOfBirth { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string? ResetToken { get; set; }
+        public DateTime? ResetTokenExpired { get; set; }
 
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 
