@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { toast } from 'react-toastify';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-    confirmPassword: '',
-    fullName: '',
-    email: '',
-    phone: '',
-    gender: 'Other',
-    dateOfBirth: '',
+    username: "",
+    password: "",
+    confirmPassword: "",
+    fullName: "",
+    email: "",
+    phone: "",
+    gender: "Other",
+    dateOfBirth: "",
   });
 
   const handleInputChange = (event) => {
@@ -25,7 +25,7 @@ const RegisterPage = () => {
     event.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match.');
+      toast.error("Passwords do not match.");
       return;
     }
 
@@ -40,17 +40,17 @@ const RegisterPage = () => {
         dateOfBirth: formData.dateOfBirth,
       };
 
-      await axios.post('http://localhost:5247/api/User', dataToSend);
+      await axios.post("http://localhost:5247/api/Auth/register", dataToSend);
 
-      toast.success('Registration successful! Redirecting to login page...');
+      toast.success("Registration successful! Redirecting to login page...");
       setTimeout(() => {
-        navigate('/login');
+        navigate("/login");
       }, 3000);
-
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Registration failed. Please try again.';
+      const errorMessage =
+        err.response?.data?.message || "Registration failed. Please try again.";
       toast.error(errorMessage);
-      console.error('Registration error:', err);
+      console.error("Registration error:", err);
     }
   };
 
@@ -61,7 +61,9 @@ const RegisterPage = () => {
           <div className="banner-content padding-large">
             <h1 className="display-3 fw-bold text-dark">Register</h1>
             <span className="item">
-              <Link to="/" className="">Home</Link>
+              <Link to="/" className="">
+                Home
+              </Link>
             </span>{" "}
             &nbsp; <span className="">/</span> &nbsp;
             <span className="item">Register</span>
@@ -75,7 +77,11 @@ const RegisterPage = () => {
             <div className="col-md-8">
               <div className="page-content">
                 <div className="contact-form">
-                  <form name="register-form" onSubmit={handleSubmit} className="form-group">
+                  <form
+                    name="register-form"
+                    onSubmit={handleSubmit}
+                    className="form-group"
+                  >
                     <div className="row">
                       <div className="col-md-6 mb-3">
                         <input
@@ -100,7 +106,7 @@ const RegisterPage = () => {
                         />
                       </div>
                     </div>
-                     <div className="row">
+                    <div className="row">
                       <div className="col-md-6 mb-3">
                         <input
                           type="email"
@@ -112,7 +118,7 @@ const RegisterPage = () => {
                           required
                         />
                       </div>
-                       <div className="col-md-6 mb-3">
+                      <div className="col-md-6 mb-3">
                         <input
                           type="tel"
                           name="phone"
@@ -150,7 +156,9 @@ const RegisterPage = () => {
                     </div>
                     <div className="row">
                       <div className="col-md-6 mb-3">
-                         <label htmlFor="dateOfBirth" className="form-label">Date of Birth *</label>
+                        <label htmlFor="dateOfBirth" className="form-label">
+                          Date of Birth *
+                        </label>
                         <input
                           type="date"
                           id="dateOfBirth"
@@ -161,12 +169,14 @@ const RegisterPage = () => {
                           required
                         />
                       </div>
-                       <div className="col-md-6 mb-3">
-                        <label htmlFor="gender" className="form-label">Gender *</label>
-                        <select 
+                      <div className="col-md-6 mb-3">
+                        <label htmlFor="gender" className="form-label">
+                          Gender *
+                        </label>
+                        <select
                           id="gender"
-                          name="gender" 
-                          className="form-select" 
+                          name="gender"
+                          className="form-select"
                           value={formData.gender}
                           onChange={handleInputChange}
                           required
@@ -179,14 +189,18 @@ const RegisterPage = () => {
                     </div>
 
                     <div className="d-grid">
-                      <button className="btn btn-primary btn-pill btn-lg mt-3" type="submit">
+                      <button
+                        className="btn btn-primary btn-pill btn-lg mt-3"
+                        type="submit"
+                      >
                         Register
                       </button>
                     </div>
                   </form>
                   <div className="text-center mt-3">
                     <p>
-                      Already have an account? <Link to="/login">Login here</Link>
+                      Already have an account?{" "}
+                      <Link to="/login">Login here</Link>
                     </p>
                   </div>
                 </div>
@@ -199,4 +213,4 @@ const RegisterPage = () => {
   );
 };
 
-export default RegisterPage; 
+export default RegisterPage;

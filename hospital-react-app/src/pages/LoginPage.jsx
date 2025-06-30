@@ -20,7 +20,7 @@ const LoginPage = ({ navigate }) => {
     setError(null); // Clear previous errors
 
     try {
-      const response = await fetch("http://localhost:5247/api/User/login", {
+      const response = await fetch("http://localhost:5247/api/Auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -40,8 +40,10 @@ const LoginPage = ({ navigate }) => {
       console.log("Login successful:", data);
       // TODO: Store token (e.g., in localStorage or context)
       // Example: localStorage.setItem('authToken', data.token);
-      localStorage.setItem("authToken", data.token);
-      localStorage.setItem("authUsername", username);
+      localStorage.setItem("authToken", data.token.token);
+      localStorage.setItem("authUsername", data.token.username);
+      localStorage.setItem("authFullName", data.token.fullName);
+      localStorage.setItem("authRoles", JSON.stringify(data.token.roles));
       // Redirect to home page
       if (navigate) {
         navigate("/");
