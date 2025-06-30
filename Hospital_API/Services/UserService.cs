@@ -49,7 +49,8 @@ namespace Hospital_API.Services
                 Phone = dto.Phone,
                 Gender = dto.Gender,
                 DateOfBirth = dto.DateOfBirth,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                AvatarUrl = dto.AvatarUrl
             };
 
             await _userRepository.AddAsync(user);
@@ -68,6 +69,7 @@ namespace Hospital_API.Services
             user.Phone = dto.Phone;
             user.Gender = dto.Gender;
             user.DateOfBirth = dto.DateOfBirth;
+            user.AvatarUrl = dto.AvatarUrl;
 
             // Nếu cần update password, bạn có thể thêm logic ở đây (nhớ hash)
 

@@ -41,9 +41,9 @@ namespace Hospital_API.Services
             var token = GenerateJwtToken(user, roles, out DateTime expiredAt);
 
             // Optional: Lưu lại token (nếu bạn muốn quản lý token)
-            // user.Token = token;
-            // user.TokenExpired = expiredAt;
-            // _context.SaveChanges(); // Nếu bạn inject DbContext
+            user.Token = token;
+            user.TokenExpired = expiredAt;
+            await _authRepository.SaveChangesAsync(); // Nếu bạn inject DbContext
 
             return new AuthResponseDTO
             {
@@ -54,6 +54,8 @@ namespace Hospital_API.Services
                 Token = token,
                 ExpiredAt = expiredAt
             };
+
+
         }
         public async Task<bool> RegisterAsync(RegisterRequestDTO dto)
         {
@@ -105,7 +107,7 @@ namespace Hospital_API.Services
         private string GenerateJwtToken(User user, List<string> roles, out DateTime expiredAt)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]!);
+            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"]!);
             expiredAt = DateTime.UtcNow.AddHours(3); // Hoặc thời gian khác
 
             var claims = new List<Claim>
@@ -128,6 +130,8 @@ namespace Hospital_API.Services
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+
+
         }
 
         public async Task<bool> LogoutAsync(int userId)
