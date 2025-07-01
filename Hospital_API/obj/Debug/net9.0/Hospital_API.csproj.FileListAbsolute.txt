@@ -505,3 +505,9 @@ D:\Nghĩa\Hospital_Project\Hospital_Project\hospital_API\obj\Debug\net9.0\refint
 D:\Nghĩa\Hospital_Project\Hospital_Project\hospital_API\obj\Debug\net9.0\Hospital_API.pdb
 D:\Nghĩa\Hospital_Project\Hospital_Project\hospital_API\obj\Debug\net9.0\Hospital_API.genruntimeconfig.cache
 D:\Nghĩa\Hospital_Project\Hospital_Project\hospital_API\obj\Debug\net9.0\ref\Hospital_API.dll
+D:\Nghĩa\Hospital_Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\publish\web.config
+D:\Nghĩa\Hospital_Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\publish\appsettings.Development.json
+D:\Nghĩa\Hospital_Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\publish\appsettings.json
+D:\Nghĩa\Hospital_Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\publish\Hospital_API.deps.json
+D:\Nghĩa\Hospital_Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\publish\Hospital_API.runtimeconfig.json
+D:\Nghĩa\Hospital_Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\publish\Hospital_API.staticwebassets.endpoints.json

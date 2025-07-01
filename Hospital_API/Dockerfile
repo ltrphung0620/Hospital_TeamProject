@@ -14,6 +14,7 @@ COPY . .
 WORKDIR "/src/Hospital_API"
 
 # Publish the application, creating the deployable files
+RUN dotnet build "Hospital_API.csproj" -c Release --no-restore
 RUN dotnet publish "Hospital_API.csproj" -c Release -o /app/publish --no-restore
 
 # Stage 2: Create the final, smaller runtime image
