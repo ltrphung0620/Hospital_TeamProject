@@ -1,29 +1,42 @@
 # Stage 1: Build the application
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /src
+WORKDIR /app
 
-# Copy solution and project files first to leverage Docker layer caching
-COPY ["Hospital_Project.sln", "./"]
-COPY ["Hospital_API/Hospital_API.csproj", "Hospital_API/"]
+# Copy csproj and restore as distinct layers
+COPY ["Hospital_API.csproj", "./"]
+RUN dotnet restore
 
-# Restore dependencies for the entire solution
-RUN dotnet restore "Hospital_Project.sln"
+# Copy everything else and build
+COPY . ./
+RUN dotnet publish "Hospital_API.csproj" -c Release -o /app/publish
 
-# Copy the rest of the application's source code
-COPY . .
-WORKDIR "/src/Hospital_API"
-
-# Publish the application, creating the deployable files
-RUN dotnet build "Hospital_API.csproj" -c Release --no-restore
-RUN dotnet publish "Hospital_API.csproj" -c Release -o /app/publish --no-restore
-
-# Stage 2: Create the final, smaller runtime image
+# Stage 2: Create the runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-COPY --from=build /app/publish .
 
-# The convention is to use a non-privileged port inside the container
+# Install required packages for globalization support
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        locales \
+        tzdata \
+        libicu-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && locale-gen en_US.UTF-8
+
+# Set environment variables
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
+ENV TZ=Asia/Ho_Chi_Minh
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+ENV ASPNETCORE_URLS=http://+:8080
+
+# Copy the published files and configuration
+COPY --from=build /app/publish .
+COPY ["appsettings.json", "appsettings.Development.json", "./"]
+
 EXPOSE 8080
 
-# The command to run the application
+# Set the entry point
 ENTRYPOINT ["dotnet", "Hospital_API.dll"] 
