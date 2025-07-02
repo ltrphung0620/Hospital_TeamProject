@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Copy solution and project files first to leverage Docker layer caching
-COPY ["Hospital_Project.sln", "./"]
+COPY ["Hospital_Project.sln", "./"] 
 COPY ["Hospital_API/Hospital_API.csproj", "Hospital_API/"]
 
 # Restore dependencies for the entire solution
@@ -14,16 +14,18 @@ COPY . .
 WORKDIR "/src/Hospital_API"
 
 # Publish the application, creating the deployable files
-RUN dotnet build "Hospital_API.csproj" -c Release --no-restore
-RUN dotnet publish "Hospital_API.csproj" -c Release -o /app/publish --no-restore
+# Bắt buộc thêm --verbosity để hiện lỗi chi tiết
+RUN dotnet publish "Hospital_API.csproj" -c Release -o /app/publish --no-restore --verbosity normal                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+# RUN dotnet publish "Hospital_API.csproj" -c Release -o /app/publish --no-restore
 
 # Stage 2: Create the final, smaller runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
-WORKDIR /app
+WORKDIR /app                                                                                                                                                                                        
 COPY --from=build /app/publish .
 
 # The convention is to use a non-privileged port inside the container
 EXPOSE 8080
 
 # The command to run the application
-ENTRYPOINT ["dotnet", "Hospital_API.dll"] 
+ENTRYPOINT ["dotnet", "Hospital_API.dll"]               

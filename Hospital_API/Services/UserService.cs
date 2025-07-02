@@ -23,7 +23,7 @@ namespace Hospital_API.Services
             _roleRepository = roleRepository;
             _configuration = configuration;
         }
-      
+
 
         public async Task<UserResponse?> GetByIdAsync(int id)
         {
@@ -44,7 +44,7 @@ namespace Hospital_API.Services
             if (await _userRepository.ExistsByUsernameAsync(dto.Username))
                 throw new Exception("Username already exists");
 
-              var role = await _roleRepository.GetByIdAsync(dto.RoleId);
+            var role = await _roleRepository.GetByIdAsync(dto.RoleId);
             if (role == null)
                 throw new Exception("Role not found {dto.RoleId}");
             Console.WriteLine($"RoleId received: {dto.RoleId}");
@@ -61,6 +61,7 @@ namespace Hospital_API.Services
                 DateOfBirth = dto.DateOfBirth,
                 CreatedAt = DateTime.UtcNow,
                 AvatarUrl = dto.AvatarUrl,
+                Status = dto.Status,
                 UserRoles = new List<UserRole>{
                     new UserRole
                     {
@@ -69,26 +70,26 @@ namespace Hospital_API.Services
                 }
 
             };
-          
-             // Nếu là Patient thì mới tạo bảng Patient kèm theo
-                if (role.Name == "Patient")
+
+            // Nếu là Patient thì mới tạo bảng Patient kèm theo
+            if (role.Name == "Patient")
+            {
+                user.Patient = new Patient
                 {
-                    user.Patient = new Patient
-                    {
-                        InsuranceCode = "",
-                        Address = "",
-                        EmergencyContact = ""
-                    };
-                }
-                else if (role.Name == "Doctor")
+                    InsuranceCode = "",
+                    Address = "",
+                    EmergencyContact = ""
+                };
+            }
+            else if (role.Name == "Doctor")
+            {
+                user.Doctor = new Doctor
                 {
-                    user.Doctor = new Doctor
-                    {
-                        Specialization = "",
-                        YearOfExperience = 0
-                    };
-                }
-               
+                    Specialization = "",
+                    YearOfExperience = 0
+                };
+            }
+
 
             await _userRepository.AddAsync(user);
             await _userRepository.SaveChangesAsync();
@@ -107,6 +108,7 @@ namespace Hospital_API.Services
             user.Gender = dto.Gender;
             user.DateOfBirth = dto.DateOfBirth;
             user.AvatarUrl = dto.AvatarUrl;
+            user.Status = dto.Status;
 
             // Nếu cần update password, bạn có thể thêm logic ở đây (nhớ hash)
 
