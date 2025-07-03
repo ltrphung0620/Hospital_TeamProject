@@ -1,21 +1,10 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination, Badge } from 'react-bootstrap';
 import { FaPlus, FaEdit, FaEye, FaVial } from 'react-icons/fa';
-
-// Mock Data
-const initialRequests = [
-  { id: 1, medicalRecordId: 1, patientName: 'Peter Jones', testName: 'Complete Blood Count (CBC)', requestedAt: '2024-07-20T10:05:00Z', status: 'Completed' },
-  { id: 2, medicalRecordId: 2, patientName: 'Mary White', testName: 'Lipid Panel', requestedAt: '2024-07-21T11:35:00Z', status: 'Pending' },
-  { id: 3, medicalRecordId: 2, patientName: 'Mary White', testName: 'Thyroid Stimulating Hormone (TSH)', requestedAt: '2024-07-21T11:35:00Z', status: 'Pending' },
-  { id: 4, medicalRecordId: 3, patientName: 'Peter Jones', testName: 'Urinalysis', requestedAt: '2024-07-28T09:20:00Z', status: 'Completed' },
-];
-
-// In a real app, these would be fetched from the API
-const mockPatients = [{id: 1, name: 'Peter Jones'}, {id: 2, name: 'Mary White'}];
-const mockLabTests = [{id: 1, name: 'Complete Blood Count (CBC)'}, {id: 2, name: 'Lipid Panel'}, {id: 3, name: 'Thyroid Stimulating Hormone (TSH)'}, {id: 4, name: 'Urinalysis'}];
+import { mockTestRequests, mockLabTests } from '../../data/mockServiceData';
 
 function TestRequestManagementPage() {
-  const [requests, setRequests] = useState(initialRequests);
+  const [requests, setRequests] = useState(mockTestRequests);
   const [showModal, setShowModal] = useState(false);
   const [currentRequest, setCurrentRequest] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -33,7 +22,6 @@ function TestRequestManagementPage() {
     if(request) {
         setCurrentRequest({ ...request });
     } else {
-        // Mock data for a new request form
         setCurrentRequest({ patientName: '', testName: '', status: 'Pending'});
     }
     setIsEditing(editMode);
@@ -136,17 +124,28 @@ function TestRequestManagementPage() {
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>Patient</Form.Label>
-              <Form.Select name="patientName" value={currentRequest?.patientName || ''} onChange={handleChange} disabled={isEditing}>
-                 <option value="" disabled>Select Patient</option>
-                {mockPatients.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
-              </Form.Select>
+              <Form.Label>Patient Name</Form.Label>
+              <Form.Control 
+                type="text" 
+                name="patientName" 
+                value={currentRequest?.patientName || ''} 
+                onChange={handleChange} 
+                placeholder="Enter patient name"
+                disabled={isEditing}
+              />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Lab Test</Form.Label>
-              <Form.Select name="testName" value={currentRequest?.testName || ''} onChange={handleChange} disabled={isEditing}>
+              <Form.Select 
+                name="testName" 
+                value={currentRequest?.testName || ''} 
+                onChange={handleChange} 
+                disabled={isEditing}
+              >
                 <option value="" disabled>Select Test</option>
-                {mockLabTests.map(t => <option key={t.id} value={t.name}>{t.name}</option>)}
+                {mockLabTests.map(t => (
+                  <option key={t.id} value={t.name}>{t.name}</option>
+                ))}
               </Form.Select>
             </Form.Group>
             <Form.Group className="mb-3">
