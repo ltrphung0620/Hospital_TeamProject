@@ -70,7 +70,6 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* Admin Routes */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="dashboard" element={<AdminDashboard />} />
@@ -78,19 +77,16 @@ function App() {
           <Route path="doctors" element={<DoctorManagementPage />} />
           <Route path="doctor-schedules" element={<DoctorScheduleManagementPage />} />
 
-          {/* Patient & Clinical Routes */}
           <Route path="patients" element={<PatientManagementPage />} />
           <Route path="appointments" element={<AppointmentManagementPage />} />
           <Route path="medical-records" element={<MedicalRecordManagementPage />} />
           <Route path="waiting-list" element={<WaitingListManagementPage />} />
 
-          {/* Services & Tests Routes */}
           <Route path="medical-services" element={<MedicalServiceManagementPage />} />
           <Route path="lab-tests" element={<LabTestManagementPage />} />
           <Route path="test-requests" element={<TestRequestManagementPage />} />
           <Route path="test-results" element={<TestResultManagementPage />} />
 
-          {/* Pharmacy Routes */}
           <Route path="medicines" element={<MedicineManagementPage />} />
         </Route>
       </Routes>
