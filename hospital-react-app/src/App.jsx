@@ -17,6 +17,7 @@ import TeamPage from "./pages/TeamPage";
 import ReviewPage from "./pages/ReviewPage";
 import PricingPage from "./pages/PricingPage";
 import GalleryPage from "./pages/GalleryPage";
+import AppointmentsPage from "./pages/AppointmentsPage";
 
 // Admin pages
 import AdminLayout from './components/admin/AdminLayout';
@@ -56,6 +57,7 @@ function App() {
         <Route path="/services" element={<Layout><ServicesPage /></Layout>} />
         <Route path="/departments" element={<Layout><DepartmentsPage /></Layout>} />
         <Route path="/booking" element={<Layout><BookingPage /></Layout>} />
+        <Route path="/appointments" element={<Layout><AppointmentsPage /></Layout>} />
         <Route path="/blog" element={<Layout><BlogPage /></Layout>} />
         <Route path="/blog/:id" element={<Layout><BlogSinglePage /></Layout>} />
         <Route path="/contact" element={<Layout><ContactPage /></Layout>} />
