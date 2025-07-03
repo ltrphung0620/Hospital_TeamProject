@@ -119,6 +119,11 @@ const Header = () => {
                 </NavLink>
               </li>
               <li className="nav-item ps-4 pe-4 border-right">
+                <NavLink className="nav-link text-dark p-0" to="/appointments">
+                  Appointments
+                </NavLink>
+              </li>
+              <li className="nav-item ps-4 pe-4 border-right">
                 <NavLink className="nav-link text-dark p-0" to="/team">
                   Team
                 </NavLink>
