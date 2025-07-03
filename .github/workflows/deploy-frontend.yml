@@ -49,7 +49,7 @@ jobs:
       - name: Create deployment archive
         if: steps.filter.outputs.frontend == 'true'
         run: |
-          cd build
+          cd dist
           tar -czf ../frontend-deploy.tar.gz .
 
       # Stop container and clean directory
