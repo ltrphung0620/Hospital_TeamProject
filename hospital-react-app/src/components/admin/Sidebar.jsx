@@ -35,7 +35,7 @@ const Sidebar = ({ isOpen }) => {
   const clinicalRoutes = ["/admin/patients", "/admin/appointments", "/admin/waiting-list", "/admin/medical-records"];
   const pharmacyRoutes = ["/admin/medicines"];
   const servicesRoutes = ["/admin/medical-services", "/admin/lab-tests", "/admin/test-requests", "/admin/test-results"];
-  const paymentRoutes = ["/admin/prescription-payments", "/admin/lab-test-payments"];
+  const paymentRoutes = ["/admin/prescription-payments", "/admin/lab-test-payments", "/admin/service-payments"];
 
   useEffect(() => {
     setOpen({
@@ -142,6 +142,7 @@ const Sidebar = ({ isOpen }) => {
             </div>
             <Collapse in={open.payments}>
                <ul className="admin-submenu">
+                <li><NavLink to="/admin/service-payments" className="admin-menu-link sub-link">Service Payments</NavLink></li>
                 <li><NavLink to="/admin/prescription-payments" className="admin-menu-link sub-link">Prescription Payments</NavLink></li>
                 <li><NavLink to="/admin/lab-test-payments" className="admin-menu-link sub-link">Lab Test Payments</NavLink></li>
               </ul>
