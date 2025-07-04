@@ -15,7 +15,11 @@ import { FaPlus, FaEdit, FaTrash, FaUsers } from "react-icons/fa";
 import Avatar from "../../components/common/Avatar";
 import axios from "axios";
 import { useEffect } from "react";
-import { getCurrentUserRole } from "../../utils/auth";
+import {
+  getCurrentUserRole,
+  isTokenExpired,
+  checkTokenAndProceed,
+} from "../../utils/auth";
 
 //call the API to create a new user
 const API_URL = "http://localhost:5247/api/User/create";
@@ -35,7 +39,6 @@ const fetchUsers = async () => {
 const API_URL_UPDATE = "http://localhost:5247/api/User/edit";
 export const updateUser = async (id, userData) => {
   const token = localStorage.getItem("authToken");
-
   const response = await axios.put(`${API_URL_UPDATE}/${id}`, userData, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -43,6 +46,15 @@ export const updateUser = async (id, userData) => {
   });
 
   return response.data;
+};
+
+const deleteUser = async (id) => {
+  const token = localStorage.getItem("authToken");
+  return await axios.delete(`http://localhost:5247/api/User/delete/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 };
 
 // Mock data for non-doctor users
@@ -95,36 +107,57 @@ function UserManagementPage() {
     setIsEditing(false);
     setAvatarPreview(null);
   };
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toISOString().split("T")[0]; // format: yyyy-MM-dd
+  };
 
-  const handleShowModal = (user = null) => {
-    const role = getCurrentUserRole();
-    console.log("Current role from token:", role); // ← LOG QUAN TRỌNG
-    if (user) {
-      if (role?.trim() !== "Admin") {
-        alert("Only Admins can edit users.");
-        return;
-      }
-
-      setCurrentUser({ ...user, password: "" });
-      setIsEditing(true);
-      setAvatarPreview(user.avatar);
+  const checkTokenAndProceed = async (callback) => {
+    if (isTokenExpired()) {
+      alert("Your session has expired. Please log in again.");
+      localStorage.removeItem("authToken");
+      window.location.href = "/login";
     } else {
-      setCurrentUser({
-        username: "",
-        fullname: "",
-        email: "",
-        password: "",
-        phone: "",
-        dateOfBirth: "",
-        gender: "Male",
-        role: "Receptionist",
-        status: "Active",
-        avatar: null,
-      });
-      setIsEditing(false);
-      setAvatarPreview(null);
+      await callback(); // ✅ thêm await
     }
-    setShowModal(true);
+  };
+  const handleShowModal = async (user = null) => {
+    await checkTokenAndProceed(async () => {
+      const role = getCurrentUserRole();
+      console.log("Current role from token:", role); // ← LOG QUAN TRỌNG
+      if (user) {
+        if (role?.trim() !== "Admin") {
+          alert("Only Admins can edit users.");
+          return;
+        }
+
+        setCurrentUser({
+          ...user,
+          password: "",
+          fullName: user.fullName || user.name || "",
+          dateOfBirth: formatDate(user.dateOfBirth), // ← THÊM DÒNG NÀY
+        });
+        setIsEditing(true);
+        setAvatarPreview(user.avatar);
+      } else {
+        setCurrentUser({
+          username: "",
+          fullName: "",
+          email: "",
+          password: "",
+          phone: "",
+          dateOfBirth: "",
+          gender: "Male",
+          role: roles[0]?.id || "",
+          status: "Active",
+          avatar: null,
+        });
+        setIsEditing(false);
+        setAvatarPreview(null);
+      }
+      setShowModal(true);
+    });
   };
 
   // const handleSave = () => {
@@ -136,16 +169,15 @@ function UserManagementPage() {
   //   }
   //   handleCloseModal();
   // };
-
+  const loadUsers = async () => {
+    try {
+      const data = await fetchUsers();
+      setUsers(data);
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+    }
+  };
   useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        const data = await fetchUsers();
-        setUsers(data);
-      } catch (error) {
-        console.error("Failed to fetch users:", error);
-      }
-    };
     //call API get Roles
     const fetchRoles = async () => {
       try {
@@ -161,56 +193,72 @@ function UserManagementPage() {
   }, []);
 
   const handleSave = async () => {
-    try {
-      if (isEditing) {
-        const userToUpdate = {
-          username: currentUser.username,
-          fullname: currentUser.fullname,
-          email: currentUser.email,
-          phone: currentUser.phone,
-          dateOfBirth: currentUser.dateOfBirth,
-          roleId: currentUser.role,
-          gender: currentUser.gender,
-          status: currentUser.status,
-          avatar: currentUser.avatar,
-          password: currentUser.password || null, // nếu không đổi pass thì null
-        };
+    await checkTokenAndProceed(async () => {
+      try {
+        if (isEditing) {
+          const userToUpdate = {
+            username: currentUser.username,
+            fullname: currentUser.fullName,
+            email: currentUser.email,
+            phone: currentUser.phone,
+            dateOfBirth: currentUser.dateOfBirth,
+            roleId: currentUser.role,
+            gender: currentUser.gender,
+            status: currentUser.status,
+            avatar: currentUser.avatar,
+            password: currentUser.password || null, // nếu không đổi pass thì null
+          };
 
-        const updated = await updateUser(currentUser.id, userToUpdate);
-        setUsers(users.map((u) => (u.id === currentUser.id ? updated : u)));
-      } else {
-        const userToCreate = {
-          username: currentUser.username,
-          fullname: currentUser.fullname,
-          password: currentUser.password,
-          email: currentUser.email,
-          phone: currentUser.phone,
-          dateOfBirth: currentUser.dateOfBirth,
-          roleId: currentUser.role,
-          gender: currentUser.gender,
-          status: currentUser.status,
-          avatar: currentUser.avatar,
-        };
+          const updated = await updateUser(currentUser.id, userToUpdate);
+          setUsers(users.map((u) => (u.id === currentUser.id ? updated : u)));
+          loadUsers();
+        } else {
+          const userToCreate = {
+            username: currentUser.username,
+            fullname: currentUser.fullName,
+            password: currentUser.password,
+            email: currentUser.email,
+            phone: currentUser.phone,
+            dateOfBirth: currentUser.dateOfBirth,
+            roleId: currentUser.role,
+            gender: currentUser.gender,
+            status: currentUser.status,
+            avatar: currentUser.avatar,
+          };
 
-        const createdUser = await createUser(userToCreate);
-        setUsers([...users, createdUser]);
+          const createdUser = await createUser(userToCreate);
+          setUsers([...users, createdUser]);
+          loadUsers();
+        }
+
+        handleCloseModal();
+      } catch (error) {
+        console.error("Error saving user:", error);
+        alert("Failed to save user. Please check the input and try again.");
       }
-
-      handleCloseModal();
-    } catch (error) {
-      console.error("Error saving user:", error);
-      alert("Failed to save user. Please check the input and try again.");
-    }
+    });
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      setUsers(users.filter((u) => u.id !== id));
-    }
+  const handleDelete = async (id) => {
+    await checkTokenAndProceed(async () => {
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this user?"
+      );
+      if (!confirmDelete) return;
+
+      try {
+        await deleteUser(id); // ← gọi API xóa
+        await loadUsers(); // ← tải lại danh sách từ server
+      } catch (error) {
+        console.error("Failed to delete user:", error);
+        alert("Failed to delete user. Please try again.");
+      }
+    });
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     setCurrentUser((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -356,14 +404,15 @@ function UserManagementPage() {
                 value={currentUser?.username || ""}
                 onChange={handleChange}
                 placeholder="Enter user name"
+                readOnly={isEditing}
               />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Full Name</Form.Label>
               <Form.Control
                 type="text"
-                name="fullname"
-                value={currentUser?.fullname || ""}
+                name="fullName"
+                value={currentUser?.fullName || ""}
                 onChange={handleChange}
                 placeholder="Enter full name"
               />

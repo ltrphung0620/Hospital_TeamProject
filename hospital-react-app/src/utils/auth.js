@@ -17,3 +17,25 @@ export const getCurrentUserRole = () => {
     return null;
   }
 };
+export const isTokenExpired = () => {
+  const token = localStorage.getItem("authToken");
+  if (!token) return true;
+
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const currentTime = Math.floor(Date.now() / 1000);
+    return payload.exp < currentTime;
+  } catch (error) {
+    console.error("Error checking token expiration:", error);
+    return true;
+  }
+};
+export const checkTokenAndProceed = async (callback) => {
+  if (isTokenExpired()) {
+    alert("Your session has expired. Please log in again.");
+    localStorage.removeItem("authToken");
+    window.location.href = "/login";
+  } else {
+    await callback(); // ⬅ THÊM await
+  }
+};
