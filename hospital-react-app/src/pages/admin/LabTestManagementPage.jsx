@@ -1,17 +1,10 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination } from 'react-bootstrap';
 import { FaPlus, FaEdit, FaTrash, FaFlask } from 'react-icons/fa';
-
-// Mock Data
-const initialLabTests = [
-  { id: 1, name: 'Complete Blood Count (CBC)', price: 45.00, description: 'Measures different components of blood.' },
-  { id: 2, name: 'Lipid Panel', price: 60.00, description: 'Measures cholesterol and triglyceride levels.' },
-  { id: 3, name: 'Thyroid Stimulating Hormone (TSH)', price: 75.00, description: 'Tests thyroid gland function.' },
-  { id: 4, name: 'Urinalysis', price: 30.00, description: 'Analysis of urine for various compounds.' },
-];
+import { mockLabTests } from '../../data/mockServiceData';
 
 function LabTestManagementPage() {
-  const [labTests, setLabTests] = useState(initialLabTests);
+  const [labTests, setLabTests] = useState(mockLabTests);
   const [showModal, setShowModal] = useState(false);
   const [currentTest, setCurrentTest] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -84,6 +77,7 @@ function LabTestManagementPage() {
                 <th>#</th>
                 <th>Test Name</th>
                 <th>Price</th>
+                <th>Description</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -93,6 +87,7 @@ function LabTestManagementPage() {
                   <td>{indexOfFirstItem + index + 1}</td>
                   <td>{test.name}</td>
                   <td>${test.price.toFixed(2)}</td>
+                  <td>{test.description}</td>
                   <td>
                     <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleShowModal(test)}>
                       <FaEdit />
@@ -134,7 +129,7 @@ function LabTestManagementPage() {
               <Form.Label>Price ($)</Form.Label>
               <Form.Control type="number" name="price" value={currentTest?.price || 0} onChange={handleChange} min="0" step="0.01" />
             </Form.Group>
-             <Form.Group className="mb-3">
+            <Form.Group className="mb-3">
               <Form.Label>Description</Form.Label>
               <Form.Control as="textarea" rows={3} name="description" value={currentTest?.description || ''} onChange={handleChange} placeholder="Enter a brief description of the test" />
             </Form.Group>

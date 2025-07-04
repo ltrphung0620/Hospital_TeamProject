@@ -1,24 +1,23 @@
-import { Routes, Route } from "react-router-dom";
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-import Layout from "./components/layout/Layout";
-import Home from "./pages/HomePage";
-import About from "./pages/AboutPage";
-import ServicesPage from "./pages/ServicesPage";
-import DepartmentsPage from "./pages/DepartmentsPage";
-import BookingPage from "./pages/BookingPage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import BlogPage from "./pages/BlogPage";
-import BlogSinglePage from "./pages/BlogSinglePage";
-import ContactPage from "./pages/ContactPage";
-import TeamPage from "./pages/TeamPage";
-import ReviewPage from "./pages/ReviewPage";
-import PricingPage from "./pages/PricingPage";
-import GalleryPage from "./pages/GalleryPage";
-
-// Admin pages
+import Layout from './components/layout/Layout';
+import Home from './pages/HomePage';
+import About from './pages/AboutPage';
+import ServicesPage from './pages/ServicesPage';
+import DepartmentsPage from './pages/DepartmentsPage';
+import BookingPage from './pages/BookingPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import BlogPage from './pages/BlogPage';
+import BlogSinglePage from './pages/BlogSinglePage';
+import ContactPage from './pages/ContactPage';
+import TeamPage from './pages/TeamPage';
+import ReviewPage from './pages/ReviewPage';
+import PricingPage from './pages/PricingPage';
+import GalleryPage from './pages/GalleryPage';
+import AppointmentsPage from './pages/AppointmentsPage';
 import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagementPage from './pages/admin/UserManagementPage';
@@ -33,6 +32,9 @@ import MedicalServiceManagementPage from './pages/admin/MedicalServiceManagement
 import LabTestManagementPage from './pages/admin/LabTestManagementPage';
 import TestRequestManagementPage from './pages/admin/TestRequestManagementPage';
 import TestResultManagementPage from './pages/admin/TestResultManagementPage';
+import PrescriptionPaymentPage from './pages/admin/PrescriptionPaymentPage';
+import LabTestPaymentPage from './pages/admin/LabTestPaymentPage';
+import ServicePaymentManagementPage from './pages/admin/ServicePaymentManagementPage';
 
 function App() {
   return (
@@ -50,50 +52,45 @@ function App() {
         theme="light"
       />
       <Routes>
-        {/* Frontend Routes */}
-        <Route path="/" element={<Layout><Home /></Layout>} />
-        <Route path="/about" element={<Layout><About /></Layout>} />
-        <Route path="/services" element={<Layout><ServicesPage /></Layout>} />
-        <Route path="/departments" element={<Layout><DepartmentsPage /></Layout>} />
-        <Route path="/booking" element={<Layout><BookingPage /></Layout>} />
-        <Route path="/blog" element={<Layout><BlogPage /></Layout>} />
-        <Route path="/blog/:id" element={<Layout><BlogSinglePage /></Layout>} />
-        <Route path="/contact" element={<Layout><ContactPage /></Layout>} />
-        <Route path="/team" element={<Layout><TeamPage /></Layout>} />
-        <Route path="/review" element={<Layout><ReviewPage /></Layout>} />
-        <Route path="/pricing" element={<Layout><PricingPage /></Layout>} />
-        <Route path="/gallery"element={<Layout><GalleryPage/></Layout>}/>
-
-        {/* Auth routes that shouldn't have the main layout */}
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="about" element={<About />} />
+          <Route path="services" element={<ServicesPage />} />
+          <Route path="departments" element={<DepartmentsPage />} />
+          <Route path="booking" element={<BookingPage />} />
+          <Route path="appointments" element={<AppointmentsPage />} />
+          <Route path="blog" element={<BlogPage />} />
+          <Route path="blog/:id" element={<BlogSinglePage />} />
+          <Route path="contact" element={<ContactPage />} />
+          <Route path="team" element={<TeamPage />} />
+          <Route path="review" element={<ReviewPage />} />
+          <Route path="pricing" element={<PricingPage />} />
+          <Route path="gallery" element={<GalleryPage />} />
+        </Route>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-
-        {/* Admin Routes */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="users" element={<UserManagementPage />} />
           <Route path="doctors" element={<DoctorManagementPage />} />
           <Route path="doctor-schedules" element={<DoctorScheduleManagementPage />} />
-
-          {/* Patient & Clinical Routes */}
           <Route path="patients" element={<PatientManagementPage />} />
           <Route path="appointments" element={<AppointmentManagementPage />} />
           <Route path="medical-records" element={<MedicalRecordManagementPage />} />
           <Route path="waiting-list" element={<WaitingListManagementPage />} />
-
-          {/* Services & Tests Routes */}
           <Route path="medical-services" element={<MedicalServiceManagementPage />} />
           <Route path="lab-tests" element={<LabTestManagementPage />} />
           <Route path="test-requests" element={<TestRequestManagementPage />} />
           <Route path="test-results" element={<TestResultManagementPage />} />
-
-          {/* Pharmacy Routes */}
           <Route path="medicines" element={<MedicineManagementPage />} />
+          <Route path="prescription-payments" element={<PrescriptionPaymentPage />} />
+          <Route path="lab-test-payments" element={<LabTestPaymentPage />} />
+          <Route path="service-payments" element={<ServicePaymentManagementPage />} />
         </Route>
       </Routes>
     </>
   );
 }
 
-export default App;
+export default App; 

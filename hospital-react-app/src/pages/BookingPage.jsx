@@ -1,252 +1,268 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Form, Button, Alert, Card } from 'react-bootstrap';
+import axios from 'axios';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import SubscribeSection from '../components/SubscribeSection';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
+import './BookingPage.css';
+import { branches, doctors, generateTimeSlots } from '../data/mockData';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const BookingPage = () => {
+    const [selectedDoctor, setSelectedDoctor] = useState('');
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [availableSlots, setAvailableSlots] = useState([]);
+    const [selectedSlot, setSelectedSlot] = useState(null);
+    const [note, setNote] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [pageLoading, setPageLoading] = useState(true);
+    const [selectedBranch, setSelectedBranch] = useState('');
+    const [filteredDoctors, setFilteredDoctors] = useState([]);
+    const [doctorDetails, setDoctorDetails] = useState(null);
+    
+    const navigate = useNavigate();
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+    const selectedService = searchParams.get('service');
+    const servicePrice = searchParams.get('price');
+
+    // Simulate initial loading
+    useEffect(() => {
+        setTimeout(() => {
+            setPageLoading(false);
+        }, 1500);
+    }, []);
+
+    // Filter doctors when branch is selected
+    useEffect(() => {
+        if (selectedBranch) {
+            const filtered = doctors.filter(doctor => doctor.branchId === parseInt(selectedBranch));
+            setFilteredDoctors(filtered);
+            setSelectedDoctor(''); // Reset selected doctor when branch changes
+        } else {
+            setFilteredDoctors([]);
+        }
+    }, [selectedBranch]);
+
+    // Set doctor details when doctor is selected
+    useEffect(() => {
+        if (selectedDoctor) {
+            const doctor = doctors.find(d => d.id === parseInt(selectedDoctor));
+            setDoctorDetails(doctor);
+        } else {
+            setDoctorDetails(null);
+        }
+    }, [selectedDoctor]);
+
+    // Update available slots when date or doctor changes
+    useEffect(() => {
+        if (selectedDoctor && selectedDate) {
+            setLoading(true);
+            // Simulate API call delay
+            setTimeout(() => {
+                const slots = generateTimeSlots(parseInt(selectedDoctor), selectedDate);
+                setAvailableSlots(slots);
+                setLoading(false);
+            }, 1000);
+        }
+    }, [selectedDoctor, selectedDate]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!selectedDoctor || !selectedDate || !selectedSlot || !selectedBranch) {
+            toast.warning('Please fill in all required fields');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            toast.success('Appointment booked successfully!');
+            setTimeout(() => {
+                navigate('/appointments');
+            }, 2000);
+        } catch (err) {
+            toast.error('Failed to book appointment. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (pageLoading) {
+        return <LoadingSpinner fullScreen />;
+    }
+
     return (
-        <React.Fragment>
+        <>
             <section id="intro" style={{ backgroundColor: '#E8F0F1' }}>
                 <div className="container">
                     <div className="banner-content padding-large">
                         <h1 className="display-3 fw-bold text-dark">Booking</h1>
-                        <span className="item"><Link to="/" className="">Home</Link></span> &nbsp; <span className="">/</span> &nbsp;
-                        <span className=" item">Booking</span>
+                        <span className="item"><Link to="/" className="">Home</Link></span> &nbsp; <span className="">/</span> &nbsp; <span
+                            className="item">Booking</span>
                     </div>
                 </div>
             </section>
 
-            <section id="book-appointment" className="padding-large mb-0">
-                <div className="container">
-                    <div className="row">
-                        <div className="display-header">
-                            <h2 className="display-5 fw-bold text-dark">Book Appointment or call: <span
-                                className="text-primary-500">(+487) 384 9452</span></h2>
-                        </div>
-                        <form className="contact-form d-flex flex-wrap mt-5 gx-1">
-                            <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                <select className="form-select focus-transparent border border-radius-10 ps-4" aria-invalid="false"
-                                    name="choose">
-                                    <option value="Select Your Department">Select Department </option>
-                                    <option value="Department">Department of Physiotherapy</option>
-                                    <option value="Department">Department of Dentistry</option>
-                                    <option value="Department">ENT Department</option>
-                                    <option value="Department">Department of Pharmacy</option>
-                                    <option value="Department">Nursing Department</option>
-                                </select>
-                            </div>
-                            <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                <select className="form-select focus-transparent border ps-4 border-radius-10 w-100"
-                                    aria-invalid="false" name="choose">
-                                    <option value="Select Your Doctor">Select Doctor</option>
-                                    <option value="Naidan Smith">William Davies</option>
-                                    <option value="Danial Frankie">Charlotte Taylor</option>
-                                    <option value="Jason Roy">William Jones</option>
-                                </select>
-                            </div>
+            <Container className="py-5">
+                <Row className="justify-content-center">
+                    <Col md={10}>
+                        <Card>
+                            <Card.Body>
+                                <Form onSubmit={handleSubmit}>
+                                    {selectedService && (
+                                        <Card className="mb-4">
+                                            <Card.Body>
+                                                <h5 className="mb-3">Selected Service Package</h5>
+                                                <div className="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <h6 className="text-capitalize mb-2">{selectedService} Package</h6>
+                                                        <p className="text-muted mb-0">Package Price: ${servicePrice}</p>
+                                                    </div>
+                                                    <Link to="/pricing" className="btn btn-outline-primary">
+                                                        Change Package
+                                                    </Link>
+                                                </div>
+                                            </Card.Body>
+                                        </Card>
+                                    )}
 
-                            <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                <div className="input-group date" id="datepicker">
-                                    <input type="date" id="start" name="appointment" min="2018-01-01" max="2018-12-31"
-                                        placeholder="Choose Date"
-                                        className="bg-transparent ps-4 border border-radius-10 position-relative w-100" />
-                                </div>
-                            </div>
-                            <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                <div className="input-group time" id="timepicker">
-                                    <input type="time" id="time" name="appointment" min="09:00" max="18:00"
-                                        className="bg-transparent ps-4 border border-radius-10 position-relative w-100" />
-                                </div>
-                            </div>
-                            <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                <select className="form-select focus-transparent border ps-4 border-radius-10 " aria-invalid="false"
-                                    name="choose">
-                                    <option>Select Pricing Plan (optional)</option>
-                                    <option value="1">Standard</option>
-                                    <option value="2">Basic</option>
-                                    <option value="3">Deluxe</option>
-                                    <option value="4">Ultimate</option>
-                                </select>
-                            </div>
-                            <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                <input type="text" name="phone" placeholder="Phone Number"
-                                    className="border ps-4 border-radius-10 w-100" />
-                            </div>
-                            <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                <input type="text" name="name" placeholder="Full Name" className="border ps-4 border-radius-10 w-100" />
-                            </div>
-                            <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                <input type="email" name="email" placeholder="E-Mail" className="border ps-4 border-radius-10 w-100" />
-                            </div>
+                                    <Row>
+                                        <Col md={6} className="mb-4">
+                                            <Card className="h-100">
+                                                <Card.Body>
+                                                    <h5 className="mb-3">Select Location & Doctor</h5>
+                                                    <Form.Group className="mb-3">
+                                                        <Form.Label>Branch Location</Form.Label>
+                                                        <Form.Select 
+                                                            value={selectedBranch} 
+                                                            onChange={(e) => setSelectedBranch(e.target.value)}
+                                                            disabled={loading}
+                                                        >
+                                                            <option value="">Select a branch</option>
+                                                            {branches.map(branch => (
+                                                                <option key={branch.id} value={branch.id}>
+                                                                    {branch.name}
+                                                                </option>
+                                                            ))}
+                                                        </Form.Select>
+                                                    </Form.Group>
 
-                            <div className="col-lg-12 mb-3">
-                                <textarea placeholder="Write Your Message Here"
-                                    className="form-control ps-3 bg-transparent ps-4 border-radius-10" rows="8"></textarea>
-                            </div>
-                        </form>
-                    </div>
-                    <Link to="#" className="btn btn-medium btn-primary btn-pill mt-3 text-uppercase">Book an appointment</Link>
-                </div>
-            </section>
+                                                    <Form.Group className="mb-3">
+                                                        <Form.Label>Doctor</Form.Label>
+                                                        <Form.Select
+                                                            value={selectedDoctor}
+                                                            onChange={(e) => setSelectedDoctor(e.target.value)}
+                                                            disabled={!selectedBranch || loading}
+                                                        >
+                                                            <option value="">Select a doctor</option>
+                                                            {filteredDoctors.map(doctor => (
+                                                                <option key={doctor.id} value={doctor.id}>
+                                                                    Dr. {doctor.name} - {doctor.specialty}
+                                                                </option>
+                                                            ))}
+                                                        </Form.Select>
+                                                    </Form.Group>
 
-            <section id="price">
-                <div className="container pt-5">
-                    <h2 className=" fw-bold display-4 mb-5">Pricing Plans</h2>
-                    <div className="row py-4">
-                        <div className="col-lg-3 pb-4">
-                            <div className="py-5 plan-post text-center">
-                                <h6 className="mb-3">standard</h6>
-                                <h2 className="heading-color display-5 fw-bold mb-5">$56.95</h2>
-                                <div className="price-option">
-                                    <p><span className="price-tick">✓</span> Quisque rhoncus</p>
-                                    <p><span className="price-tick">✓</span> Lorem ipsum dolor</p>
-                                    <p><span className="price-tick">✓</span> Vivamus velit mir</p>
-                                    <p><span className="price-tick">✓</span> Elit mir ivamus</p>
-                                </div>
-                                <Link to="/booking" className="btn btn-primary mt-3 px-4 py-3 mx-2 ">Book now </Link>
-                            </div>
-                        </div>
+                                                    {doctorDetails && (
+                                                        <div className="doctor-info mt-3">
+                                                            <h6>Doctor Information</h6>
+                                                            <p className="mb-1">Specialty: {doctorDetails.specialty}</p>
+                                                            <p className="mb-1">Experience: {doctorDetails.experience} years</p>
+                                                            <p className="mb-0">Languages: {doctorDetails.languages.join(', ')}</p>
+                                                        </div>
+                                                    )}
+                                                </Card.Body>
+                                            </Card>
+                                        </Col>
 
-                        <div className="col-lg-3 pb-4">
-                            <div className="py-5 plan-post recommend-price text-center">
-                                <h6 className="text-white mb-3">basic</h6>
-                                <h2 className="text-white display-5 fw-bold mb-5">$79.50</h2>
-                                <div className="price-option">
-                                    <p className="text-white"><span className="price-tick text-white">✓</span> Quisque rhoncus</p>
-                                    <p className="text-white"><span className="price-tick text-white">✓</span> Lorem ipsum dolor</p>
-                                    <p className="text-white"><span className="price-tick text-white">✓</span> Vivamus velit mir</p>
-                                    <p className="text-white"><span className="price-tick text-white">✓</span> Velit mir</p>
-                                    <p className="text-white"><span className="price-tick text-white">✓</span> Elit mir ivamus</p>
-                                </div>
-                                <Link to="/booking" className="btn btn-primary text-black mt-3 px-4 py-3 mx-2"
-                                    style={{ background: 'white' }}>Book now </Link>
-                            </div>
-                        </div>
+                                        <Col md={6} className="mb-4">
+                                            <Card className="h-100">
+                                                <Card.Body>
+                                                    <h5 className="mb-3">Select Date & Time</h5>
 
-                        <div className="col-lg-3 pb-4">
-                            <div className="py-5 plan-post text-center">
-                                <h6 className="mb-3">Deluxe</h6>
-                                <h2 className="heading-color display-5 fw-bold mb-5">$103.40</h2>
-                                <div className="price-option">
-                                    <p><span className="price-tick">✓</span> Quisque rhoncus</p>
-                                    <p><span className="price-tick">✓</span> Lorem ipsum dolor</p>
-                                    <p><span className="price-tick">✓</span> Vivamus velit mir</p>
-                                    <p><span className="price-tick">✓</span> Elit mir ivamus</p>
-                                    <p><span className="price-tick">✓</span> Lorem ipsum dolor</p>
-                                    <p><span className="price-tick">✓</span> Ipsum dolor</p>
-                                </div>
-                                <Link to="/booking" className="btn btn-primary mt-3 px-4 py-3 mx-2 ">Book now </Link>
-                            </div>
-                        </div>
+                                                    <div className="calendar-container mb-4">
+                                                        <Calendar
+                                                            onChange={setSelectedDate}
+                                                            value={selectedDate}
+                                                            minDate={new Date()}
+                                                            className="w-100"
+                                                            tileDisabled={({ date }) => date < new Date().setHours(0,0,0,0)}
+                                                        />
+                                                    </div>
 
-                        <div className="col-lg-3 pb-4">
-                            <div className="py-5 plan-post text-center">
-                                <h6 className="mb-3">Ultimate</h6>
-                                <h2 className="heading-color display-5 fw-bold mb-5">$190.50</h2>
-                                <div className="price-option">
-                                    <p><span className="price-tick">✓</span> Quisque rhoncus</p>
-                                    <p><span className="price-tick">✓</span> Lorem ipsum dolor</p>
-                                    <p><span className="price-tick">✓</span> Vivamus velit mir</p>
-                                    <p><span className="price-tick">✓</span> It ir ivamus</p>
-                                    <p><span className="price-tick">✓</span> Elit mir ivamus</p>
-                                    <p><span className="price-tick">✓</span> Quisque rhoncus</p>
-                                    <p><span className="price-tick">✓</span> lit mir iamus</p>
-                                </div>
-                                <Link to="/booking" className="btn btn-primary mt-3 px-4 py-3 mx-2 ">Book now </Link>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                                                    <Form.Group>
+                                                        <Form.Label>Available Time Slots</Form.Label>
+                                                        <div className="time-slots-grid">
+                                                            {loading ? (
+                                                                <div className="text-center py-4">
+                                                                    <LoadingSpinner />
+                                                                </div>
+                                                            ) : availableSlots.length > 0 ? (
+                                                                <div className="d-grid gap-2">
+                                                                    {availableSlots.map((slot, index) => (
+                                                                        <Button
+                                                                            key={index}
+                                                                            variant={selectedSlot === slot ? "primary" : "outline-primary"}
+                                                                            onClick={() => setSelectedSlot(slot)}
+                                                                            className="text-start"
+                                                                        >
+                                                                            {new Date(slot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                            {' - '}
+                                                                            {new Date(slot.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                        </Button>
+                                                                    ))}
+                                                                </div>
+                                                            ) : (
+                                                                <Alert variant="info">
+                                                                    No available slots for the selected date.
+                                                                </Alert>
+                                                            )}
+                                                        </div>
+                                                    </Form.Group>
+                                                </Card.Body>
+                                            </Card>
+                                        </Col>
+                                    </Row>
 
-            <section id="faqs" className="padding-large">
-                <div className="container">
-                    <div className="row">
-                        <div className="display-header mb-5">
-                            <h2 className="display-5 fw-bold text-center text-dark">We've Got Answers</h2>
-                        </div>
-                        <div className="accordion" id="accordion">
-                            <div className="accordion-item border-0 py-3">
-                                <h2 className="accordion-header">
-                                    <button
-                                        className="accordion-button fs-4 fw-bold text-dark bg-transparent focus-transparent text-capitalize shadow-none"
-                                        type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne"
-                                        aria-expanded="true" aria-controls="collapseOne">
-                                        Why to believe with Insove medical healthcare ?
-                                    </button>
-                                </h2>
-                                <div id="collapseOne" className="accordion-collapse border-0 collapse show"
-                                    data-bs-parent="#accordion">
-                                    <div className="accordion-body">
-                                        <p>Diam orci gravida convallis at enim risus viverra. Hac mi tristique in aliquet
-                                            tincidunt nam lectus nec. Placerat interdum auctor facilisi massa laoreet hendrerit
-                                            posuere a. Tristique ultricies consectetu at.</p>
+                                    <Card className="mb-4">
+                                        <Card.Body>
+                                            <h5 className="mb-3">Additional Information</h5>
+                                            <Form.Group>
+                                                <Form.Label>Notes for the Doctor (Optional)</Form.Label>
+                                                <Form.Control
+                                                    as="textarea"
+                                                    rows={3}
+                                                    value={note}
+                                                    onChange={(e) => setNote(e.target.value)}
+                                                    placeholder="Describe your symptoms or any specific concerns..."
+                                                    disabled={loading}
+                                                />
+                                            </Form.Group>
+                                        </Card.Body>
+                                    </Card>
+
+                                    <div className="text-center">
+                                        <Button 
+                                            type="submit" 
+                                            size="lg" 
+                                            disabled={loading || !selectedDoctor || !selectedDate || !selectedSlot || !selectedBranch}
+                                        >
+                                            {loading ? 'Booking...' : 'Book Appointment'}
+                                        </Button>
                                     </div>
-                                </div>
-                            </div>
-                            <div className="accordion-item border-0 py-3">
-                                <h2 className="accordion-header">
-                                    <button
-                                        className="accordion-button fs-4 fw-bold text-dark bg-transparent collapsed focus-transparent text-capitalize shadow-none"
-                                        type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo"
-                                        aria-expanded="false" aria-controls="collapseTwo">
-                                        Will we get healthcare updates after surgery ?
-                                    </button>
-                                </h2>
-                                <div id="collapseTwo" className="accordion-collapse collapse" data-bs-parent="#accordion">
-                                    <div className="accordion-body">
-                                        <p>This is the second item's accordion body.It is hidden by default, until the collapse
-                                            plugin adds the appropriate classes that we use to style each element. These classes
-                                            control the overall appearance, as well as the showing and hiding via CSS
-                                            transitions. You can modify any of this with custom CSS or overriding our default
-                                            variables.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="accordion-item border-0 py-3">
-                                <h2 className="accordion-header">
-                                    <button
-                                        className="accordion-button fs-4 fw-bold text-dark bg-transparent collapsed focus-transparent text-capitalize shadow-none"
-                                        type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree"
-                                        aria-expanded="false" aria-controls="collapseThree">
-                                        What is the cost for just check-up ?
-                                    </button>
-                                </h2>
-                                <div id="collapseThree" className="accordion-collapse collapse" data-bs-parent="#accordion">
-                                    <div className="accordion-body">
-                                        <p>This is the third item's accordion body.It is hidden by default, until the collapse
-                                            plugin adds the appropriate classes that we use to style each element. These classes
-                                            control the overall appearance, as well as the showing and hiding via CSS
-                                            transitions. You can modify any of this with custom CSS or overriding our default
-                                            variables.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="accordion-item border-0 py-3">
-                                <h2 className="accordion-header">
-                                    <button
-                                        className="accordion-button fs-4 fw-bold text-dark bg-transparent collapsed focus-transparent text-capitalize shadow-none"
-                                        type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour"
-                                        aria-expanded="false" aria-controls="collapseFour">
-                                        Can i cancel my appointment ?
-                                    </button>
-                                </h2>
-                                <div id="collapseFour" className="accordion-collapse collapse" data-bs-parent="#accordion">
-                                    <div className="accordion-body">
-                                        <p>This is the third item's accordion body.It is hidden by default, until the collapse
-                                            plugin adds the appropriate classes that we use to style each element. These classes
-                                            control the overall appearance, as well as the showing and hiding via CSS
-                                            transitions. You can modify any of this with custom CSS or overriding our default
-                                            variables.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <SubscribeSection />
-        </React.Fragment>
+                                </Form>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
+            </Container>
+        </>
     );
 };
 
