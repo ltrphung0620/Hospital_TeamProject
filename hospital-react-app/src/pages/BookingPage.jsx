@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, Button, Alert, Card } from 'react-bootstrap';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import SubscribeSection from '../components/SubscribeSection';
@@ -24,6 +24,10 @@ const BookingPage = () => {
     const [doctorDetails, setDoctorDetails] = useState(null);
     
     const navigate = useNavigate();
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+    const selectedService = searchParams.get('service');
+    const servicePrice = searchParams.get('price');
 
     // Simulate initial loading
     useEffect(() => {
@@ -95,7 +99,6 @@ const BookingPage = () => {
 
     return (
         <>
-            {/* Page Header */}
             <section id="intro" style={{ backgroundColor: '#E8F0F1' }}>
                 <div className="container">
                     <div className="banner-content padding-large">
@@ -106,33 +109,45 @@ const BookingPage = () => {
                 </div>
             </section>
 
-            {/* Rest of the booking page content */}
             <Container className="py-5">
                 <Row className="justify-content-center">
                     <Col md={10}>
-                        <Card className="shadow-sm">
-                            <Card.Body className="p-4">
-                                <h2 className="text-center mb-4">Book an Appointment</h2>
-
+                        <Card>
+                            <Card.Body>
                                 <Form onSubmit={handleSubmit}>
+                                    {selectedService && (
+                                        <Card className="mb-4">
+                                            <Card.Body>
+                                                <h5 className="mb-3">Selected Service Package</h5>
+                                                <div className="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <h6 className="text-capitalize mb-2">{selectedService} Package</h6>
+                                                        <p className="text-muted mb-0">Package Price: ${servicePrice}</p>
+                                                    </div>
+                                                    <Link to="/pricing" className="btn btn-outline-primary">
+                                                        Change Package
+                                                    </Link>
+                                                </div>
+                                            </Card.Body>
+                                        </Card>
+                                    )}
+
                                     <Row>
                                         <Col md={6} className="mb-4">
                                             <Card className="h-100">
                                                 <Card.Body>
                                                     <h5 className="mb-3">Select Location & Doctor</h5>
-                                                    
                                                     <Form.Group className="mb-3">
                                                         <Form.Label>Branch Location</Form.Label>
-                                                        <Form.Select
-                                                            value={selectedBranch}
+                                                        <Form.Select 
+                                                            value={selectedBranch} 
                                                             onChange={(e) => setSelectedBranch(e.target.value)}
-                                                            required
                                                             disabled={loading}
                                                         >
-                                                            <option value="">Choose a branch...</option>
-                                                            {branches.map((branch) => (
+                                                            <option value="">Select a branch</option>
+                                                            {branches.map(branch => (
                                                                 <option key={branch.id} value={branch.id}>
-                                                                    {branch.name} - {branch.address}
+                                                                    {branch.name}
                                                                 </option>
                                                             ))}
                                                         </Form.Select>
@@ -143,37 +158,24 @@ const BookingPage = () => {
                                                         <Form.Select
                                                             value={selectedDoctor}
                                                             onChange={(e) => setSelectedDoctor(e.target.value)}
-                                                            required
-                                                            disabled={loading || !selectedBranch}
+                                                            disabled={!selectedBranch || loading}
                                                         >
-                                                            <option value="">Choose a doctor...</option>
-                                                            {filteredDoctors.map((doctor) => (
+                                                            <option value="">Select a doctor</option>
+                                                            {filteredDoctors.map(doctor => (
                                                                 <option key={doctor.id} value={doctor.id}>
-                                                                    Dr. {doctor.name} - {doctor.specialization}
+                                                                    Dr. {doctor.name} - {doctor.specialty}
                                                                 </option>
                                                             ))}
                                                         </Form.Select>
                                                     </Form.Group>
 
                                                     {doctorDetails && (
-                                                        <Card className="bg-light mt-3">
-                                                            <Card.Body>
-                                                                <div className="d-flex align-items-center mb-3">
-                                                                    <img 
-                                                                        src={doctorDetails.image} 
-                                                                        alt={doctorDetails.name}
-                                                                        className="rounded-circle me-3"
-                                                                        style={{ width: '60px', height: '60px', objectFit: 'cover' }}
-                                                                    />
-                                                                    <div>
-                                                                        <h6 className="mb-1">Dr. {doctorDetails.name}</h6>
-                                                                        <p className="mb-0 text-muted">{doctorDetails.specialization}</p>
-                                                                    </div>
-                                                                </div>
-                                                                <p className="mb-1"><strong>Experience:</strong> {doctorDetails.experience} years</p>
-                                                                <p className="mb-0"><strong>Qualification:</strong> {doctorDetails.qualification}</p>
-                                                            </Card.Body>
-                                                        </Card>
+                                                        <div className="doctor-info mt-3">
+                                                            <h6>Doctor Information</h6>
+                                                            <p className="mb-1">Specialty: {doctorDetails.specialty}</p>
+                                                            <p className="mb-1">Experience: {doctorDetails.experience} years</p>
+                                                            <p className="mb-0">Languages: {doctorDetails.languages.join(', ')}</p>
+                                                        </div>
                                                     )}
                                                 </Card.Body>
                                             </Card>

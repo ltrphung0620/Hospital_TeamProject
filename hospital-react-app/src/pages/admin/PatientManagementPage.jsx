@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination, Badge } from 'react-bootstrap';
-import { FaPlus, FaEdit, FaTrash, FaUserInjured } from 'react-icons/fa';
+import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination, Badge, Nav } from 'react-bootstrap';
+import { FaPlus, FaEdit, FaTrash, FaUserInjured, FaMoneyBillWave } from 'react-icons/fa';
 import Avatar from '../../components/common/Avatar';
 
 // Mock data reflecting the joined User + Patient model
@@ -17,7 +17,43 @@ const initialPatients = [
     address: '123 Main St, Anytown, USA',
     insuranceCode: 'ABC123456789',
     emergencyContact: 'Jane Jones - 555-0102',
-    status: 'Active' 
+    status: 'Active',
+    invoices: [
+      {
+        id: 1,
+        type: 'Service Package',
+        description: 'Deluxe Package',
+        amount: 103.40,
+        date: '2024-03-15',
+        status: 'Pending'
+      },
+      {
+        id: 2,
+        type: 'Lab Test',
+        description: 'Complete Blood Count',
+        amount: 75.00,
+        date: '2024-03-16',
+        status: 'Paid',
+        details: [
+          { name: 'Complete Blood Count', quantity: 1, unitPrice: 35.00 },
+          { name: 'Blood Sugar Test', quantity: 1, unitPrice: 25.00 },
+          { name: 'Cholesterol Test', quantity: 1, unitPrice: 15.00 }
+        ]
+      },
+      {
+        id: 3,
+        type: 'Prescription',
+        description: 'Medication - March 2024',
+        amount: 45.50,
+        date: '2024-03-17',
+        status: 'Pending',
+        details: [
+          { name: 'Amoxicillin 500mg', quantity: 20, unitPrice: 1.25 },
+          { name: 'Paracetamol 500mg', quantity: 10, unitPrice: 0.80 },
+          { name: 'Vitamin C 1000mg', quantity: 30, unitPrice: 0.50 }
+        ]
+      }
+    ]
   },
   { 
     id: 2, 
@@ -31,16 +67,41 @@ const initialPatients = [
     address: '456 Oak Ave, Anytown, USA',
     insuranceCode: 'XYZ987654321',
     emergencyContact: 'John White - 555-0104',
-    status: 'Active' 
+    status: 'Active',
+    invoices: [
+      {
+        id: 4,
+        type: 'Service Package',
+        description: 'Standard Package',
+        amount: 56.95,
+        date: '2024-03-18',
+        status: 'Paid'
+      },
+      {
+        id: 5,
+        type: 'Lab Test',
+        description: 'X-Ray and Blood Tests',
+        amount: 120.00,
+        date: '2024-03-19',
+        status: 'Pending',
+        details: [
+          { name: 'Chest X-Ray', quantity: 1, unitPrice: 80.00 },
+          { name: 'Blood Type Test', quantity: 1, unitPrice: 25.00 },
+          { name: 'Urine Test', quantity: 1, unitPrice: 15.00 }
+        ]
+      }
+    ]
   },
 ];
-
 
 function PatientManagementPage() {
   const [patients, setPatients] = useState(initialPatients);
   const [showModal, setShowModal] = useState(false);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [currentPatient, setCurrentPatient] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedInvoiceType, setSelectedInvoiceType] = useState('all');
+  const [paymentMethod, setPaymentMethod] = useState('');
   
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -65,6 +126,19 @@ function PatientManagementPage() {
     setShowModal(true);
   };
 
+  const handleShowInvoiceModal = (patient) => {
+    setCurrentPatient(patient);
+    setSelectedInvoiceType('all');
+    setShowInvoiceModal(true);
+  };
+
+  const handleCloseInvoiceModal = () => {
+    setShowInvoiceModal(false);
+    setCurrentPatient(null);
+    setSelectedInvoiceType('all');
+    setPaymentMethod('');
+  };
+
   const handleSave = () => {
     if (isEditing) {
       setPatients(patients.map(p => p.id === currentPatient.id ? currentPatient : p));
@@ -73,6 +147,7 @@ function PatientManagementPage() {
         ...currentPatient, 
         id: Math.max(...patients.map(p => p.id), 0) + 1,
         userId: Math.max(...patients.map(p => p.userId), 0) + 1,
+        invoices: []
        };
       setPatients([...patients, newPatient]);
     }
@@ -90,6 +165,34 @@ function PatientManagementPage() {
     setCurrentPatient(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleProcessPayment = (invoiceId) => {
+    if (!paymentMethod) {
+      alert('Please select a payment method');
+      return;
+    }
+
+    setPatients(patients.map(p => {
+      if (p.id === currentPatient.id) {
+        return {
+          ...p,
+          invoices: p.invoices.map(inv => {
+            if (inv.id === invoiceId) {
+              return {
+                ...inv,
+                status: 'Paid',
+                paymentMethod: paymentMethod
+              };
+            }
+            return inv;
+          })
+        };
+      }
+      return p;
+    }));
+
+    setPaymentMethod('');
+  };
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = patients.slice(indexOfFirstItem, indexOfLastItem);
@@ -101,9 +204,15 @@ function PatientManagementPage() {
     switch (status) {
       case 'Active': return <Badge bg="success">Active</Badge>;
       case 'Inactive': return <Badge bg="danger">Inactive</Badge>;
+      case 'Paid': return <Badge bg="success">Paid</Badge>;
+      case 'Pending': return <Badge bg="warning" text="dark">Pending</Badge>;
       default: return <Badge bg="secondary">{status}</Badge>;
     }
   };
+
+  const filteredInvoices = currentPatient?.invoices.filter(invoice => 
+    selectedInvoiceType === 'all' || invoice.type === selectedInvoiceType
+  ) || [];
 
   return (
     <Container fluid className="p-4">
@@ -146,8 +255,29 @@ function PatientManagementPage() {
                   <td>{patient.insuranceCode}</td>
                   <td>{getStatusBadge(patient.status)}</td>
                   <td>
-                    <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleShowModal(patient)}><FaEdit /></Button>
-                    <Button variant="outline-danger" size="sm" onClick={() => handleDelete(patient.id)}><FaTrash /></Button>
+                    <Button 
+                      variant="outline-primary" 
+                      size="sm" 
+                      className="me-2" 
+                      onClick={() => handleShowModal(patient)}
+                    >
+                      <FaEdit />
+                    </Button>
+                    <Button 
+                      variant="outline-danger" 
+                      size="sm" 
+                      className="me-2"
+                      onClick={() => handleDelete(patient.id)}
+                    >
+                      <FaTrash />
+                    </Button>
+                    <Button 
+                      variant="outline-success" 
+                      size="sm"
+                      onClick={() => handleShowInvoiceModal(patient)}
+                    >
+                      <FaMoneyBillWave />
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -165,6 +295,7 @@ function PatientManagementPage() {
         )}
       </Card>
 
+      {/* Patient Add/Edit Modal */}
       <Modal show={showModal} onHide={handleCloseModal} centered size="lg">
         <Modal.Header closeButton>
           <Modal.Title>{isEditing ? 'Edit Patient' : 'Add New Patient'}</Modal.Title>
@@ -214,21 +345,21 @@ function PatientManagementPage() {
                 </Row>
               </Col>
               <Col md={6}>
-                <h5>Patient Specific Details</h5>
-                 <Form.Group className="mb-3">
+                <h5>Additional Information</h5>
+                <Form.Group className="mb-3">
                   <Form.Label>Address</Form.Label>
                   <Form.Control as="textarea" rows={3} name="address" value={currentPatient?.address || ''} onChange={handleChange} placeholder="Enter full address" />
                 </Form.Group>
                 <Form.Group className="mb-3">
                   <Form.Label>Insurance Code</Form.Label>
-                  <Form.Control type="text" name="insuranceCode" value={currentPatient?.insuranceCode || ''} onChange={handleChange} placeholder="e.g., ABC123456789" />
-                </Form.Group>
-                 <Form.Group className="mb-3">
-                  <Form.Label>Emergency Contact</Form.Label>
-                  <Form.Control type="text" name="emergencyContact" value={currentPatient?.emergencyContact || ''} onChange={handleChange} placeholder="e.g., Jane Doe - 555-0102" />
+                  <Form.Control type="text" name="insuranceCode" value={currentPatient?.insuranceCode || ''} onChange={handleChange} placeholder="Enter insurance code" />
                 </Form.Group>
                 <Form.Group className="mb-3">
-                  <Form.Label>Account Status</Form.Label>
+                  <Form.Label>Emergency Contact</Form.Label>
+                  <Form.Control type="text" name="emergencyContact" value={currentPatient?.emergencyContact || ''} onChange={handleChange} placeholder="Name - Phone Number" />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Status</Form.Label>
                   <Form.Select name="status" value={currentPatient?.status || 'Active'} onChange={handleChange}>
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
@@ -240,7 +371,147 @@ function PatientManagementPage() {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleCloseModal}>Cancel</Button>
-          <Button variant="primary" onClick={handleSave}>{isEditing ? 'Save Changes' : 'Add Patient'}</Button>
+          <Button variant="primary" onClick={handleSave}>
+            {isEditing ? 'Save Changes' : 'Add Patient'}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Invoice Modal */}
+      <Modal show={showInvoiceModal} onHide={handleCloseInvoiceModal} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <FaMoneyBillWave className="me-2" />
+            Patient Invoices - {currentPatient?.fullName}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Nav variant="tabs" className="mb-3">
+            <Nav.Item>
+              <Nav.Link 
+                active={selectedInvoiceType === 'all'} 
+                onClick={() => setSelectedInvoiceType('all')}
+              >
+                All Invoices
+              </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link 
+                active={selectedInvoiceType === 'Service Package'} 
+                onClick={() => setSelectedInvoiceType('Service Package')}
+              >
+                Service Packages
+              </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link 
+                active={selectedInvoiceType === 'Lab Test'} 
+                onClick={() => setSelectedInvoiceType('Lab Test')}
+              >
+                Lab Tests
+              </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link 
+                active={selectedInvoiceType === 'Prescription'} 
+                onClick={() => setSelectedInvoiceType('Prescription')}
+              >
+                Prescriptions
+              </Nav.Link>
+            </Nav.Item>
+          </Nav>
+
+          <Table responsive>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredInvoices.map((invoice, index) => (
+                <React.Fragment key={invoice.id}>
+                  <tr>
+                    <td>{index + 1}</td>
+                    <td>{invoice.type}</td>
+                    <td>{invoice.description}</td>
+                    <td>{invoice.date}</td>
+                    <td>${invoice.amount.toFixed(2)}</td>
+                    <td>{getStatusBadge(invoice.status)}</td>
+                    <td>
+                      {invoice.status === 'Pending' && (
+                        <div className="d-flex align-items-center">
+                          <Form.Select 
+                            size="sm" 
+                            className="me-2" 
+                            style={{ width: '120px' }}
+                            value={paymentMethod}
+                            onChange={(e) => setPaymentMethod(e.target.value)}
+                          >
+                            <option value="">Select...</option>
+                            <option value="cash">Cash</option>
+                            <option value="card">Card</option>
+                            <option value="transfer">Transfer</option>
+                          </Form.Select>
+                          <Button 
+                            size="sm" 
+                            variant="success"
+                            onClick={() => handleProcessPayment(invoice.id)}
+                          >
+                            Pay
+                          </Button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                  {/* Chi tiết hóa đơn cho Lab Tests và Prescriptions */}
+                  {(invoice.type === 'Lab Test' || invoice.type === 'Prescription') && invoice.details && (
+                    <tr>
+                      <td colSpan="7" className="p-0">
+                        <div className="bg-light p-3">
+                          <h6 className="mb-3">Chi tiết {invoice.type === 'Lab Test' ? 'xét nghiệm' : 'đơn thuốc'}:</h6>
+                          <Table size="sm" className="mb-0">
+                            <thead>
+                              <tr>
+                                <th>Tên</th>
+                                <th>Số lượng</th>
+                                <th>Đơn giá</th>
+                                <th>Thành tiền</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {invoice.details.map((detail, idx) => (
+                                <tr key={idx}>
+                                  <td>{detail.name}</td>
+                                  <td>{detail.quantity}</td>
+                                  <td>${detail.unitPrice.toFixed(2)}</td>
+                                  <td>${(detail.quantity * detail.unitPrice).toFixed(2)}</td>
+                                </tr>
+                              ))}
+                              <tr className="fw-bold">
+                                <td colSpan="3" className="text-end">Tổng cộng:</td>
+                                <td>${invoice.amount.toFixed(2)}</td>
+                              </tr>
+                            </tbody>
+                          </Table>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </Table>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseInvoiceModal}>
+            Close
+          </Button>
         </Modal.Footer>
       </Modal>
     </Container>

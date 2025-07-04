@@ -2,6 +2,59 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 const PricingPage = () => {
+    const services = [
+        {
+            id: 1,
+            name: 'standard',
+            price: 56.95,
+            features: [
+                'Quisque rhoncus',
+                'Lorem ipsum dolor',
+                'Vivamus velit mir',
+                'Elit mir ivamus'
+            ]
+        },
+        {
+            id: 2,
+            name: 'basic',
+            price: 79.50,
+            features: [
+                'Quisque rhoncus',
+                'Lorem ipsum dolor',
+                'Vivamus velit mir',
+                'Velit mir',
+                'Elit mir ivamus'
+            ]
+        },
+        {
+            id: 3,
+            name: 'deluxe',
+            price: 103.40,
+            features: [
+                'Quisque rhoncus',
+                'Lorem ipsum dolor',
+                'Vivamus velit mir',
+                'Elit mir ivamus',
+                'Lorem ipsum dolor',
+                'Ipsum dolor'
+            ]
+        },
+        {
+            id: 4,
+            name: 'ultimate',
+            price: 190.50,
+            features: [
+                'Quisque rhoncus',
+                'Lorem ipsum dolor',
+                'Vivamus velit mir',
+                'It ir ivamus',
+                'Elit mir ivamus',
+                'Quisque rhoncus',
+                'lit mir iamus'
+            ]
+        }
+    ];
+
     return (
         <>
             <section id="intro" style={{ backgroundColor: "#E8F0F1" }}>
@@ -16,97 +69,44 @@ const PricingPage = () => {
 
             <section id="price" className="my-5">
                 <div className="container py-5">
-
-                    <h2 className=" fw-bold display-4 mb-5">Pricing Plans</h2>
-
+                    <h2 className="fw-bold display-4 mb-5">Pricing Plans</h2>
                     <div className="row py-4">
-                        <div className="col-md-6 col-lg-3 pb-4">
-                            <div className="py-5 plan-post text-center">
-
-                                <h6 className="mb-3">standard</h6>
-
-                                <h2 className="heading-color display-5 fw-bold mb-5">$56.95</h2>
-                                <div className="price-option">
-                                    <p><span className="price-tick">✓</span> Quisque rhoncus</p>
-                                    <p><span className="price-tick">✓</span> Lorem ipsum dolor</p>
-                                    <p><span className="price-tick">✓</span> Vivamus velit mir</p>
-                                    <p><span className="price-tick">✓</span> Elit mir ivamus</p>
+                        {services.map((service) => (
+                            <div key={service.id} className="col-md-6 col-lg-3 pb-4">
+                                <div className={`py-5 plan-post text-center ${service.name === 'basic' ? 'recommend-price' : ''}`}>
+                                    <h6 className={`mb-3 ${service.name === 'basic' ? 'text-white' : ''}`}>{service.name}</h6>
+                                    <h2 className={`${service.name === 'basic' ? 'text-white' : 'heading-color'} display-5 fw-bold mb-5`}>
+                                        ${service.price}
+                                    </h2>
+                                    <div className="price-option">
+                                        {service.features.map((feature, index) => (
+                                            <p key={index} className={service.name === 'basic' ? 'text-white' : ''}>
+                                                <span className={`price-tick ${service.name === 'basic' ? 'text-white' : ''}`}>✓</span> {feature}
+                                            </p>
+                                        ))}
+                                    </div>
+                                    <Link 
+                                        to={`/booking?service=${service.name}&price=${service.price}`} 
+                                        className={`btn btn-primary mt-3 px-4 py-3 mx-2 ${
+                                            service.name === 'basic' ? 'text-black' : ''
+                                        }`}
+                                        style={service.name === 'basic' ? { background: 'white' } : {}}
+                                    >
+                                        Book now
+                                    </Link>
                                 </div>
-
-                                <Link to="/booking" className="btn btn-primary mt-3 px-4 py-3 mx-2 ">Book now </Link>
                             </div>
-                        </div>
-
-                        <div className="col-md-6 col-lg-3 pb-4">
-                            <div className="py-5 plan-post recommend-price text-center">
-
-                                <h6 className="text-white mb-3">basic</h6>
-
-                                <h2 className="text-white display-5 fw-bold mb-5">$79.50</h2>
-                                <div className="price-option">
-                                    <p className="text-white"><span className="price-tick text-white">✓</span> Quisque rhoncus</p>
-                                    <p className="text-white"><span className="price-tick text-white">✓</span> Lorem ipsum dolor</p>
-                                    <p className="text-white"><span className="price-tick text-white">✓</span> Vivamus velit mir</p>
-                                    <p className="text-white"><span className="price-tick text-white">✓</span> Velit mir</p>
-                                    <p className="text-white"><span className="price-tick text-white">✓</span> Elit mir ivamus</p>
-                                </div>
-
-                                <Link to="/booking" className="btn btn-primary text-black mt-3 px-4 py-3 mx-2"
-                                    style={{ background: 'white' }}>Book now </Link>
-                            </div>
-                        </div>
-
-                        <div className="col-md-6 col-lg-3 pb-4">
-                            <div className="py-5 plan-post text-center">
-
-                                <h6 className="mb-3">Deluxe</h6>
-
-                                <h2 className="heading-color display-5 fw-bold mb-5">$103.40</h2>
-                                <div className="price-option">
-                                    <p><span className="price-tick">✓</span> Quisque rhoncus</p>
-                                    <p><span className="price-tick">✓</span> Lorem ipsum dolor</p>
-                                    <p><span className="price-tick">✓</span> Vivamus velit mir</p>
-                                    <p><span className="price-tick">✓</span> Elit mir ivamus</p>
-                                    <p><span className="price-tick">✓</span> Lorem ipsum dolor</p>
-                                    <p><span className="price-tick">✓</span> Ipsum dolor</p>
-                                </div>
-
-                                <Link to="/booking" className="btn btn-primary mt-3 px-4 py-3 mx-2 ">Book now </Link>
-                            </div>
-                        </div>
-
-                        <div className="col-md-6 col-lg-3 pb-4">
-                            <div className="py-5 plan-post text-center">
-
-                                <h6 className="mb-3">Ultimate</h6>
-
-                                <h2 className="heading-color display-5 fw-bold mb-5">$190.50</h2>
-                                <div className="price-option">
-                                    <p><span className="price-tick">✓</span> Quisque rhoncus</p>
-                                    <p><span className="price-tick">✓</span> Lorem ipsum dolor</p>
-                                    <p><span className="price-tick">✓</span> Vivamus velit mir</p>
-                                    <p><span className="price-tick">✓</span> It ir ivamus</p>
-                                    <p><span className="price-tick">✓</span> Elit mir ivamus</p>
-                                    <p><span className="price-tick">✓</span> Quisque rhoncus</p>
-                                    <p><span className="price-tick">✓</span> lit mir iamus</p>
-                                </div>
-
-                                <Link to="/booking" className="btn btn-primary mt-3 px-4 py-3 mx-2 ">Book now </Link>
-                            </div>
-                        </div>
+                        ))}
                     </div>
-
                 </div>
             </section>
 
             <section id="about-us" className="padding-large pt-0">
                 <div className="container">
                     <div className="row">
-
                         <div className="col-lg-3 col-md-6 col-sm-6">
                             <div className="counter-info text-center">
-                                <div
-                                    className="counter-number text-primary-500 display-2 fw-semibold d-flex align-items-center justify-content-center">
+                                <div className="counter-number text-primary-500 display-2 fw-semibold d-flex align-items-center justify-content-center">
                                     <span className="counter-prefix">+</span>
                                     <h5 className="timer display-4 fw-bold m-0" data-to="5120" data-speed="8000">5120</h5>
                                 </div>
@@ -116,8 +116,7 @@ const PricingPage = () => {
 
                         <div className="col-lg-3 col-md-6 col-sm-6">
                             <div className="counter-info text-center">
-                                <div
-                                    className="counter-number text-primary-500 display-2 fw-semibold d-flex align-items-center justify-content-center">
+                                <div className="counter-number text-primary-500 display-2 fw-semibold d-flex align-items-center justify-content-center">
                                     <span className="counter-prefix">+</span>
                                     <h5 className="timer display-4 fw-bold m-0" data-to="5120" data-speed="8000">26</h5>
                                 </div>
@@ -127,8 +126,7 @@ const PricingPage = () => {
 
                         <div className="col-lg-3 col-md-6 col-sm-6">
                             <div className="counter-info text-center">
-                                <div
-                                    className="counter-number text-primary-500 display-2 fw-semibold d-flex align-items-center justify-content-center">
+                                <div className="counter-number text-primary-500 display-2 fw-semibold d-flex align-items-center justify-content-center">
                                     <span className="counter-prefix">+</span>
                                     <h5 className="timer display-4 fw-bold m-0" data-to="5120" data-speed="8000">53</h5>
                                 </div>
@@ -138,15 +136,13 @@ const PricingPage = () => {
 
                         <div className="col-lg-3 col-md-6 col-sm-6">
                             <div className="counter-info text-center">
-                                <div
-                                    className="counter-number text-primary-500 display-2 fw-semibold d-flex align-items-center justify-content-center">
+                                <div className="counter-number text-primary-500 display-2 fw-semibold d-flex align-items-center justify-content-center">
                                     <span className="counter-prefix">+</span>
                                     <h5 className="timer display-4 fw-bold m-0" data-to="5120" data-speed="8000">10</h5>
                                 </div>
                                 <p className="counter-description">Years Experience</p>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </section>
@@ -155,7 +151,6 @@ const PricingPage = () => {
                 style={{ backgroundImage: "url(images/services-bg.jpg)", backgroundRepeat: "no-repeat", backgroundPosition: "center top" }}>
                 <div className="container">
                     <div className="row">
-
                         <div className="display-header text-light d-flex flex-wrap justify-content-between padding-medium">
                             <div className="col-lg-5 col-md-6 col-sm-12">
                                 <h2 className="text-light">Our Best Services For Your Solution</h2>
@@ -218,7 +213,6 @@ const PricingPage = () => {
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </section>

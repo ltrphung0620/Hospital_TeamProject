@@ -34,6 +34,7 @@ import TestRequestManagementPage from './pages/admin/TestRequestManagementPage';
 import TestResultManagementPage from './pages/admin/TestResultManagementPage';
 import PrescriptionPaymentPage from './pages/admin/PrescriptionPaymentPage';
 import LabTestPaymentPage from './pages/admin/LabTestPaymentPage';
+import ServicePaymentManagementPage from './pages/admin/ServicePaymentManagementPage';
 
 function App() {
   return (
@@ -85,6 +86,7 @@ function App() {
           <Route path="medicines" element={<MedicineManagementPage />} />
           <Route path="prescription-payments" element={<PrescriptionPaymentPage />} />
           <Route path="lab-test-payments" element={<LabTestPaymentPage />} />
+          <Route path="service-payments" element={<ServicePaymentManagementPage />} />
         </Route>
       </Routes>
     </>
