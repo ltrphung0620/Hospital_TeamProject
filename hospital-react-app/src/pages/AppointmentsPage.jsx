@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { FaCalendarAlt, FaSearch, FaFilter, FaTimes } from 'react-icons/fa';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import './AppointmentsPage.css';
+import { Link } from 'react-router-dom';
 
 const AppointmentsPage = () => {
   const [appointments, setAppointments] = useState([]);
@@ -118,6 +119,17 @@ const AppointmentsPage = () => {
 
   return (
     <>
+      {/* Page Header */}
+      <section id="intro" style={{ backgroundColor: '#E8F0F1' }}>
+        <div className="container">
+          <div className="banner-content padding-large">
+            <h1 className="display-3 fw-bold text-dark">Appointments</h1>
+            <span className="item"><Link to="/" className="">Home</Link></span> &nbsp; <span className="">/</span> &nbsp; <span
+              className="item">Appointments</span>
+          </div>
+        </div>
+      </section>
+
       <section className="appointments-section py-5" style={{ backgroundColor: '#f8f9fa' }}>
         <Container>
           <Card className="shadow-sm border-0">

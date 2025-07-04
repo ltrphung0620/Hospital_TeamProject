@@ -1,10 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import Avatar from "../common/Avatar";
 
 const Header = () => {
   const [isSticky, setSticky] = useState(false);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    // Get user from localStorage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+
     const handleScroll = () => {
       if (window.scrollY > 50) {
         setSticky(true);
@@ -20,244 +29,190 @@ const Header = () => {
     };
   }, []);
 
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    setUser(null);
+    navigate('/login');
+  };
+
   return (
-    <header id="header">
-      <nav className="header-top pt-4 pb-5">
+    <header id="header" className={isSticky ? "sticky" : ""}>
+      {/* Top Header */}
+      <div className="py-3" style={{ backgroundColor: '#f8f9fa' }}>
         <div className="container">
-          <div className="row justify-content-between align-items-center">
-            <div className="col-lg-5 col-md-4 col-sm-6">
+          <div className="row align-items-center">
+            <div className="col-lg-3 col-md-3 col-sm-12">
               <Link className="navbar-brand" to="/">
-                <img src="/images/main-logo.png" className="logo" alt="logo" />
+                <img src="/images/main-logo.png" alt="Insove Medical Healthcare" height="50" />
               </Link>
             </div>
-            <div className="col-lg-4 col-md-4 d-md-block d-sm-none">
-              <ul className="contact-list d-flex justify-content-lg-end flex-wrap list-unstyled m-0">
-                <li className="pe-5 pe-lg-0 pe-xxl-5 pb-3 pb-lg-0">
-                  <svg
-                    className="location primary-color"
-                    width="24"
-                    height="24"
-                  >
-                    <use xlinkHref="#location"></use>
-                  </svg>
-                  123 Arling, Miola, NY
-                </li>
-                <li className="ps-xl-3">
-                  <svg className="phone primary-color" width="24" height="24">
-                    <use xlinkHref="#phone"></use>
-                  </svg>
-                  (+487) 384 9452
-                </li>
-              </ul>
+            <div className="col-lg-6 col-md-6 col-sm-12">
+              <div className="d-flex justify-content-center gap-5">
+                <div className="d-flex align-items-center">
+                  <i className="fas fa-map-marker-alt text-primary me-2"></i>
+                  <span>123 Arling, Miola, NY</span>
+                </div>
+                <div className="d-flex align-items-center">
+                  <i className="fas fa-phone text-primary me-2"></i>
+                  <span>(+487) 384 9452</span>
+                </div>
+              </div>
             </div>
-            <div className="col-lg-3 col-md-4 col-sm-6">
-              <div className="btn-book text-end">
-                <Link
-                  to="/booking"
-                  className="btn btn-medium btn-outline-primary btn-pill text-uppercase"
-                >
-                  Book Now
-                </Link>
+            <div className="col-lg-3 col-md-3 col-sm-12">
+              <div className="d-flex justify-content-end gap-2">
+                {user ? (
+                  <div className="d-flex align-items-center">
+                    <div className="dropdown">
+                      <button 
+                        className="btn btn-link text-dark text-decoration-none d-flex align-items-center gap-2" 
+                        type="button" 
+                        data-bs-toggle="dropdown"
+                      >
+                        <Avatar name={user.name} size={35} />
+                        <span className="d-none d-md-inline">{user.name}</span>
+                        <i className="fas fa-chevron-down fs-12"></i>
+                      </button>
+                      <ul className="dropdown-menu dropdown-menu-end">
+                        {user.role === 'admin' && (
+                          <li>
+                            <Link to="/admin" className="dropdown-item">
+                              <i className="fas fa-dashboard me-2"></i>
+                              Admin Dashboard
+                            </Link>
+                          </li>
+                        )}
+                        <li>
+                          <Link to="/profile" className="dropdown-item">
+                            <i className="fas fa-user me-2"></i>
+                            Profile
+                          </Link>
+                        </li>
+                        <li><hr className="dropdown-divider" /></li>
+                        <li>
+                          <button onClick={handleLogout} className="dropdown-item text-danger">
+                            <i className="fas fa-sign-out-alt me-2"></i>
+                            Logout
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <Link to="/login" className="btn btn-primary rounded-pill px-4">
+                      Login
+                    </Link>
+                    <Link to="/register" className="btn btn-outline-primary rounded-pill px-4">
+                      Register
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
         </div>
-      </nav>
+      </div>
 
-      <nav
-        id="primary-header"
-        className={`navbar navbar-expand-lg shadow-none ${
-          isSticky ? "fixed-top" : ""
-        }`}
-        aria-label="navbar"
-      >
+      {/* Main Navigation */}
+      <nav className="position-relative" style={{ backgroundColor: '#EDF3F8', paddingTop: '30px', paddingBottom: '30px' }}>
         <div className="container">
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbar-primary"
-            aria-controls="navbar-primary"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <svg
-              className="navbar-icon mt-3 primary-color-500 bg-light"
-              width="50"
-              height="50"
-            >
-              <use xlinkHref="#navbar-icon"></use>
-            </svg>
-          </button>
-          <div
-            className="header-bottom collapse navbar-collapse bg-light border-radius-10 py-2"
-            id="navbar-primary"
-          >
-            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-              <li className="nav-item ps-4 pe-4 border-right">
-                <NavLink
-                  className="nav-link text-dark p-0 mt-3 mt-lg-0"
-                  aria-current="page"
-                  to="/"
-                >
-                  Home
-                </NavLink>
-              </li>
-              <li className="nav-item ps-4 pe-4 border-right">
-                <NavLink className="nav-link text-dark p-0" to="/about">
-                  About
-                </NavLink>
-              </li>
-              <li className="nav-item ps-4 pe-4 border-right">
-                <NavLink className="nav-link text-dark p-0" to="/services">
-                  Services
-                </NavLink>
-              </li>
-              <li className="nav-item ps-4 pe-4 border-right">
-                <NavLink className="nav-link text-dark p-0" to="/booking">
-                  Booking
-                </NavLink>
-              </li>
-              <li className="nav-item ps-4 pe-4 border-right">
-                <NavLink className="nav-link text-dark p-0" to="/appointments">
-                  Appointments
-                </NavLink>
-              </li>
-              <li className="nav-item ps-4 pe-4 border-right">
-                <NavLink className="nav-link text-dark p-0" to="/team">
-                  Team
-                </NavLink>
-              </li>
-              <li className="nav-item ps-4 pe-4 border-right">
-                <NavLink className="nav-link text-dark p-0" to="/faq">
-                  Faqs
-                </NavLink>
-              </li>
-              <li className="nav-item ps-4 pe-4 border-right">
-                <NavLink className="nav-link text-dark p-0" to="/departments">
-                  Department
-                </NavLink>
-              </li>
-              <li className="nav-item ps-4 pe-3 dropdown border-right">
-                <a
-                  className="nav-link text-dark p-0 dropdown-toggle"
-                  data-bs-toggle="dropdown"
-                  href="#"
-                  role="button"
-                  aria-expanded="false"
-                >
-                  Pages{" "}
-                  <iconify-icon icon="iconamoon:arrow-down-2-fill"></iconify-icon>{" "}
-                </a>
-                <ul className="dropdown-menu">
-                  <li className="py-1">
-                    <Link to="/about" className="dropdown-item text-uppercase">
-                      About
-                    </Link>
-                  </li>
-                  <li className="py-1">
-                    <Link to="/blog" className="dropdown-item text-uppercase">
-                      Blog
-                    </Link>
-                  </li>
-                  <li className="py-1">
-                    <Link
-                      to="/blog-single"
-                      className="dropdown-item text-uppercase"
-                    >
-                      Blog-Single
-                    </Link>
-                  </li>
-                  <li className="py-1">
-                    <Link
-                      to="/booking"
-                      className="dropdown-item text-uppercase"
-                    >
-                      Booking
-                    </Link>
-                  </li>
-                  <li className="py-1">
-                    <Link
-                      to="/services"
-                      className="dropdown-item text-uppercase"
-                    >
-                      Services
-                    </Link>
-                  </li>
-                  <li className="py-1">
-                    <Link
-                      to="/departments"
-                      className="dropdown-item text-uppercase"
-                    >
-                      Departments
-                    </Link>
-                  </li>
-                  <li className="py-1">
-                    <Link
-                      to="/gallery"
-                      className="dropdown-item text-uppercase"
-                    >
-                      Gallery
-                    </Link>
-                  </li>
-                  <li className="py-1">
-                    <Link
-                      to="/pricing"
-                      className="dropdown-item text-uppercase"
-                    >
-                      Pricing
-                    </Link>
-                  </li>
-                  <li className="py-1">
-                    <Link
-                      to="/contact"
-                      className="dropdown-item text-uppercase"
-                    >
-                      Contact
-                    </Link>
-                  </li>
-                  <li className="py-1">
-                    <Link to="/team" className="dropdown-item text-uppercase">
-                      Our Team
-                    </Link>
-                  </li>
-                  <li className="py-1">
-                    <Link to="/review" className="dropdown-item text-uppercase">
-                      Reviews
-                    </Link>
-                  </li>
-                  <li className="py-1">
-                    <Link to="/faq" className="dropdown-item text-uppercase">
-                      FAQs
-                    </Link>
-                  </li>
-                </ul>
-              </li>
-
-              <li className="nav-item ps-4 pe-4 ">
-                <a
-                  className="nav-link get-pro text-dark fw-bold p-0"
-                  href="https://templatesjungle.gumroad.com/l/free-insove-medical-healthcare-bootstrap-5-html-website-template"
-                >
-                  GET PRO
-                </a>
-              </li>
-            </ul>
-            <form className="search-form mb-3 mb-lg-0" role="search">
-              <svg
-                className="search primary-color position-absolute"
-                width="18"
-                height="18"
-              >
-                <use xlinkHref="#search"></use>
-              </svg>
-              <input
-                className="form-control border-0 ps-4 position-relative"
-                type="search"
-                placeholder="Search.."
-                aria-label="Search"
-              />
-            </form>
+          <div className="bg-white rounded-3 shadow-sm">
+            <div className="d-flex justify-content-between align-items-center px-5 py-3">
+              <ul className="nav gap-5 m-0">
+                <li className="nav-item">
+                  <NavLink 
+                    to="/" 
+                    className={({ isActive }) => 
+                      `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
+                    }
+                  >
+                    Home
+                  </NavLink>
+                </li>
+                <li className="nav-item">
+                  <NavLink 
+                    to="/about" 
+                    className={({ isActive }) => 
+                      `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
+                    }
+                  >
+                    About
+                  </NavLink>
+                </li>
+                <li className="nav-item">
+                  <NavLink 
+                    to="/booking" 
+                    className={({ isActive }) => 
+                      `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
+                    }
+                  >
+                    Booking
+                  </NavLink>
+                </li>
+                <li className="nav-item">
+                  <NavLink 
+                    to="/services" 
+                    className={({ isActive }) => 
+                      `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
+                    }
+                  >
+                    Services
+                  </NavLink>
+                </li>
+                <li className="nav-item">
+                  <NavLink 
+                    to="/pricing" 
+                    className={({ isActive }) => 
+                      `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
+                    }
+                  >
+                    Pricing
+                  </NavLink>
+                </li>
+                <li className="nav-item">
+                  <NavLink 
+                    to="/team" 
+                    className={({ isActive }) => 
+                      `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
+                    }
+                  >
+                    Teams
+                  </NavLink>
+                </li>
+                <li className="nav-item">
+                  <NavLink 
+                    to="/blog" 
+                    className={({ isActive }) => 
+                      `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
+                    }
+                  >
+                    Blog
+                  </NavLink>
+                </li>
+              </ul>
+              <div className="position-relative">
+                <input 
+                  type="text" 
+                  className="form-control bg-light border-0 rounded-pill py-2"
+                  placeholder="Search..." 
+                  style={{ 
+                    paddingRight: '40px',
+                    paddingLeft: '20px',
+                    width: '250px',
+                    fontSize: '0.95rem'
+                  }}
+                />
+                <i className="fas fa-search position-absolute" 
+                   style={{ 
+                     right: '15px', 
+                     top: '50%', 
+                     transform: 'translateY(-50%)',
+                     color: '#6c757d'
+                   }}
+                ></i>
+              </div>
+            </div>
           </div>
         </div>
       </nav>
