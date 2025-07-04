@@ -1,36 +1,10 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination } from 'react-bootstrap';
 import { FaClipboardCheck, FaEdit, FaEye, FaPlus } from 'react-icons/fa';
-
-// Mock Data
-const initialResults = [
-  { 
-    id: 1, 
-    testRequestId: 1, 
-    patientName: 'Peter Jones', 
-    testName: 'Complete Blood Count (CBC)',
-    result: 'All values within normal range.',
-    resultDate: '2024-07-21T09:00:00Z'
-  },
-  { 
-    id: 2, 
-    testRequestId: 4, 
-    patientName: 'Peter Jones', 
-    testName: 'Urinalysis',
-    result: 'No abnormalities detected.',
-    resultDate: '2024-07-29T14:00:00Z'
-  },
-  // Note: Requests for Mary White are still pending, so no results yet.
-];
-
-// In a real app, these would be fetched from the API
-const mockPendingRequests = [
-    {id: 2, patientName: 'Mary White', testName: 'Lipid Panel'},
-    {id: 3, patientName: 'Mary White', testName: 'Thyroid Stimulating Hormone (TSH)'}
-];
+import { mockTestResults, mockPendingRequests } from '../../data/mockServiceData';
 
 function TestResultManagementPage() {
-  const [results, setResults] = useState(initialResults);
+  const [results, setResults] = useState(mockTestResults);
   const [showModal, setShowModal] = useState(false);
   const [currentResult, setCurrentResult] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -46,11 +20,8 @@ function TestResultManagementPage() {
 
   const handleShowModal = (result = null, editMode = false) => {
     if(result) {
-        // Find corresponding request info for display
-        const requestInfo = initialRequests.find(r => r.id === result.testRequestId) || {};
-        setCurrentResult({ ...result, patientName: requestInfo.patientName, testName: requestInfo.testName });
+        setCurrentResult({ ...result });
     } else {
-        // Form to add a new result for a pending request
         setCurrentResult({ testRequestId: '', result: '', resultDate: new Date().toISOString()});
     }
     setIsEditing(editMode);
@@ -58,8 +29,6 @@ function TestResultManagementPage() {
   };
 
   const handleSave = () => {
-    // In a real app, this would be a PUT/POST request.
-    // POST for a new result, PUT to update an existing one.
     if (currentResult.id) { // Editing existing result
       setResults(results.map(r => (r.id === currentResult.id ? currentResult : r)));
     } else { // Adding a new result
@@ -183,6 +152,7 @@ function TestResultManagementPage() {
                 readOnly={!isEditing} 
               />
             </Form.Group>
+            
             <Form.Group className="mb-3">
                 <Form.Label>Result Date</Form.Label>
                 <Form.Control 

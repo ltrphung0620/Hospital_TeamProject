@@ -16,7 +16,8 @@ import {
     FaStethoscope,
     FaFlask,
     FaVial,
-    FaClipboardCheck
+    FaClipboardCheck,
+    FaDollarSign
 } from 'react-icons/fa';
 import './AdminStyles.css';
 
@@ -27,12 +28,14 @@ const Sidebar = ({ isOpen }) => {
     clinical: false,
     pharmacy: false,
     services: false,
+    payments: false
   });
 
   const staffRoutes = ["/admin/users", "/admin/doctors", "/admin/doctor-schedules"];
   const clinicalRoutes = ["/admin/patients", "/admin/appointments", "/admin/waiting-list", "/admin/medical-records"];
   const pharmacyRoutes = ["/admin/medicines"];
   const servicesRoutes = ["/admin/medical-services", "/admin/lab-tests", "/admin/test-requests", "/admin/test-results"];
+  const paymentRoutes = ["/admin/prescription-payments", "/admin/lab-test-payments"];
 
   useEffect(() => {
     setOpen({
@@ -40,6 +43,7 @@ const Sidebar = ({ isOpen }) => {
       clinical: clinicalRoutes.some(route => location.pathname.startsWith(route)),
       pharmacy: pharmacyRoutes.some(route => location.pathname.startsWith(route)),
       services: servicesRoutes.some(route => location.pathname.startsWith(route)),
+      payments: paymentRoutes.some(route => location.pathname.startsWith(route))
     });
   }, [location.pathname]);
 
@@ -128,6 +132,21 @@ const Sidebar = ({ isOpen }) => {
               </ul>
             </Collapse>
           </li>
+
+          {/* Payments Dropdown */}
+          <li>
+             <div className="admin-menu-link" onClick={() => toggleMenu('payments')} aria-expanded={open.payments}>
+              <FaDollarSign className="admin-menu-icon" />
+              <span className="admin-menu-text">Payments</span>
+              <FaChevronDown className={`arrow-icon ${open.payments ? 'open' : ''}`} />
+            </div>
+            <Collapse in={open.payments}>
+               <ul className="admin-submenu">
+                <li><NavLink to="/admin/prescription-payments" className="admin-menu-link sub-link">Prescription Payments</NavLink></li>
+                <li><NavLink to="/admin/lab-test-payments" className="admin-menu-link sub-link">Lab Test Payments</NavLink></li>
+              </ul>
+            </Collapse>
+          </li>
         </ul>
       </nav>
       
@@ -148,4 +167,4 @@ const Sidebar = ({ isOpen }) => {
   );
 };
 
-export default Sidebar;
+export default Sidebar; 

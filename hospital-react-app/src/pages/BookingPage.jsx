@@ -94,159 +94,173 @@ const BookingPage = () => {
     }
 
     return (
-        <Container className="py-5">
-            <Row className="justify-content-center">
-                <Col md={10}>
-                    <Card className="shadow-sm">
-                        <Card.Body className="p-4">
-                            <h2 className="text-center mb-4">Book an Appointment</h2>
+        <>
+            {/* Page Header */}
+            <section id="intro" style={{ backgroundColor: '#E8F0F1' }}>
+                <div className="container">
+                    <div className="banner-content padding-large">
+                        <h1 className="display-3 fw-bold text-dark">Booking</h1>
+                        <span className="item"><Link to="/" className="">Home</Link></span> &nbsp; <span className="">/</span> &nbsp; <span
+                            className="item">Booking</span>
+                    </div>
+                </div>
+            </section>
 
-                            <Form onSubmit={handleSubmit}>
-                                <Row>
-                                    <Col md={6} className="mb-4">
-                                        <Card className="h-100">
-                                            <Card.Body>
-                                                <h5 className="mb-3">Select Location & Doctor</h5>
-                                                
-                                                <Form.Group className="mb-3">
-                                                    <Form.Label>Branch Location</Form.Label>
-                                                    <Form.Select
-                                                        value={selectedBranch}
-                                                        onChange={(e) => setSelectedBranch(e.target.value)}
-                                                        required
-                                                        disabled={loading}
-                                                    >
-                                                        <option value="">Choose a branch...</option>
-                                                        {branches.map((branch) => (
-                                                            <option key={branch.id} value={branch.id}>
-                                                                {branch.name} - {branch.address}
-                                                            </option>
-                                                        ))}
-                                                    </Form.Select>
-                                                </Form.Group>
+            {/* Rest of the booking page content */}
+            <Container className="py-5">
+                <Row className="justify-content-center">
+                    <Col md={10}>
+                        <Card className="shadow-sm">
+                            <Card.Body className="p-4">
+                                <h2 className="text-center mb-4">Book an Appointment</h2>
 
-                                                <Form.Group className="mb-3">
-                                                    <Form.Label>Doctor</Form.Label>
-                                                    <Form.Select
-                                                        value={selectedDoctor}
-                                                        onChange={(e) => setSelectedDoctor(e.target.value)}
-                                                        required
-                                                        disabled={loading || !selectedBranch}
-                                                    >
-                                                        <option value="">Choose a doctor...</option>
-                                                        {filteredDoctors.map((doctor) => (
-                                                            <option key={doctor.id} value={doctor.id}>
-                                                                Dr. {doctor.name} - {doctor.specialization}
-                                                            </option>
-                                                        ))}
-                                                    </Form.Select>
-                                                </Form.Group>
+                                <Form onSubmit={handleSubmit}>
+                                    <Row>
+                                        <Col md={6} className="mb-4">
+                                            <Card className="h-100">
+                                                <Card.Body>
+                                                    <h5 className="mb-3">Select Location & Doctor</h5>
+                                                    
+                                                    <Form.Group className="mb-3">
+                                                        <Form.Label>Branch Location</Form.Label>
+                                                        <Form.Select
+                                                            value={selectedBranch}
+                                                            onChange={(e) => setSelectedBranch(e.target.value)}
+                                                            required
+                                                            disabled={loading}
+                                                        >
+                                                            <option value="">Choose a branch...</option>
+                                                            {branches.map((branch) => (
+                                                                <option key={branch.id} value={branch.id}>
+                                                                    {branch.name} - {branch.address}
+                                                                </option>
+                                                            ))}
+                                                        </Form.Select>
+                                                    </Form.Group>
 
-                                                {doctorDetails && (
-                                                    <Card className="bg-light mt-3">
-                                                        <Card.Body>
-                                                            <div className="d-flex align-items-center mb-3">
-                                                                <img 
-                                                                    src={doctorDetails.image} 
-                                                                    alt={doctorDetails.name}
-                                                                    className="rounded-circle me-3"
-                                                                    style={{ width: '60px', height: '60px', objectFit: 'cover' }}
-                                                                />
-                                                                <div>
-                                                                    <h6 className="mb-1">Dr. {doctorDetails.name}</h6>
-                                                                    <p className="mb-0 text-muted">{doctorDetails.specialization}</p>
+                                                    <Form.Group className="mb-3">
+                                                        <Form.Label>Doctor</Form.Label>
+                                                        <Form.Select
+                                                            value={selectedDoctor}
+                                                            onChange={(e) => setSelectedDoctor(e.target.value)}
+                                                            required
+                                                            disabled={loading || !selectedBranch}
+                                                        >
+                                                            <option value="">Choose a doctor...</option>
+                                                            {filteredDoctors.map((doctor) => (
+                                                                <option key={doctor.id} value={doctor.id}>
+                                                                    Dr. {doctor.name} - {doctor.specialization}
+                                                                </option>
+                                                            ))}
+                                                        </Form.Select>
+                                                    </Form.Group>
+
+                                                    {doctorDetails && (
+                                                        <Card className="bg-light mt-3">
+                                                            <Card.Body>
+                                                                <div className="d-flex align-items-center mb-3">
+                                                                    <img 
+                                                                        src={doctorDetails.image} 
+                                                                        alt={doctorDetails.name}
+                                                                        className="rounded-circle me-3"
+                                                                        style={{ width: '60px', height: '60px', objectFit: 'cover' }}
+                                                                    />
+                                                                    <div>
+                                                                        <h6 className="mb-1">Dr. {doctorDetails.name}</h6>
+                                                                        <p className="mb-0 text-muted">{doctorDetails.specialization}</p>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                            <p className="mb-1"><strong>Experience:</strong> {doctorDetails.experience} years</p>
-                                                            <p className="mb-0"><strong>Qualification:</strong> {doctorDetails.qualification}</p>
-                                                        </Card.Body>
-                                                    </Card>
-                                                )}
-                                            </Card.Body>
-                                        </Card>
-                                    </Col>
+                                                                <p className="mb-1"><strong>Experience:</strong> {doctorDetails.experience} years</p>
+                                                                <p className="mb-0"><strong>Qualification:</strong> {doctorDetails.qualification}</p>
+                                                            </Card.Body>
+                                                        </Card>
+                                                    )}
+                                                </Card.Body>
+                                            </Card>
+                                        </Col>
 
-                                    <Col md={6} className="mb-4">
-                                        <Card className="h-100">
-                                            <Card.Body>
-                                                <h5 className="mb-3">Select Date & Time</h5>
+                                        <Col md={6} className="mb-4">
+                                            <Card className="h-100">
+                                                <Card.Body>
+                                                    <h5 className="mb-3">Select Date & Time</h5>
 
-                                                <div className="calendar-container mb-4">
-                                                    <Calendar
-                                                        onChange={setSelectedDate}
-                                                        value={selectedDate}
-                                                        minDate={new Date()}
-                                                        className="w-100"
-                                                        tileDisabled={({ date }) => date < new Date().setHours(0,0,0,0)}
-                                                    />
-                                                </div>
-
-                                                <Form.Group>
-                                                    <Form.Label>Available Time Slots</Form.Label>
-                                                    <div className="time-slots-grid">
-                                                        {loading ? (
-                                                            <div className="text-center py-4">
-                                                                <LoadingSpinner />
-                                                            </div>
-                                                        ) : availableSlots.length > 0 ? (
-                                                            <div className="d-grid gap-2">
-                                                                {availableSlots.map((slot, index) => (
-                                                                    <Button
-                                                                        key={index}
-                                                                        variant={selectedSlot === slot ? "primary" : "outline-primary"}
-                                                                        onClick={() => setSelectedSlot(slot)}
-                                                                        className="text-start"
-                                                                    >
-                                                                        {new Date(slot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                                        {' - '}
-                                                                        {new Date(slot.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                                    </Button>
-                                                                ))}
-                                                            </div>
-                                                        ) : (
-                                                            <Alert variant="info">
-                                                                No available slots for the selected date.
-                                                            </Alert>
-                                                        )}
+                                                    <div className="calendar-container mb-4">
+                                                        <Calendar
+                                                            onChange={setSelectedDate}
+                                                            value={selectedDate}
+                                                            minDate={new Date()}
+                                                            className="w-100"
+                                                            tileDisabled={({ date }) => date < new Date().setHours(0,0,0,0)}
+                                                        />
                                                     </div>
-                                                </Form.Group>
-                                            </Card.Body>
-                                        </Card>
-                                    </Col>
-                                </Row>
 
-                                <Card className="mb-4">
-                                    <Card.Body>
-                                        <h5 className="mb-3">Additional Information</h5>
-                                        <Form.Group>
-                                            <Form.Label>Notes for the Doctor (Optional)</Form.Label>
-                                            <Form.Control
-                                                as="textarea"
-                                                rows={3}
-                                                value={note}
-                                                onChange={(e) => setNote(e.target.value)}
-                                                placeholder="Describe your symptoms or any specific concerns..."
-                                                disabled={loading}
-                                            />
-                                        </Form.Group>
-                                    </Card.Body>
-                                </Card>
+                                                    <Form.Group>
+                                                        <Form.Label>Available Time Slots</Form.Label>
+                                                        <div className="time-slots-grid">
+                                                            {loading ? (
+                                                                <div className="text-center py-4">
+                                                                    <LoadingSpinner />
+                                                                </div>
+                                                            ) : availableSlots.length > 0 ? (
+                                                                <div className="d-grid gap-2">
+                                                                    {availableSlots.map((slot, index) => (
+                                                                        <Button
+                                                                            key={index}
+                                                                            variant={selectedSlot === slot ? "primary" : "outline-primary"}
+                                                                            onClick={() => setSelectedSlot(slot)}
+                                                                            className="text-start"
+                                                                        >
+                                                                            {new Date(slot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                            {' - '}
+                                                                            {new Date(slot.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                        </Button>
+                                                                    ))}
+                                                                </div>
+                                                            ) : (
+                                                                <Alert variant="info">
+                                                                    No available slots for the selected date.
+                                                                </Alert>
+                                                            )}
+                                                        </div>
+                                                    </Form.Group>
+                                                </Card.Body>
+                                            </Card>
+                                        </Col>
+                                    </Row>
 
-                                <div className="text-center">
-                                    <Button 
-                                        type="submit" 
-                                        size="lg" 
-                                        disabled={loading || !selectedDoctor || !selectedDate || !selectedSlot || !selectedBranch}
-                                    >
-                                        {loading ? 'Booking...' : 'Book Appointment'}
-                                    </Button>
-                                </div>
-                            </Form>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
-        </Container>
+                                    <Card className="mb-4">
+                                        <Card.Body>
+                                            <h5 className="mb-3">Additional Information</h5>
+                                            <Form.Group>
+                                                <Form.Label>Notes for the Doctor (Optional)</Form.Label>
+                                                <Form.Control
+                                                    as="textarea"
+                                                    rows={3}
+                                                    value={note}
+                                                    onChange={(e) => setNote(e.target.value)}
+                                                    placeholder="Describe your symptoms or any specific concerns..."
+                                                    disabled={loading}
+                                                />
+                                            </Form.Group>
+                                        </Card.Body>
+                                    </Card>
+
+                                    <div className="text-center">
+                                        <Button 
+                                            type="submit" 
+                                            size="lg" 
+                                            disabled={loading || !selectedDoctor || !selectedDate || !selectedSlot || !selectedBranch}
+                                        >
+                                            {loading ? 'Booking...' : 'Book Appointment'}
+                                        </Button>
+                                    </div>
+                                </Form>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
+            </Container>
+        </>
     );
 };
 

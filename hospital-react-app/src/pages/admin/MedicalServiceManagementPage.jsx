@@ -1,18 +1,10 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination } from 'react-bootstrap';
 import { FaPlus, FaEdit, FaTrash, FaStethoscope } from 'react-icons/fa';
-
-// Mock Data
-const initialServices = [
-  { id: 1, name: 'General Check-up', type: 'Consultation', price: 50.00, description: 'A comprehensive general health examination.' },
-  { id: 2, name: 'Ultrasound Scan', type: 'Imaging', price: 120.00, description: 'Standard diagnostic ultrasound imaging.' },
-  { id: 3, name: 'Blood Test - Full Panel', type: 'Laboratory', price: 80.00, description: 'Complete blood count and metabolic panel.' },
-  { id: 4, name: 'X-Ray', type: 'Imaging', price: 75.00, description: 'Chest X-Ray for diagnostic purposes.' },
-  { id: 5, name: 'Dental Cleaning', type: 'Dental', price: 65.00, description: 'Standard teeth cleaning and polishing.' },
-];
+import { mockMedicalServices } from '../../data/mockServiceData';
 
 function MedicalServiceManagementPage() {
-  const [services, setServices] = useState(initialServices);
+  const [services, setServices] = useState(mockMedicalServices);
   const [showModal, setShowModal] = useState(false);
   const [currentService, setCurrentService] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -133,7 +125,7 @@ function MedicalServiceManagementPage() {
               <Form.Label>Service Name</Form.Label>
               <Form.Control type="text" name="name" value={currentService?.name || ''} onChange={handleChange} placeholder="e.g., General Check-up" />
             </Form.Group>
-             <Form.Group className="mb-3">
+            <Form.Group className="mb-3">
               <Form.Label>Service Type</Form.Label>
               <Form.Control type="text" name="type" value={currentService?.type || ''} onChange={handleChange} placeholder="e.g., Consultation, Imaging" />
             </Form.Group>
@@ -141,7 +133,7 @@ function MedicalServiceManagementPage() {
               <Form.Label>Price ($)</Form.Label>
               <Form.Control type="number" name="price" value={currentService?.price || 0} onChange={handleChange} min="0" step="0.01" />
             </Form.Group>
-             <Form.Group className="mb-3">
+            <Form.Group className="mb-3">
               <Form.Label>Description</Form.Label>
               <Form.Control as="textarea" rows={3} name="description" value={currentService?.description || ''} onChange={handleChange} placeholder="Enter a brief description of the service" />
             </Form.Group>
