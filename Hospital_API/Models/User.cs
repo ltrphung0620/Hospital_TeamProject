@@ -16,6 +16,8 @@ namespace Hospital_API.Models
         public string? ResetToken { get; set; }
         public DateTime? ResetTokenExpired { get; set; }
         public string? AvatarUrl { get; set; }
+
+        public string? Status { get; set; }
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 
         public virtual Patient Patient { get; set; } = null!;

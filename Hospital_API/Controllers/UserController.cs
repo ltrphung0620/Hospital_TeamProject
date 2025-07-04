@@ -53,7 +53,7 @@ namespace Hospital_API.Controllers
         }
 
         // PUT: api/User/5
-        [HttpPut("{id}")]
+        [HttpPut("edit/{id}")]
         [Authorize]
         public async Task<IActionResult> Update(int id, UserUpdateDto dto)
         {
