@@ -43,15 +43,15 @@ const LoginPage = ({ navigate }) => {
 
       // TODO: Store token (e.g., in localStorage or context)
       // Example: localStorage.setItem('authToken', data.token);
-      localStorage.setItem("authToken", token.token);
-      localStorage.setItem("authUsername", token.username);
-      localStorage.setItem("authFullName", token.fullName);
-      localStorage.setItem("authRoles", JSON.stringify(token.roles));
-  
+      localStorage.setItem("authToken", data.token.token);
+      localStorage.setItem("authUsername", data.token.username);
+      localStorage.setItem("authFullName", data.token.fullName);
+      localStorage.setItem("authRoles", JSON.stringify(data.token.roles));
       // Redirect to home page
 
-      if (token.roles.includes("Admin")) {
-        window.location.href = "https://demoproject.software/admin";
+      const roles = token.roles || [];
+      if (roles.includes("Admin")) {
+        navigate("/admin");
       } else {
         console.warn(
           "Navigate prop not found, cannot redirect programmatically."

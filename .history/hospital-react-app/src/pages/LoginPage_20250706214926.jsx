@@ -50,8 +50,9 @@ const LoginPage = ({ navigate }) => {
   
       // Redirect to home page
 
-      if (token.roles.includes("Admin")) {
-        window.location.href = "https://demoproject.software/admin";
+      const roles = token.roles || [];
+      if (roles.includes("Admin")) {
+        navigate("/admin");
       } else {
         console.warn(
           "Navigate prop not found, cannot redirect programmatically."
