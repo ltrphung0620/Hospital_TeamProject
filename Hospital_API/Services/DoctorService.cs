@@ -16,24 +16,24 @@ namespace Hospital_API.Services
         }
 
         public async Task<IEnumerable<DoctorDTO>> GetAllAsync()
-{
-    var doctors = await _repo.GetAllAsync();
-    return doctors.Select(d => new DoctorDTO
-    {
-        Id = d.Id,
-        UserId = d.UserId,
-        FullName = d.User.FullName,
-        Username = d.User.Username,
-        Email = d.User.Email,
-        Phone = d.User.Phone,
-        Gender = d.User.Gender,
-        DateOfBirth = d.User.DateOfBirth,
-        Specialization = d.Specialization,
-        Degree = d.Degree,
-        YearOfExperience = d.YearOfExperience,
-        Status = d.User.Status
-    });
-}
+        {
+            var doctors = await _repo.GetAllAsync();
+            return doctors.Select(d => new DoctorDTO
+            {
+                Id = d.Id,
+                UserId = d.UserId,
+                FullName = d.User.FullName,
+                Username = d.User.Username,
+                Email = d.User.Email,
+                Phone = d.User.Phone,
+                Gender = d.User.Gender,
+                DateOfBirth = d.User.DateOfBirth,
+                Specialization = d.Specialization,
+                Degree = d.Degree,
+                YearOfExperience = d.YearOfExperience,
+                Status = d.User.Status
+            });
+        }
 
 
         public async Task<DoctorDTO?> GetByIdAsync(int id)

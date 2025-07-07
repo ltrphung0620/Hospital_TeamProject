@@ -50,11 +50,14 @@ export const updateUser = async (id, userData) => {
 
 const deleteUser = async (id) => {
   const token = localStorage.getItem("authToken");
-  return await axios.delete(`https://api.demoproject.software/api/delete/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  return await axios.delete(
+    `https://api.demoproject.software/api/delete/${id}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 };
 
 // Mock data for non-doctor users
@@ -181,7 +184,9 @@ function UserManagementPage() {
     //call API get Roles
     const fetchRoles = async () => {
       try {
-        const response = await axios.get("https://api.demoproject.software/api/Roles");
+        const response = await axios.get(
+          "https://api.demoproject.software/api/Roles"
+        );
         setRoles(response.data);
       } catch (error) {
         console.error("Failed to fetch roles", error);
