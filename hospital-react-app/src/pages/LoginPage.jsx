@@ -1,8 +1,8 @@
-import React from "react";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
-const LoginPage = ({ navigate }) => {
+const LoginPage = () => {
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
@@ -15,52 +15,17 @@ const LoginPage = ({ navigate }) => {
       setPassword(value);
     }
   };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setError(null); // Clear previous errors
+    setError(null);
 
-    try {
-      const response = await fetch("https://api.demoproject.software/api/Auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ Username: username, Password: password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({
-          message: "Login failed. Please check your username or password.",
-        }));
-        throw new Error(
-          errorData.message || "Login failed. Please check your credentials."
-        );
-      }
-      const data = await response.json();
-      console.log("Login successful:", data);
-
-      const token = data.token;
-
-      // TODO: Store token (e.g., in localStorage or context)
-      // Example: localStorage.setItem('authToken', data.token);
-      localStorage.setItem("authToken", token.token);
-      localStorage.setItem("authUsername", token.username);
-      localStorage.setItem("authFullName", token.fullName);
-      localStorage.setItem("authRoles", JSON.stringify(token.roles));
-  
-      // Redirect to home page
-
-      if (token.roles.includes("Admin")) {
-        window.location.href = "https://demoproject.software/admin";
-      } else {
-        console.warn(
-          "Navigate prop not found, cannot redirect programmatically."
-        );
-        window.location.href = "/"; // Less ideal full page reload
-      }
-    } catch (err) {
-      console.error("Login error:", err);
-      setError(err.message);
+    // For demo: Simple validation
+    if (username === "demo" && password === "demo") {
+      localStorage.setItem("isLoggedIn", "true");
+      navigate("/");
+    } else {
+      setError("Invalid username or password. Try demo/demo");
     }
   };
 
