@@ -17,6 +17,7 @@ import WaitingListManagementPage from '../../pages/admin/WaitingListManagementPa
 import PrescriptionPaymentPage from '../../pages/admin/PrescriptionPaymentPage';
 import LabTestPaymentPage from '../../pages/admin/LabTestPaymentPage';
 import ServicePaymentManagementPage from '../../pages/admin/ServicePaymentManagementPage';
+import DoctorSchedulesPage from '../../pages/admin/DoctorSchedulesPage';
 import './AdminStyles.css';
 
 const AdminLayout = () => {
@@ -50,6 +51,7 @@ const AdminLayout = () => {
                     <Route path="/" element={<AdminDashboard />} />
                     <Route path="/users" element={<UserManagementPage />} />
                     <Route path="/doctors" element={<DoctorManagementPage />} />
+                    <Route path="/doctor-schedules" element={<DoctorSchedulesPage />} />
                     <Route path="/patients" element={<PatientManagementPage />} />
                     <Route path="/appointments" element={<AppointmentManagementPage />} />
                     <Route path="/medicines" element={<MedicineManagementPage />} />
