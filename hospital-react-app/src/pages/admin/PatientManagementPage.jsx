@@ -194,34 +194,35 @@ function PatientManagementPage() {
   };
 
   const API_URL_UPDATE = "http://localhost:5247/api/Patient";
-  const handleSave = async () => {
-    try {
-      if (isEditing) {
-        // PUT update patient
-        await axios.put(
-          `${API_URL_UPDATE}/${currentPatient.id}`,
-          currentPatient
-        );
 
-        // Cập nhật state local
-        setPatients((prev) =>
-          prev.map((p) => (p.id === currentPatient.id ? currentPatient : p))
-        );
-      } else {
-        // POST create new patient
-        const response = await axios.post(API_URL_UPDATE, currentPatient);
-        const newPatient = response.data;
+  // const handleSave = async () => {
+  //   try {
+  //     if (isEditing) {
+  //       // PUT update patient
+  //       await axios.put(
+  //         `${API_URL_UPDATE}/${currentPatient.id}`,
+  //         currentPatient
+  //       );
 
-        // Thêm vào state local
-        setPatients((prev) => [...prev, newPatient]);
-      }
+  //       // Cập nhật state local
+  //       setPatients((prev) =>
+  //         prev.map((p) => (p.id === currentPatient.id ? currentPatient : p))
+  //       );
+  //     } else {
+  //       // POST create new patient
+  //       const response = await axios.post(API_URL_UPDATE, currentPatient);
+  //       const newPatient = response.data;
 
-      handleCloseModal();
-    } catch (error) {
-      console.error("Save patient failed:", error);
-      alert("Có lỗi xảy ra khi lưu bệnh nhân");
-    }
-  };
+  //       // Thêm vào state local
+  //       setPatients((prev) => [...prev, newPatient]);
+  //     }
+
+  //     handleCloseModal();
+  //   } catch (error) {
+  //     console.error("Save patient failed:", error);
+  //     alert("Có lỗi xảy ra khi lưu bệnh nhân");
+  //   }
+  // };
 
   // const handleSave = () => {
   //   if (isEditing) {
@@ -239,6 +240,73 @@ function PatientManagementPage() {
   //   }
   //   handleCloseModal();
   // };
+
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      if (isEditing) {
+        // Cập nhật patient
+        await axios.put(
+          `${API_URL_UPDATE}/${currentPatient.id}`,
+          currentPatient,
+          config
+        );
+
+        // Update local state
+        setPatients((prev) =>
+          prev.map((p) => (p.id === currentPatient.id ? currentPatient : p))
+        );
+      } else {
+        // 1. Tạo User trước
+        const userRes = await axios.post(
+          "https://api.demoproject.software/api/User/create",
+          {
+            username: currentPatient.username,
+            password: currentPatient.password,
+            fullName: currentPatient.fullName,
+            email: currentPatient.email,
+            phone: currentPatient.phone,
+            roleId: parseInt("2"),
+            gender: currentPatient.gender,
+            dateOfBirth: currentPatient.dateOfBirth,
+            status: currentPatient.status,
+          },
+          config
+        );
+
+        const userId = userRes.data.id;
+
+        // 2. Tạo Patient
+        const patientRes = await axios.post(
+          "https://api.demoproject.software/api/Patient",
+          {
+            userId: userId,
+            address: currentPatient.address,
+            insuranceCode: currentPatient.insuranceCode,
+            emergencyContact: currentPatient.emergencyContact,
+          },
+          config
+        );
+
+        const newPatient = patientRes.data;
+        setPatients((prev) => [...prev, newPatient]);
+      }
+
+      handleCloseModal();
+      loadUsers();
+      alert("Lưu bệnh nhân thành công!");
+    } catch (error) {
+      console.error("Save patient failed:", error);
+      alert("Có lỗi xảy ra khi lưu bệnh nhân");
+    }
+  };
+
   const API_URL_GET_USER_ROLE = "http://localhost:5247/api/UserRole/user";
   const getRoleIdByUserId = async (userId) => {
     try {
@@ -355,10 +423,13 @@ function PatientManagementPage() {
   };
 
   const filteredInvoices =
-    currentPatient?.invoices.filter(
-      (invoice) =>
-        selectedInvoiceType === "all" || invoice.type === selectedInvoiceType
-    ) || [];
+    currentPatient && Array.isArray(currentPatient.invoices)
+      ? currentPatient.invoices.filter(
+          (invoice) =>
+            selectedInvoiceType === "all" ||
+            invoice.type === selectedInvoiceType
+        )
+      : [];
 
   return (
     <Container fluid className="p-4">
@@ -373,9 +444,9 @@ function PatientManagementPage() {
       <Card className="admin-card">
         <Card.Header className="d-flex justify-content-between align-items-center">
           <span>Danh sách bệnh nhân</span>
-          {/* <Button variant="primary" onClick={() => handleShowModal()}>
-            <FaPlus className="me-2" /> Add Patient
-          </Button> */}
+          <Button variant="primary" onClick={() => handleShowModal()}>
+            <FaPlus className="me-2" /> Thêm thông tin bệnh nhân
+          </Button>
         </Card.Header>
         <Card.Body>
           <Table responsive hover className="admin-table">

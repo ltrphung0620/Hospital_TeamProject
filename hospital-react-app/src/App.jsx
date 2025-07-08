@@ -18,6 +18,7 @@ import ReviewPage from './pages/ReviewPage';
 import PricingPage from './pages/PricingPage';
 import GalleryPage from './pages/GalleryPage';
 import AppointmentsPage from './pages/AppointmentsPage';
+import UserInfoPage from './pages/UserInfoPage';
 import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagementPage from './pages/admin/UserManagementPage';
@@ -66,6 +67,7 @@ function App() {
           <Route path="review" element={<ReviewPage />} />
           <Route path="pricing" element={<PricingPage />} />
           <Route path="gallery" element={<GalleryPage />} />
+          <Route path="user-info" element={<UserInfoPage />} />
         </Route>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />

@@ -1,19 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import Avatar from "../common/Avatar";
+import { mockUser } from "../../data/mockUserData";
+import './Header.css';
 
 const Header = () => {
   const [isSticky, setSticky] = useState(false);
-  const [user, setUser] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Get user from localStorage
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-
     const handleScroll = () => {
       if (window.scrollY > 50) {
         setSticky(true);
@@ -22,23 +19,45 @@ const Header = () => {
       }
     };
 
+    const handleClickOutside = (event) => {
+      const nav = document.querySelector('.nav');
+      const menuToggle = document.querySelector('.menu-toggle');
+      if (isMenuOpen && nav && !nav.contains(event.target) && !menuToggle.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    // For demo: Get user from localStorage or use mock data
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    if (isLoggedIn === "true") {
+      setUser(mockUser);
+    }
+
     window.addEventListener("scroll", handleScroll);
+    document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [isMenuOpen]);
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
+    localStorage.removeItem("isLoggedIn");
     setUser(null);
-    navigate('/login');
+    navigate("/");
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const closeMenu = () => {
+    setIsMenuOpen(false);
   };
 
   return (
-    <header id="header" className={isSticky ? "sticky" : ""}>
-      {/* Top Header */}
+    <header className={`header ${isSticky ? "sticky" : ""}`}>
       <div className="py-3" style={{ backgroundColor: '#f8f9fa' }}>
         <div className="container">
           <div className="row align-items-center">
@@ -59,44 +78,84 @@ const Header = () => {
                 </div>
               </div>
             </div>
+            
             <div className="col-lg-3 col-md-3 col-sm-12">
               <div className="d-flex justify-content-end gap-2">
                 {user ? (
-                  <div className="d-flex align-items-center">
-                    <div className="dropdown">
-                      <button 
-                        className="btn btn-link text-dark text-decoration-none d-flex align-items-center gap-2" 
-                        type="button" 
-                        data-bs-toggle="dropdown"
-                      >
-                        <Avatar name={user.name} size={35} />
-                        <span className="d-none d-md-inline">{user.name}</span>
-                        <i className="fas fa-chevron-down fs-12"></i>
-                      </button>
-                      <ul className="dropdown-menu dropdown-menu-end">
-                        {user.role === 'admin' && (
-                          <li>
-                            <Link to="/admin" className="dropdown-item">
-                              <i className="fas fa-dashboard me-2"></i>
-                              Admin Dashboard
-                            </Link>
-                          </li>
-                        )}
-                        <li>
-                          <Link to="/profile" className="dropdown-item">
-                            <i className="fas fa-user me-2"></i>
-                            Profile
-                          </Link>
-                        </li>
-                        <li><hr className="dropdown-divider" /></li>
-                        <li>
-                          <button onClick={handleLogout} className="dropdown-item text-danger">
-                            <i className="fas fa-sign-out-alt me-2"></i>
-                            Logout
-                          </button>
-                        </li>
-                      </ul>
-                    </div>
+                  <div className="dropdown">
+                    <button
+                      className="btn btn-link text-dark text-decoration-none d-flex align-items-center gap-2 p-1 dropdown-toggle"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                    >
+                      <div className="position-relative">
+                        <Avatar name={user.fullName} size={40} className="border-2 border-primary" />
+                        <span className="avatar-status"></span>
+                      </div>
+                      <div className="d-none d-md-block text-start">
+                        <div className="fw-semibold">{user.fullName}</div>
+                        <div className="text-muted small">{user.email}</div>
+                      </div>
+                    </button>
+                    <ul className="dropdown-menu dropdown-menu-end animate slideIn">
+                      <li>
+                        <Link to="/user-info" className="dropdown-item">
+                          <span className="item-icon">
+                            <i className="fas fa-user"></i>
+                          </span>
+                          <div className="item-content">
+                            <div className="item-title">My Profile</div>
+                            <div className="item-subtitle">View and update your details</div>
+                          </div>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link to="/user-info?tab=appointments" className="dropdown-item">
+                          <span className="item-icon">
+                            <i className="fas fa-calendar-check"></i>
+                          </span>
+                          <div className="item-content">
+                            <div className="item-title">My Appointments</div>
+                            <div className="item-subtitle">View your appointments</div>
+                          </div>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link to="/user-info?tab=prescriptions" className="dropdown-item">
+                          <span className="item-icon">
+                            <i className="fas fa-prescription-bottle-alt"></i>
+                          </span>
+                          <div className="item-content">
+                            <div className="item-title">My Prescriptions</div>
+                            <div className="item-subtitle">View your prescriptions</div>
+                          </div>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link to="/user-info?tab=invoices" className="dropdown-item">
+                          <span className="item-icon">
+                            <i className="fas fa-file-invoice-dollar"></i>
+                          </span>
+                          <div className="item-content">
+                            <div className="item-title">My Invoices</div>
+                            <div className="item-subtitle">View your billing history</div>
+                          </div>
+                        </Link>
+                      </li>
+                      <li><hr className="dropdown-divider" /></li>
+                      <li>
+                        <button onClick={handleLogout} className="dropdown-item logout-item">
+                          <span className="item-icon">
+                            <i className="fas fa-sign-out-alt"></i>
+                          </span>
+                          <div className="item-content">
+                            <div className="item-title">Logout</div>
+                            <div className="item-subtitle">Sign out of your account</div>
+                          </div>
+                        </button>
+                      </li>
+                    </ul>
                   </div>
                 ) : (
                   <>
@@ -114,18 +173,26 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Main Navigation */}
       <nav className="position-relative" style={{ backgroundColor: '#EDF3F8', paddingTop: '30px', paddingBottom: '30px' }}>
         <div className="container">
           <div className="bg-white rounded-3 shadow-sm">
             <div className="d-flex justify-content-between align-items-center px-5 py-3">
-              <ul className="nav gap-5 m-0">
+              <button 
+                className="menu-toggle d-lg-none" 
+                onClick={toggleMenu} 
+                aria-label="Toggle navigation"
+                aria-expanded={isMenuOpen}
+              >
+                <i className={`fas ${isMenuOpen ? 'fa-times' : 'fa-bars'}`}></i>
+              </button>
+              <ul className={`nav gap-5 m-0 ${isMenuOpen ? 'show' : ''}`}>
                 <li className="nav-item">
                   <NavLink 
                     to="/" 
                     className={({ isActive }) => 
                       `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
                     }
+                    onClick={() => setIsMenuOpen(false)}
                   >
                     Home
                   </NavLink>
@@ -136,6 +203,7 @@ const Header = () => {
                     className={({ isActive }) => 
                       `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
                     }
+                    onClick={() => setIsMenuOpen(false)}
                   >
                     About
                   </NavLink>
@@ -146,6 +214,7 @@ const Header = () => {
                     className={({ isActive }) => 
                       `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
                     }
+                    onClick={() => setIsMenuOpen(false)}
                   >
                     Booking
                   </NavLink>
@@ -156,6 +225,7 @@ const Header = () => {
                     className={({ isActive }) => 
                       `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
                     }
+                    onClick={() => setIsMenuOpen(false)}
                   >
                     Services
                   </NavLink>
@@ -166,6 +236,7 @@ const Header = () => {
                     className={({ isActive }) => 
                       `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
                     }
+                    onClick={() => setIsMenuOpen(false)}
                   >
                     Pricing
                   </NavLink>
@@ -176,6 +247,7 @@ const Header = () => {
                     className={({ isActive }) => 
                       `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
                     }
+                    onClick={() => setIsMenuOpen(false)}
                   >
                     Teams
                   </NavLink>
@@ -186,31 +258,20 @@ const Header = () => {
                     className={({ isActive }) => 
                       `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
                     }
+                    onClick={() => setIsMenuOpen(false)}
                   >
                     Blog
                   </NavLink>
                 </li>
               </ul>
-              <div className="position-relative">
+              <div className="search-container">
                 <input 
                   type="text" 
-                  className="form-control bg-light border-0 rounded-pill py-2"
+                  className="search-input"
                   placeholder="Search..." 
-                  style={{ 
-                    paddingRight: '40px',
-                    paddingLeft: '20px',
-                    width: '250px',
-                    fontSize: '0.95rem'
-                  }}
+                  aria-label="Search"
                 />
-                <i className="fas fa-search position-absolute" 
-                   style={{ 
-                     right: '15px', 
-                     top: '50%', 
-                     transform: 'translateY(-50%)',
-                     color: '#6c757d'
-                   }}
-                ></i>
+                <i className="fas fa-search search-icon"></i>
               </div>
             </div>
           </div>

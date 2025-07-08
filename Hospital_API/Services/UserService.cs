@@ -106,6 +106,7 @@ namespace Hospital_API.Services
             user.Email = dto.Email;
             user.Phone = dto.Phone;
             user.Gender = dto.Gender;
+
             user.DateOfBirth = dto.DateOfBirth;
             user.AvatarUrl = dto.AvatarUrl;
             user.Status = dto.Status;
