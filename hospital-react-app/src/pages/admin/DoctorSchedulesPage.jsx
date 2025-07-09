@@ -1,14 +1,33 @@
-import React, { useState } from 'react';
-import { mockDoctorSchedules, getDayName, formatTime } from '../../data/mockDoctorScheduleData';
-import { Table, Button, Badge } from 'react-bootstrap';
-import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
-import DoctorScheduleModal from '../../components/admin/DoctorScheduleModal';
-import Swal from 'sweetalert2';
+import React, { useState, useEffect } from "react";
+
+import { Table, Button, Badge } from "react-bootstrap";
+import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
+import DoctorScheduleModal from "../../components/admin/DoctorScheduleModal";
+import Swal from "sweetalert2";
+import axios from "axios";
 
 const DoctorSchedulesPage = () => {
-  const [schedules, setSchedules] = useState(mockDoctorSchedules);
+  const [schedules, setSchedules] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
+  const getDayName = (dayOfWeek) => {
+    const days = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    return days[dayOfWeek];
+  };
+
+  const formatTime = (time) => {
+    if (!time) return "";
+    const [hour, minute] = time.split(":");
+    return `${hour}:${minute}`;
+  };
 
   const handleAdd = () => {
     setSelectedSchedule(null);
@@ -16,58 +35,79 @@ const DoctorSchedulesPage = () => {
   };
 
   const handleEdit = (schedule) => {
-    setSelectedSchedule(schedule);
+    const formatTimeForInput = (time) => {
+      if (!time) return "";
+      const [hour, minute] = time.split(":");
+      return `${hour}:${minute}`;
+    };
+
+    const updatedSchedule = {
+      ...schedule,
+      startTime: formatTimeForInput(schedule.startTime),
+      endTime: formatTimeForInput(schedule.endTime),
+    };
+
+    setSelectedSchedule(updatedSchedule);
     setShowModal(true);
   };
 
-  const handleDelete = (id) => {
-    Swal.fire({
-      title: 'Are you sure?',
+  const handleDelete = async (id) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
       text: "You won't be able to revert this!",
-      icon: 'warning',
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Delete the schedule
-        setSchedules(schedules.filter(schedule => schedule.id !== id));
-        Swal.fire(
-          'Deleted!',
-          'The schedule has been deleted.',
-          'success'
-        );
-      }
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
     });
+
+    if (confirm.isConfirmed) {
+      try {
+        // Gọi API delete theo ID
+        await axios.delete(`http://localhost:5247/api/DoctorSchedule/${id}`);
+
+        // Gọi lại danh sách sau khi xoá
+        const res = await axios.get("http://localhost:5247/api/DoctorSchedule");
+        setSchedules(res.data);
+
+        Swal.fire("Deleted!", "The schedule has been deleted.", "success");
+      } catch (error) {
+        console.error(
+          "❌ Delete failed:",
+          error.response?.data || error.message
+        );
+        Swal.fire("Error", "Failed to delete schedule", "error");
+      }
+    }
   };
 
-  const handleSave = (formData) => {
-    if (selectedSchedule) {
-      // Update existing schedule
-      setSchedules(schedules.map(schedule =>
-        schedule.id === selectedSchedule.id
-          ? {
-              ...schedule,
-              ...formData,
-              doctor: schedule.doctor, // Preserve doctor details
-              room: schedule.room // Preserve room details
-            }
-          : schedule
-      ));
-      Swal.fire('Success', 'Schedule updated successfully!', 'success');
-    } else {
-      // Create new schedule
-      const newSchedule = {
-        id: Math.max(...schedules.map(s => s.id)) + 1,
-        ...formData,
-        doctor: mockDoctorSchedules.find(s => s.doctor.id === parseInt(formData.doctorId))?.doctor,
-        room: mockDoctorSchedules.find(s => s.room.id === parseInt(formData.roomId))?.room
-      };
-      setSchedules([...schedules, newSchedule]);
-      Swal.fire('Success', 'New schedule created successfully!', 'success');
+  useEffect(() => {
+    const fetchSchedules = async () => {
+      try {
+        const res = await axios.get("http://localhost:5247/api/DoctorSchedule");
+        setSchedules(res.data);
+      } catch (error) {
+        console.error("❌ Error loading schedules:", error);
+      }
+    };
+
+    fetchSchedules();
+  }, []);
+  const handleUpdate = async (formData) => {
+    try {
+      await axios.put(
+        `http://localhost:5247/api/DoctorSchedule/${selectedSchedule.id}`,
+        formData
+      );
+      Swal.fire("Success", "Schedule updated successfully!", "success");
+      const res = await axios.get("http://localhost:5247/api/DoctorSchedule");
+      setSchedules(res.data);
+      setShowModal(false);
+    } catch (error) {
+      console.error("❌ Error updating schedule:", error);
+      Swal.fire("Error", "Failed to update schedule", "error");
     }
-    setShowModal(false);
   };
 
   return (
@@ -99,23 +139,24 @@ const DoctorSchedulesPage = () => {
                   <tr key={schedule.id}>
                     <td>
                       <div className="d-flex align-items-center">
-                        <img
+                        {/* <img
                           src={schedule.doctor.imageUrl}
                           alt={schedule.doctor.name}
                           className="rounded-circle me-2"
                           width="40"
                           height="40"
-                          style={{ objectFit: 'cover' }}
-                        />
+                          style={{ objectFit: "cover" }}
+                        /> */}
                         <div>
-                          <div className="fw-bold">{schedule.doctor.name}</div>
-                          <div className="text-muted small">{schedule.doctor.specialization}</div>
+                          <div className="fw-bold">{schedule.doctorName}</div>
+                          {/* <div className="text-muted small">
+                            {schedule.doctor.specialization}
+                          </div> */}
                         </div>
                       </div>
                     </td>
                     <td>
-                      <div className="fw-bold">{schedule.room.name}</div>
-                      <div className="text-muted small">{schedule.room.floor}</div>
+                      <div className="fw-bold">{schedule.roomName}</div>
                     </td>
                     <td>
                       <Badge bg="info" className="rounded-pill">
@@ -124,7 +165,8 @@ const DoctorSchedulesPage = () => {
                     </td>
                     <td>
                       <div className="text-nowrap">
-                        {formatTime(schedule.startTime)} - {formatTime(schedule.endTime)}
+                        {formatTime(schedule.startTime)} -{" "}
+                        {formatTime(schedule.endTime)}
                       </div>
                     </td>
                     <td>
@@ -159,11 +201,11 @@ const DoctorSchedulesPage = () => {
       <DoctorScheduleModal
         show={showModal}
         onHide={() => setShowModal(false)}
-        onSave={handleSave}
+        onSave={selectedSchedule ? handleUpdate : null}
         schedule={selectedSchedule}
       />
     </div>
   );
 };
 
-export default DoctorSchedulesPage; 
+export default DoctorSchedulesPage;

@@ -127,7 +127,7 @@ function PatientManagementPage() {
   const itemsPerPage = 10;
 
   //call the API to get all users
-  // const API_URL_GET = "https://api.demoproject.software/api/Patient";
+  //const API_URL_GET = "https://api.demoproject.software/api/Patient";
   const API_URL_GET = "http://localhost:5247/api/Patient";
   const fetchUsers = async () => {
     const response = await axios.get(API_URL_GET);
@@ -249,21 +249,40 @@ function PatientManagementPage() {
           Authorization: `Bearer ${token}`,
         },
       };
-
       if (isEditing) {
-        // Cập nhật patient
-        await axios.put(
-          `${API_URL_UPDATE}/${currentPatient.id}`,
-          currentPatient,
+        // ✅ CASE: EDITING
+
+        // Chỉ update patient hiện tại
+        const patientRes = await axios.get(
+          `https://api.demoproject.software/api/Patient/user/${currentPatient.userId}`,
+          config
+        );
+        const patientId = patientRes.data.id;
+
+        const res = await axios.put(
+          `${API_URL_UPDATE}/${patientId}`,
+          {
+            userId: currentPatient.userId,
+            address: currentPatient.address,
+            insuranceCode: currentPatient.insuranceCode,
+            emergencyContact: currentPatient.emergencyContact,
+            fullName: currentPatient.fullName,
+            email: currentPatient.email,
+            phone: currentPatient.phone,
+            gender: currentPatient.gender,
+            avatarUrl: currentPatient.avatarUrl || null,
+            status: currentPatient.status || null,
+            dateOfBirth: currentPatient.dateOfBirth,
+          },
           config
         );
 
-        // Update local state
+        const updatedPatient = res.data;
         setPatients((prev) =>
-          prev.map((p) => (p.id === currentPatient.id ? currentPatient : p))
+          prev.map((p) => (p.id === patientId ? { ...updatedPatient } : p))
         );
       } else {
-        // 1. Tạo User trước
+        // 1. Tạo User mới trước
         const userRes = await axios.post(
           "https://api.demoproject.software/api/User/create",
           {
@@ -272,7 +291,7 @@ function PatientManagementPage() {
             fullName: currentPatient.fullName,
             email: currentPatient.email,
             phone: currentPatient.phone,
-            roleId: parseInt("2"),
+            roleId: 2,
             gender: currentPatient.gender,
             dateOfBirth: currentPatient.dateOfBirth,
             status: currentPatient.status,
@@ -280,29 +299,71 @@ function PatientManagementPage() {
           config
         );
 
-        const userId = userRes.data.id;
+        const newUserId = userRes.data.id;
 
-        // 2. Tạo Patient
-        const patientRes = await axios.post(
-          "https://api.demoproject.software/api/Patient",
-          {
-            userId: userId,
-            address: currentPatient.address,
-            insuranceCode: currentPatient.insuranceCode,
-            emergencyContact: currentPatient.emergencyContact,
-          },
-          config
-        );
+        if (newUserId) {
+          const patientRes = await axios.get(
+            `https://api.demoproject.software/api/Patient/user/${newUserId}`,
+            config
+          );
 
-        const newPatient = patientRes.data;
-        setPatients((prev) => [...prev, newPatient]);
+          console.log("✅ Patient found:", patientRes.data);
+
+          const patientId = patientRes.data.id;
+          // 2. Update Patient hiện tại, gán userId mới
+          const res = await axios.put(
+            `${API_URL_UPDATE}/${patientId}`,
+            {
+              userId: newUserId,
+              address: currentPatient.address,
+              insuranceCode: currentPatient.insuranceCode,
+              emergencyContact: currentPatient.emergencyContact,
+
+              fullName: currentPatient.fullName,
+              email: currentPatient.email,
+              phone: currentPatient.phone,
+              gender: currentPatient.gender,
+              avatarUrl: currentPatient.avatarUrl || null,
+              status: currentPatient.status || null,
+              dateOfBirth: currentPatient.dateOfBirth,
+            },
+            config
+          );
+
+          const updatedPatient = res.data;
+
+          // Update local state
+          setPatients((prev) =>
+            prev.map((p) =>
+              p.id === patientId ? { ...updatedPatient, user: userRes.data } : p
+            )
+          );
+        } else {
+          // 3. Tạo mới Patient (nếu không phải edit)
+          const patientRes = await axios.post(
+            "https://api.demoproject.software/api/Patient",
+            {
+              userId: newUserId,
+              address: currentPatient.address,
+              insuranceCode: currentPatient.insuranceCode,
+              emergencyContact: currentPatient.emergencyContact,
+            },
+            config
+          );
+
+          const newPatient = patientRes.data;
+          setPatients((prev) => [...prev, newPatient]);
+        }
       }
 
       handleCloseModal();
       loadUsers();
       alert("Lưu bệnh nhân thành công!");
     } catch (error) {
-      console.error("Save patient failed:", error);
+      console.error(
+        "Save patient failed:",
+        error.response?.data || error.message
+      );
       alert("Có lỗi xảy ra khi lưu bệnh nhân");
     }
   };
