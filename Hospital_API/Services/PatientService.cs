@@ -23,7 +23,16 @@ namespace Hospital_API.Services
                 FullName = p.User.FullName,
                 InsuranceCode = p.InsuranceCode,
                 Address = p.Address,
-                EmergencyContact = p.EmergencyContact
+                EmergencyContact = p.EmergencyContact,
+
+                Username = p.User.Username,
+                Email = p.User.Email,
+                Phone = p.User.Phone,
+                Gender = p.User.Gender,
+                AvatarUrl = p.User.AvatarUrl,
+                Status = p.User.Status,
+                DateOfBirth = p.User.DateOfBirth
+
             }).ToList();
         }
 
@@ -39,7 +48,15 @@ namespace Hospital_API.Services
                 FullName = p.User.FullName,
                 InsuranceCode = p.InsuranceCode,
                 Address = p.Address,
-                EmergencyContact = p.EmergencyContact
+                EmergencyContact = p.EmergencyContact,
+
+                Username = p.User.Username,
+                Email = p.User.Email,
+                Phone = p.User.Phone,
+                Gender = p.User.Gender,
+                AvatarUrl = p.User.AvatarUrl,
+                Status = p.User.Status,
+                DateOfBirth = p.User.DateOfBirth
             };
         }
         public async Task<PatientResponse?> GetByUserIdAsync(int userId)
@@ -54,7 +71,15 @@ namespace Hospital_API.Services
                 FullName = p.User.FullName,
                 InsuranceCode = p.InsuranceCode,
                 Address = p.Address,
-                EmergencyContact = p.EmergencyContact
+                EmergencyContact = p.EmergencyContact,
+
+                Username = p.User.Username,
+                Email = p.User.Email,
+                Phone = p.User.Phone,
+                Gender = p.User.Gender,
+                AvatarUrl = p.User.AvatarUrl,
+                Status = p.User.Status,
+                DateOfBirth = p.User.DateOfBirth
             };
         }
 
@@ -80,6 +105,17 @@ namespace Hospital_API.Services
             existing.InsuranceCode = dto.InsuranceCode;
             existing.Address = dto.Address;
             existing.EmergencyContact = dto.EmergencyContact;
+
+            if (existing.User != null)
+            {
+                existing.User.FullName = dto.FullName;
+                existing.User.Email = dto.Email;
+                existing.User.Phone = dto.Phone;
+                existing.User.Gender = dto.Gender;
+                existing.User.DateOfBirth = dto.DateOfBirth;
+                existing.User.Status = dto.Status;
+
+            }
 
             _repo.Update(existing);
             return await _repo.SaveChangesAsync();

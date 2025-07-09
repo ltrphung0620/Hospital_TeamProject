@@ -11,7 +11,7 @@ import {
   Pagination,
   Badge,
 } from "react-bootstrap";
-import { FaPlus, FaEdit, FaTrash, FaUsers } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaUsers, FaKey } from "react-icons/fa";
 import Avatar from "../../components/common/Avatar";
 import axios from "axios";
 import { useEffect } from "react";
@@ -50,11 +50,14 @@ export const updateUser = async (id, userData) => {
 
 const deleteUser = async (id) => {
   const token = localStorage.getItem("authToken");
-  return await axios.delete(`https://api.demoproject.software/api/delete/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  return await axios.delete(
+    `https://api.demoproject.software/api/delete/${id}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 };
 
 // Mock data for non-doctor users
@@ -90,16 +93,29 @@ const initialUsers = [
 ];
 
 function UserManagementPage() {
-  const [users, setUsers] = useState(initialUsers);
+  const [users, setUsers] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [roles, setRoles] = useState([]);
+  const [newRoleId, setNewRoleId] = useState(null);
+
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
+  const [permissionUser, setPermissionUser] = useState(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const getRoleIdByName = (roleName) => {
+    const found = roles.find((r) => r.name === roleName);
+    return found ? found.id : null;
+  };
+
+  const handleShowPermissionModal = (user) => {
+    setPermissionUser(user);
+    setShowPermissionModal(true);
+  };
 
   const handleCloseModal = () => {
     setShowModal(false);
@@ -136,7 +152,9 @@ function UserManagementPage() {
           ...user,
           password: "",
           fullName: user.fullName || user.name || "",
-          dateOfBirth: formatDate(user.dateOfBirth), // ← THÊM DÒNG NÀY
+          dateOfBirth: formatDate(user.dateOfBirth),
+          status: user.status ?? "Active",
+          role: getRoleIdByName(user.roles?.[0]) || "", // ← THÊM DÒNG NÀY
         });
         setIsEditing(true);
         setAvatarPreview(user.avatar);
@@ -181,8 +199,17 @@ function UserManagementPage() {
     //call API get Roles
     const fetchRoles = async () => {
       try {
-        const response = await axios.get("https://api.demoproject.software/api/Roles");
-        setRoles(response.data);
+        const response = await axios.get(
+          "https://api.demoproject.software/api/Roles"
+        );
+        // Lọc bỏ role Doctor và Patient
+        const filteredRoles = response.data.filter(
+          (role) =>
+            role.name !== "Doctor" &&
+            role.name !== "Patient" &&
+            role.name !== "Admin"
+        );
+        setRoles(filteredRoles);
       } catch (error) {
         console.error("Failed to fetch roles", error);
       }
@@ -191,6 +218,38 @@ function UserManagementPage() {
     loadUsers();
     fetchRoles();
   }, []);
+
+  const handleSavePermissionChange = async () => {
+    if (!newRoleId || !permissionUser) return;
+
+    try {
+      const token = localStorage.getItem("authToken");
+
+      // Payload phải rõ ràng
+      const payload = {
+        userId: permissionUser.id,
+        roleIds: [parseInt(newRoleId)],
+      };
+
+      await axios.post(
+        "https://api.demoproject.software/api/UserRole/assign",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert("Cập nhật quyền thành công!");
+      setShowPermissionModal(false);
+      await new Promise((r) => setTimeout(r, 300));
+      loadUsers(); // reload danh sách
+    } catch (error) {
+      console.error("Error updating role:", error);
+      alert("Cập nhật quyền thất bại.");
+    }
+  };
 
   const handleSave = async () => {
     await checkTokenAndProceed(async () => {
@@ -316,12 +375,13 @@ function UserManagementPage() {
             <thead>
               <tr>
                 <th>#</th>
-                <th>Name</th>
-                <th>Full Name</th>
+                <th>Avatar</th>
+                <th>Họ và tên</th>
                 <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th>Chức vụ</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+                <th>Phân quyền</th>
               </tr>
             </thead>
             <tbody>
@@ -355,6 +415,16 @@ function UserManagementPage() {
                       onClick={() => handleDelete(user.id)}
                     >
                       <FaTrash />
+                    </Button>
+                  </td>
+                  <td>
+                    <Button
+                      variant="outline-primary"
+                      size="sm"
+                      className="me-2"
+                      onClick={() => handleShowPermissionModal(user)}
+                    >
+                      <FaKey />
                     </Button>
                   </td>
                 </tr>
@@ -482,7 +552,8 @@ function UserManagementPage() {
                   <Form.Label>Role</Form.Label>
                   <Form.Select
                     name="role"
-                    value={currentUser?.role || ""} // lưu id, nên value là id
+                    value={currentUser?.role || ""}
+                    disabled={isEditing}
                     onChange={(e) => {
                       setCurrentUser((prev) => ({
                         ...prev,
@@ -520,6 +591,58 @@ function UserManagementPage() {
           </Button>
           <Button variant="primary" onClick={handleSave}>
             {isEditing ? "Save Changes" : "Add User"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal
+        show={showPermissionModal}
+        onHide={() => setShowPermissionModal(false)}
+        centered
+        size="sm"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Phân quyền</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {permissionUser && (
+            <>
+              <p>
+                <strong>Tên đăng nhập:</strong> {permissionUser.username}
+              </p>
+              <p>
+                <strong>Họ tên:</strong>{" "}
+                {permissionUser.fullName || permissionUser.name}
+              </p>
+              <p>
+                <strong>Chức vụ:</strong>{" "}
+                {permissionUser.roles?.join(", ") || "N/A"}
+              </p>
+              <Form.Group className="mb-3">
+                <Form.Label>Vai trò</Form.Label>
+                <Form.Select
+                  value={newRoleId}
+                  onChange={(e) => setNewRoleId(parseInt(e.target.value))}
+                >
+                  {roles.map((role) => (
+                    <option key={role.id} value={role.id}>
+                      {role.name}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowPermissionModal(false)}
+          >
+            Đóng
+          </Button>
+          <Button variant="primary" onClick={handleSavePermissionChange}>
+            Lưu thay đổi
           </Button>
         </Modal.Footer>
       </Modal>
