@@ -51,7 +51,7 @@ export const updateUser = async (id, userData) => {
 const deleteUser = async (id) => {
   const token = localStorage.getItem("authToken");
   return await axios.delete(
-    `https://api.demoproject.software/api/delete/${id}`,
+    `https://api.demoproject.software/api/User/delete/${id}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -205,8 +205,8 @@ function UserManagementPage() {
         // Lọc bỏ role Doctor và Patient
         const filteredRoles = response.data.filter(
           (role) =>
-            role.name !== "Doctor" &&
-            role.name !== "Patient" &&
+            // role.name !== "Doctor" &&
+            // role.name !== "Patient" &&
             role.name !== "Admin"
         );
         setRoles(filteredRoles);
@@ -624,11 +624,16 @@ function UserManagementPage() {
                   value={newRoleId}
                   onChange={(e) => setNewRoleId(parseInt(e.target.value))}
                 >
-                  {roles.map((role) => (
-                    <option key={role.id} value={role.id}>
-                      {role.name}
-                    </option>
-                  ))}
+                  {roles
+                    .filter(
+                      (role) =>
+                        !["Admin", "Doctor", "Patient"].includes(role.name)
+                    )
+                    .map((role) => (
+                      <option key={role.id} value={role.id}>
+                        {role.name}
+                      </option>
+                    ))}
                 </Form.Select>
               </Form.Group>
             </>

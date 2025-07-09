@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import Avatar from "../common/Avatar";
 import { mockUser } from "../../data/mockUserData";
-import './Header.css';
+import "./Header.css";
 
 const Header = () => {
   const [isSticky, setSticky] = useState(false);
@@ -20,9 +20,14 @@ const Header = () => {
     };
 
     const handleClickOutside = (event) => {
-      const nav = document.querySelector('.nav');
-      const menuToggle = document.querySelector('.menu-toggle');
-      if (isMenuOpen && nav && !nav.contains(event.target) && !menuToggle.contains(event.target)) {
+      const nav = document.querySelector(".nav");
+      const menuToggle = document.querySelector(".menu-toggle");
+      if (
+        isMenuOpen &&
+        nav &&
+        !nav.contains(event.target) &&
+        !menuToggle.contains(event.target)
+      ) {
         setIsMenuOpen(false);
       }
     };
@@ -58,27 +63,31 @@ const Header = () => {
 
   return (
     <header className={`header ${isSticky ? "sticky" : ""}`}>
-      <div className="py-3" style={{ backgroundColor: '#f8f9fa' }}>
+      <div className="py-3" style={{ backgroundColor: "#f8f9fa" }}>
         <div className="container">
           <div className="row align-items-center">
             <div className="col-lg-3 col-md-3 col-sm-12">
               <Link className="navbar-brand" to="/">
-                <img src="/images/main-logo.png" alt="Insove Medical Healthcare" height="50" />
+                <img
+                  src="/images/main-logo.png"
+                  alt="Insove Medical Healthcare"
+                  height="50"
+                />
               </Link>
             </div>
             <div className="col-lg-6 col-md-6 col-sm-12">
               <div className="d-flex justify-content-center gap-5">
                 <div className="d-flex align-items-center">
                   <i className="fas fa-map-marker-alt text-primary me-2"></i>
-                  <span>123 Arling, Miola, NY</span>
+                  <span>355 Đường 3/2 , phường 3, Quận 10</span>
                 </div>
                 <div className="d-flex align-items-center">
                   <i className="fas fa-phone text-primary me-2"></i>
-                  <span>(+487) 384 9452</span>
+                  <span>19001566</span>
                 </div>
               </div>
             </div>
-            
+
             <div className="col-lg-3 col-md-3 col-sm-12">
               <div className="d-flex justify-content-end gap-2">
                 {user ? (
@@ -90,7 +99,11 @@ const Header = () => {
                       aria-expanded="false"
                     >
                       <div className="position-relative">
-                        <Avatar name={user.fullName} size={40} className="border-2 border-primary" />
+                        <Avatar
+                          name={user.fullName}
+                          size={40}
+                          className="border-2 border-primary"
+                        />
                         <span className="avatar-status"></span>
                       </div>
                       <div className="d-none d-md-block text-start">
@@ -105,53 +118,79 @@ const Header = () => {
                             <i className="fas fa-user"></i>
                           </span>
                           <div className="item-content">
-                            <div className="item-title">My Profile</div>
-                            <div className="item-subtitle">View and update your details</div>
+                            <div className="item-title">
+                              Thông tin tài khoản
+                            </div>
+                            <div className="item-subtitle">
+                              Xem và cập nhật thông tin của bạn
+                            </div>
                           </div>
                         </Link>
                       </li>
                       <li>
-                        <Link to="/user-info?tab=appointments" className="dropdown-item">
+                        <Link
+                          to="/user-info?tab=appointments"
+                          className="dropdown-item"
+                        >
                           <span className="item-icon">
                             <i className="fas fa-calendar-check"></i>
                           </span>
                           <div className="item-content">
-                            <div className="item-title">My Appointments</div>
-                            <div className="item-subtitle">View your appointments</div>
+                            <div className="item-title">Lịch hẹn</div>
+                            <div className="item-subtitle">
+                              Xem tất cả lịch hẹn của bạn
+                            </div>
                           </div>
                         </Link>
                       </li>
                       <li>
-                        <Link to="/user-info?tab=prescriptions" className="dropdown-item">
+                        <Link
+                          to="/user-info?tab=prescriptions"
+                          className="dropdown-item"
+                        >
                           <span className="item-icon">
                             <i className="fas fa-prescription-bottle-alt"></i>
                           </span>
                           <div className="item-content">
-                            <div className="item-title">My Prescriptions</div>
-                            <div className="item-subtitle">View your prescriptions</div>
+                            <div className="item-title">Đơn thuốc</div>
+                            <div className="item-subtitle">
+                              Xem tất cả đơn thuốc của bạn
+                            </div>
                           </div>
                         </Link>
                       </li>
                       <li>
-                        <Link to="/user-info?tab=invoices" className="dropdown-item">
+                        <Link
+                          to="/user-info?tab=invoices"
+                          className="dropdown-item"
+                        >
                           <span className="item-icon">
                             <i className="fas fa-file-invoice-dollar"></i>
                           </span>
                           <div className="item-content">
-                            <div className="item-title">My Invoices</div>
-                            <div className="item-subtitle">View your billing history</div>
+                            <div className="item-title">Hóa đơn</div>
+                            <div className="item-subtitle">
+                              Xem tất cả hóa đơn của bạn
+                            </div>
                           </div>
                         </Link>
                       </li>
-                      <li><hr className="dropdown-divider" /></li>
                       <li>
-                        <button onClick={handleLogout} className="dropdown-item logout-item">
+                        <hr className="dropdown-divider" />
+                      </li>
+                      <li>
+                        <button
+                          onClick={handleLogout}
+                          className="dropdown-item logout-item"
+                        >
                           <span className="item-icon">
                             <i className="fas fa-sign-out-alt"></i>
                           </span>
                           <div className="item-content">
-                            <div className="item-title">Logout</div>
-                            <div className="item-subtitle">Sign out of your account</div>
+                            <div className="item-title">Đăng xuất</div>
+                            <div className="item-subtitle">
+                              Đăng xuất tài khoản của bạn
+                            </div>
                           </div>
                         </button>
                       </li>
@@ -159,11 +198,17 @@ const Header = () => {
                   </div>
                 ) : (
                   <>
-                    <Link to="/login" className="btn btn-primary rounded-pill px-4">
-                      Login
+                    <Link
+                      to="/login"
+                      className="btn btn-primary rounded-pill px-4"
+                    >
+                      Đăng nhập
                     </Link>
-                    <Link to="/register" className="btn btn-outline-primary rounded-pill px-4">
-                      Register
+                    <Link
+                      to="/register"
+                      className="btn btn-outline-primary rounded-pill px-4"
+                    >
+                      Đăng ký
                     </Link>
                   </>
                 )}
@@ -173,90 +218,111 @@ const Header = () => {
         </div>
       </div>
 
-      <nav className="position-relative" style={{ backgroundColor: '#EDF3F8', paddingTop: '30px', paddingBottom: '30px' }}>
+      <nav
+        className="position-relative"
+        style={{
+          backgroundColor: "#EDF3F8",
+          paddingTop: "30px",
+          paddingBottom: "30px",
+        }}
+      >
         <div className="container">
           <div className="bg-white rounded-3 shadow-sm">
             <div className="d-flex justify-content-between align-items-center px-5 py-3">
-              <button 
-                className="menu-toggle d-lg-none" 
-                onClick={toggleMenu} 
+              <button
+                className="menu-toggle d-lg-none"
+                onClick={toggleMenu}
                 aria-label="Toggle navigation"
                 aria-expanded={isMenuOpen}
               >
-                <i className={`fas ${isMenuOpen ? 'fa-times' : 'fa-bars'}`}></i>
+                <i className={`fas ${isMenuOpen ? "fa-times" : "fa-bars"}`}></i>
               </button>
-              <ul className={`nav gap-5 m-0 ${isMenuOpen ? 'show' : ''}`}>
+              <ul className={`nav gap-5 m-0 ${isMenuOpen ? "show" : ""}`}>
                 <li className="nav-item">
-                  <NavLink 
-                    to="/" 
-                    className={({ isActive }) => 
-                      `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
+                  <NavLink
+                    to="/"
+                    className={({ isActive }) =>
+                      `nav-link fs-6 ${
+                        isActive ? "text-info" : "text-secondary"
+                      }`
                     }
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Home
+                    Trang chủ
                   </NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink 
-                    to="/about" 
-                    className={({ isActive }) => 
-                      `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
+                  <NavLink
+                    to="/about"
+                    className={({ isActive }) =>
+                      `nav-link fs-6 ${
+                        isActive ? "text-info" : "text-secondary"
+                      }`
                     }
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    About
+                    Giới thiệu
                   </NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink 
-                    to="/booking" 
-                    className={({ isActive }) => 
-                      `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
+                  <NavLink
+                    to="/booking"
+                    className={({ isActive }) =>
+                      `nav-link fs-6 ${
+                        isActive ? "text-info" : "text-secondary"
+                      }`
                     }
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Booking
+                    Đặt lịch khám
                   </NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink 
-                    to="/services" 
-                    className={({ isActive }) => 
-                      `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
+                  <NavLink
+                    to="/services"
+                    className={({ isActive }) =>
+                      `nav-link fs-6 ${
+                        isActive ? "text-info" : "text-secondary"
+                      }`
                     }
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Services
+                    Dịch vụ
                   </NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink 
-                    to="/pricing" 
-                    className={({ isActive }) => 
-                      `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
+                  <NavLink
+                    to="/pricing"
+                    className={({ isActive }) =>
+                      `nav-link fs-6 ${
+                        isActive ? "text-info" : "text-secondary"
+                      }`
                     }
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Pricing
+                    Bảng giá
                   </NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink 
-                    to="/team" 
-                    className={({ isActive }) => 
-                      `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
+                  <NavLink
+                    to="/team"
+                    className={({ isActive }) =>
+                      `nav-link fs-6 ${
+                        isActive ? "text-info" : "text-secondary"
+                      }`
                     }
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Teams
+                    Đội ngũ bác sĩ
                   </NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink 
-                    to="/blog" 
-                    className={({ isActive }) => 
-                      `nav-link fs-6 ${isActive ? 'text-info' : 'text-secondary'}`
+                  <NavLink
+                    to="/blog"
+                    className={({ isActive }) =>
+                      `nav-link fs-6 ${
+                        isActive ? "text-info" : "text-secondary"
+                      }`
                     }
                     onClick={() => setIsMenuOpen(false)}
                   >
@@ -265,10 +331,10 @@ const Header = () => {
                 </li>
               </ul>
               <div className="search-container">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className="search-input"
-                  placeholder="Search..." 
+                  placeholder="Search..."
                   aria-label="Search"
                 />
                 <i className="fas fa-search search-icon"></i>
