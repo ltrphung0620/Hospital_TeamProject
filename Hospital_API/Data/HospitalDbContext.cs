@@ -49,9 +49,7 @@ namespace Hospital_API.Data
 
         public DbSet<DoctorSchedule> DoctorSchedules { get; set; }
         public DbSet<RevenueReport> RevenueReports { get; set; }
-
-
-
+        public DbSet<Blog> Blogs { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -149,6 +147,11 @@ namespace Hospital_API.Data
             .HasForeignKey(r => r.BranchId)
             .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Blog>()
+                .HasOne(b => b.Author)
+                .WithMany()
+                .HasForeignKey(b => b.AuthorId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
     }
