@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   Row,
@@ -20,8 +20,7 @@ import {
   FaMoneyBillWave,
 } from "react-icons/fa";
 import Avatar from "../../components/common/Avatar";
-import { useEffect } from "react";
-import axios from "axios";
+import { API_BASE_URL } from '../../services/api';
 
 // Mock data reflecting the joined User + Patient model
 const initialPatients = [
@@ -127,8 +126,7 @@ function PatientManagementPage() {
   const itemsPerPage = 10;
 
   //call the API to get all users
-  //const API_URL_GET = "https://api.demoproject.software/api/Patient";
-  const API_URL_GET = "http://localhost:5247/api/Patient";
+  const API_URL_GET = `${API_BASE_URL}/Patient`;
   const fetchUsers = async () => {
     const response = await axios.get(API_URL_GET);
     return response.data;
@@ -193,7 +191,7 @@ function PatientManagementPage() {
     setPaymentMethod("");
   };
 
-  const API_URL_UPDATE = "http://localhost:5247/api/Patient";
+  const API_URL_UPDATE = `${API_BASE_URL}/Patient`;
 
   // const handleSave = async () => {
   //   try {
@@ -254,7 +252,7 @@ function PatientManagementPage() {
 
         // Chỉ update patient hiện tại
         const patientRes = await axios.get(
-          `https://api.demoproject.software/api/Patient/user/${currentPatient.userId}`,
+          `${API_BASE_URL}/Patient/user/${currentPatient.userId}`,
           config
         );
         const patientId = patientRes.data.id;
@@ -284,7 +282,7 @@ function PatientManagementPage() {
       } else {
         // 1. Tạo User mới trước
         const userRes = await axios.post(
-          "https://api.demoproject.software/api/User/create",
+          `${API_BASE_URL}/User/create`,
           {
             username: currentPatient.username,
             password: currentPatient.password,
@@ -303,7 +301,7 @@ function PatientManagementPage() {
 
         if (newUserId) {
           const patientRes = await axios.get(
-            `https://api.demoproject.software/api/Patient/user/${newUserId}`,
+            `${API_BASE_URL}/Patient/user/${newUserId}`,
             config
           );
 
@@ -341,7 +339,7 @@ function PatientManagementPage() {
         } else {
           // 3. Tạo mới Patient (nếu không phải edit)
           const patientRes = await axios.post(
-            "https://api.demoproject.software/api/Patient",
+            `${API_BASE_URL}/Patient`,
             {
               userId: newUserId,
               address: currentPatient.address,
@@ -368,7 +366,7 @@ function PatientManagementPage() {
     }
   };
 
-  const API_URL_GET_USER_ROLE = "http://localhost:5247/api/UserRole/user";
+  const API_URL_GET_USER_ROLE = `${API_BASE_URL}/UserRole/user`;
   const getRoleIdByUserId = async (userId) => {
     try {
       const response = await axios.get(`${API_URL_GET_USER_ROLE}/${userId}`);
@@ -385,9 +383,9 @@ function PatientManagementPage() {
     }
   };
 
-  const API_URL_DEL = "http://localhost:5247/api/Patient";
-  const API_URL_DEL_USER = "http://localhost:5247/api/User/delete";
-  const API_URL_DEL_USER_ROLE = "http://localhost:5247/api/UserRole";
+  const API_URL_DEL = `${API_BASE_URL}/Patient`;
+  const API_URL_DEL_USER = `${API_BASE_URL}/User/delete`;
+  const API_URL_DEL_USER_ROLE = `${API_BASE_URL}/UserRole`;
   const config = {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("authToken")}`,

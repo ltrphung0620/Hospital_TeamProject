@@ -1,351 +1,452 @@
-import React, { useState } from 'react';
-import {
-  Container,
-  Row,
-  Col,
-  Card,
-  Form,
-  Button,
-  InputGroup,
-  Table,
-  Badge,
-  Dropdown
-} from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
 import { Editor } from '@tinymce/tinymce-react';
-import { toast } from 'react-toastify';
-import './BlogManagement.css';
+import { Table, Button, Form, Modal } from 'react-bootstrap';
+import { getAllBlogsAdmin, createBlog, updateBlog, deleteBlog } from '../../services/api';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import './BlogManagementPage.css';
 
 const BlogManagementPage = () => {
-  const [posts, setPosts] = useState([
-    {
-      id: 1,
-      title: 'Cách phòng ngừa bệnh cúm mùa',
-      category: 'Sức khỏe',
-      status: 'published',
-      author: 'Dr. Nguyễn Văn A',
-      date: '2024-03-20',
-      featured_image: '/images/blog/flu-prevention.jpg'
-    },
-    // Thêm các bài viết mẫu khác
-  ]);
-
-  const [activeTab, setActiveTab] = useState('editor');
-  const [postTitle, setPostTitle] = useState('');
-  const [postContent, setPostContent] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [featuredImage, setFeaturedImage] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('all');
-
-  const categories = [
-    'Sức khỏe',
-    'Dinh dưỡng',
-    'Tin tức y tế',
-    'Bệnh thường gặp',
-    'Chăm sóc trẻ em',
-    'Sống khỏe'
+  // Thêm danh sách category cứng
+  const BLOG_CATEGORIES = [
+    { value: 'tin-tuc', label: 'Tin tức' },
+    { value: 'su-kien', label: 'Sự kiện' },
+    { value: 'suc-khoe', label: 'Sức khỏe' },
+    { value: 'dinh-duong', label: 'Dinh dưỡng' },
+    { value: 'benh-hoc', label: 'Bệnh học' },
+    { value: 'tu-van', label: 'Tư vấn' }
   ];
 
-  const handleEditorChange = (content) => {
-    setPostContent(content);
-  };
+  const [blogs, setBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [editingBlog, setEditingBlog] = useState(null);
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFeaturedImage(reader.result);
-      };
-      reader.readAsDataURL(file);
+  // Form state
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [category, setCategory] = useState('');
+  const [featuredImage, setFeaturedImage] = useState('');
+  const [excerpt, setExcerpt] = useState('');
+  const [status, setStatus] = useState(''); // Không set mặc định là Draft nữa
+
+  useEffect(() => {
+    fetchBlogs();
+  }, []);
+
+  const fetchBlogs = async () => {
+    try {
+      setLoading(true);
+      const response = await getAllBlogsAdmin();
+      console.log('Fetched blogs:', response);
+      
+      setBlogs(Array.isArray(response) ? response : []);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching blogs:', err);
+      setError(err.message || 'Failed to fetch blogs');
+      setLoading(false);
     }
   };
 
-  const handlePublish = () => {
-    if (!postTitle.trim()) {
-      toast.error('Vui lòng nhập tiêu đề bài viết');
-      return;
+  const handleShowModal = (blog = null) => {
+    if (blog) {
+      console.log('Editing blog:', blog);
+      setEditingBlog(blog);
+      setTitle(blog.title || '');
+      setContent(blog.content || '');
+      setCategory(blog.category || '');
+      setFeaturedImage(blog.featuredImage || '');
+      setExcerpt(blog.excerpt || '');
+      setStatus(blog.status || '');
+    } else {
+      setEditingBlog(null);
+      resetForm();
     }
-    if (!postContent.trim()) {
-      toast.error('Vui lòng nhập nội dung bài viết');
-      return;
-    }
-    if (!selectedCategory) {
-      toast.error('Vui lòng chọn danh mục');
-      return;
-    }
+    setShowModal(true);
+  };
 
-    const newPost = {
-      id: Date.now(),
-      title: postTitle,
-      content: postContent,
-      category: selectedCategory,
-      status: 'published',
-      author: 'Admin',
-      date: new Date().toISOString().split('T')[0],
-      featured_image: featuredImage
-    };
-
-    setPosts([newPost, ...posts]);
-    toast.success('Đăng bài viết thành công!');
+  const handleCloseModal = () => {
+    setShowModal(false);
     resetForm();
   };
 
   const resetForm = () => {
-    setPostTitle('');
-    setPostContent('');
-    setSelectedCategory('');
-    setFeaturedImage(null);
+    setTitle('');
+    setContent('');
+    setCategory('');
+    setFeaturedImage('');
+    setExcerpt('');
+    setStatus(''); // Không set mặc định là Draft nữa
+    setEditingBlog(null);
+    setError(null);
   };
 
-  const handleSaveDraft = () => {
-    // Implement save draft logic
-    toast.info('Đã lưu bản nháp');
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
+    setError(null);
+    
+    if (!status) {
+      setError('Vui lòng chọn trạng thái bài viết');
+      return;
+    }
+
+    try {
+      const blogData = {
+        title,
+        content,
+        category,
+        featuredImage: featuredImage || '',
+        excerpt: excerpt || '',
+        status
+      };
+
+      console.log('Sending blog data:', blogData);
+
+      let response;
+      if (editingBlog) {
+        console.log('Updating blog with ID:', editingBlog.id);
+        response = await updateBlog(editingBlog.id, blogData);
+        console.log('Update response:', response);
+      } else {
+        response = await createBlog(blogData);
+        console.log('Create response:', response);
+      }
+
+      // Nếu không có lỗi, đóng modal và refresh danh sách
+      handleCloseModal();
+      await fetchBlogs();
+      
+    } catch (err) {
+      console.error('Error saving blog:', err);
+      setError(err.response?.data?.message || 'Không thể lưu bài viết. Vui lòng thử lại.');
+    }
   };
 
-  const filteredPosts = posts.filter(post => {
-    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = selectedStatus === 'all' || post.status === selectedStatus;
-    return matchesSearch && matchesStatus;
-  });
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this blog post?')) {
+      try {
+        await deleteBlog(id);
+        fetchBlogs();
+      } catch (err) {
+        setError('Failed to delete blog');
+      }
+    }
+  };
+
+  if (loading) return <LoadingSpinner />;
+  if (error) return <div className="alert alert-danger">{error}</div>;
 
   return (
-    <Container fluid className="py-4">
-      <Row className="mb-4">
-        <Col>
-          <h2 className="mb-4">Quản lý bài viết</h2>
-          <div className="d-flex mb-4">
-            <Button
-              variant={activeTab === 'editor' ? 'primary' : 'light'}
-              className="me-2"
-              onClick={() => setActiveTab('editor')}
-            >
-              <i className="fas fa-edit me-2"></i>
-              Viết bài mới
-            </Button>
-            <Button
-              variant={activeTab === 'list' ? 'primary' : 'light'}
-              onClick={() => setActiveTab('list')}
-            >
-              <i className="fas fa-list me-2"></i>
-              Danh sách bài viết
-            </Button>
-          </div>
-        </Col>
-      </Row>
+    <div className="container-fluid py-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2>Quản lý bài viết</h2>
+        <Button variant="primary" onClick={() => handleShowModal()}>
+          <i className="fas fa-plus-circle me-2"></i>Thêm bài viết mới
+        </Button>
+      </div>
 
-      {activeTab === 'editor' ? (
-        <Row>
-          <Col lg={9}>
-            <Card className="mb-4">
-              <Card.Body>
+      <Table striped bordered hover responsive>
+        <thead>
+          <tr>
+            <th>Tiêu đề</th>
+            <th>Danh mục</th>
+            <th>Trạng thái</th>
+            <th>Ngày tạo</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          {blogs.map((blog) => (
+            <tr key={blog.id}>
+              <td>
+                <div className="blog-title-cell">
+                  <strong>{blog.title}</strong>
+                  <div className="row-actions">
+                    <span className="edit">
+                      <a href="#" onClick={(e) => { e.preventDefault(); handleShowModal(blog); }}>
+                        Chỉnh sửa
+                      </a> | 
+                    </span>
+                    <span className="delete">
+                      <a href="#" onClick={(e) => { e.preventDefault(); handleDelete(blog.id); }}>
+                        Xóa
+                      </a>
+                    </span>
+                  </div>
+                </div>
+              </td>
+              <td>{blog.category}</td>
+              <td>
+                <span className={`status-badge ${blog.status.toLowerCase()}`}>
+                  {blog.status === 'Published' ? 'Đã xuất bản' : 'Bản nháp'}
+                </span>
+              </td>
+              <td>{new Date(blog.createdAt).toLocaleDateString('vi-VN')}</td>
+              <td>
+                <Button
+                  variant="outline-info"
+                  size="sm"
+                  className="me-2"
+                  onClick={() => handleShowModal(blog)}
+                >
+                  <i className="fas fa-edit me-1"></i>Sửa
+                </Button>
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  onClick={() => handleDelete(blog.id)}
+                >
+                  <i className="fas fa-trash-alt me-1"></i>Xóa
+                </Button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+
+      <Modal show={showModal} onHide={handleCloseModal} size="xl" className="blog-editor-modal">
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {editingBlog ? 'Chỉnh sửa bài viết' : 'Thêm bài viết mới'}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="blog-editor-container">
+            <div className="editor-main">
+              <Form onSubmit={handleSubmit}>
+                {/* Di chuyển phần chọn trạng thái lên đầu form */}
+                <Form.Group className="mb-4">
+                  <Form.Label className="required">Trạng thái bài viết</Form.Label>
+                  <div className="status-options">
+                    <Form.Check
+                      inline
+                      type="radio"
+                      id="status-published"
+                      name="status"
+                      label="Xuất bản"
+                      checked={status === 'Published'}
+                      onChange={() => setStatus('Published')}
+                      className="status-radio"
+                      required
+                    />
+                    <Form.Check
+                      inline
+                      type="radio"
+                      id="status-draft"
+                      name="status"
+                      label="Bản nháp"
+                      checked={status === 'Draft'}
+                      onChange={() => setStatus('Draft')}
+                      className="status-radio"
+                      required
+                    />
+                  </div>
+                  <div className="status-description mt-2">
+                    {!status && (
+                      <small className="text-danger">
+                        Vui lòng chọn trạng thái bài viết
+                      </small>
+                    )}
+                    {status === 'Published' && (
+                      <small className="text-success">
+                        <i className="fas fa-info-circle me-1"></i>
+                        Bài viết sẽ được hiển thị công khai sau khi xuất bản
+                      </small>
+                    )}
+                    {status === 'Draft' && (
+                      <small className="text-muted">
+                        <i className="fas fa-info-circle me-1"></i>
+                        Bài viết sẽ được lưu dưới dạng bản nháp và không hiển thị công khai
+                      </small>
+                    )}
+                  </div>
+                </Form.Group>
+
+                <Form.Group className="mb-4">
+                  <Form.Label className="required">Tiêu đề bài viết</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Nhập tiêu đề bài viết"
+                    className="title-input"
+                    required
+                  />
+                </Form.Group>
+
+                {error && (
+                  <div className="alert alert-danger mb-4">
+                    <i className="fas fa-exclamation-circle me-2"></i>
+                    {error}
+                  </div>
+                )}
+
+                <div className="modal-footer border-0 px-0">
+                  <Button variant="secondary" onClick={handleCloseModal}>
+                    Hủy
+                  </Button>
+                  <Button 
+                    variant="primary" 
+                    type="submit"
+                    disabled={!title || !content || !category || !status}
+                  >
+                    {editingBlog ? 'Cập nhật' : 'Tạo bài viết'}
+                  </Button>
+                </div>
+
+                <Form.Group className="mb-4">
+                  <Form.Label className="required">Danh mục</Form.Label>
+                  <Form.Select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    required
+                  >
+                    <option value="">Chọn danh mục</option>
+                    {BLOG_CATEGORIES.map((cat) => (
+                      <option key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+
                 <Form.Group className="mb-4">
                   <Form.Control
                     type="text"
-                    placeholder="Thêm tiêu đề"
-                    value={postTitle}
-                    onChange={(e) => setPostTitle(e.target.value)}
-                    className="form-control-lg border-0 mb-3"
-                    style={{ fontSize: '1.5rem' }}
+                    value={excerpt}
+                    onChange={(e) => setExcerpt(e.target.value)}
+                    placeholder="Tóm tắt bài viết"
                   />
+                </Form.Group>
+
+                <Form.Group className="mb-4">
+                  <Form.Control
+                    type="text"
+                    value={featuredImage}
+                    onChange={(e) => setFeaturedImage(e.target.value)}
+                    placeholder="URL ảnh đại diện"
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-4">
                   <Editor
                     apiKey={import.meta.env.VITE_TINYMCE_API_KEY}
                     init={{
-                      height: 500,
+                      height: 600,
                       menubar: true,
                       plugins: [
-                        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                        'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
+                        'preview', 'anchor', 'searchreplace', 'visualblocks', 'code',
+                        'fullscreen', 'insertdatetime', 'media', 'table', 'code',
+                        'help', 'wordcount', 'emoticons'
                       ],
                       toolbar: 'undo redo | formatselect | ' +
                         'bold italic backcolor | alignleft aligncenter ' +
                         'alignright alignjustify | bullist numlist outdent indent | ' +
-                        'removeformat | image media | help',
+                        'removeformat | image media link emoticons | help',
                       content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
                       language: 'vi',
                       branding: false,
-                      promotion: false
+                      promotion: false,
+                      skin: 'oxide',
+                      icons: 'thin',
+                      file_picker_types: 'image',
+                      image_title: true,
+                      automatic_uploads: true,
+                      images_upload_url: '/api/upload-image',
+                      images_reuse_filename: true,
+                      browser_spellcheck: true,
+                      contextmenu: false,
+                      custom_elements: 'quillbot-extension',
+                      extended_valid_elements: 'quillbot-extension[*]',
+                      valid_children: '+body[quillbot-extension]',
+                      content_security_policy: "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:",
+                      referrer_policy: 'origin'
                     }}
-                    value={postContent}
-                    onEditorChange={handleEditorChange}
+                    value={content}
+                    onEditorChange={setContent}
                   />
                 </Form.Group>
-              </Card.Body>
-            </Card>
-          </Col>
-          <Col lg={3}>
-            <Card className="mb-3">
-              <Card.Header>Đăng bài</Card.Header>
-              <Card.Body>
+              </Form>
+            </div>
+
+            <div className="editor-sidebar">
+              <div className="sidebar-section">
+                <h5>Xuất bản</h5>
                 <div className="d-grid gap-2">
-                  <Button variant="primary" onClick={handlePublish}>
-                    <i className="fas fa-paper-plane me-2"></i>
-                    Đăng bài
+                  <Button 
+                    variant={status === 'Published' ? 'success' : 'primary'} 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setStatus('Published');
+                      handleSubmit();
+                    }}
+                    className="w-100"
+                    disabled={!title || !content || !category}
+                  >
+                    {editingBlog ? 'Cập nhật và xuất bản' : 'Xuất bản ngay'}
                   </Button>
-                  <Button variant="light" onClick={handleSaveDraft}>
-                    <i className="fas fa-save me-2"></i>
+                  <Button 
+                    variant="outline-secondary" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setStatus('Draft');
+                      handleSubmit();
+                    }}
+                    className="w-100"
+                  >
                     Lưu nháp
                   </Button>
                 </div>
-              </Card.Body>
-            </Card>
+              </div>
 
-            <Card className="mb-3">
-              <Card.Header>Danh mục</Card.Header>
-              <Card.Body>
+              <div className="sidebar-section">
+                <h5>Danh mục</h5>
                 <Form.Select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  required
                 >
                   <option value="">Chọn danh mục</option>
-                  {categories.map((category, index) => (
-                    <option key={index} value={category}>
-                      {category}
+                  {BLOG_CATEGORIES.map((cat) => (
+                    <option key={cat.value} value={cat.value}>
+                      {cat.label}
                     </option>
                   ))}
                 </Form.Select>
-              </Card.Body>
-            </Card>
+              </div>
 
-            <Card className="mb-3">
-              <Card.Header>Ảnh đại diện</Card.Header>
-              <Card.Body>
-                {featuredImage ? (
-                  <div className="position-relative mb-3">
-                    <img
-                      src={featuredImage}
-                      alt="Featured"
-                      className="img-fluid rounded"
-                    />
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      className="position-absolute top-0 end-0 m-2"
-                      onClick={() => setFeaturedImage(null)}
-                    >
-                      <i className="fas fa-times"></i>
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="text-center p-4 border rounded">
-                    <i className="fas fa-image fa-2x mb-3 text-muted"></i>
-                    <p className="mb-0">Chọn ảnh đại diện</p>
-                  </div>
-                )}
-                <div className="d-grid">
-                  <Button variant="outline-primary" className="mt-2">
-                    <i className="fas fa-upload me-2"></i>
-                    Tải ảnh lên
-                    <Form.Control
-                      type="file"
-                      className="d-none"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                    />
-                  </Button>
+              <div className="sidebar-section">
+                <h5>Ảnh đại diện</h5>
+                <div className="featured-image-preview">
+                  {featuredImage && (
+                    <img src={featuredImage} alt="Preview" className="img-fluid mb-2" />
+                  )}
                 </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      ) : (
-        <Card>
-          <Card.Body>
-            <Row className="mb-3">
-              <Col md={4}>
-                <InputGroup>
-                  <InputGroup.Text>
-                    <i className="fas fa-search"></i>
-                  </InputGroup.Text>
-                  <Form.Control
-                    type="text"
-                    placeholder="Tìm kiếm bài viết..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </InputGroup>
-              </Col>
-              <Col md={3}>
-                <Form.Select
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                >
-                  <option value="all">Tất cả trạng thái</option>
-                  <option value="published">Đã đăng</option>
-                  <option value="draft">Bản nháp</option>
-                  <option value="trash">Thùng rác</option>
-                </Form.Select>
-              </Col>
-            </Row>
+                <Form.Control
+                  type="text"
+                  value={featuredImage}
+                  onChange={(e) => setFeaturedImage(e.target.value)}
+                  placeholder="URL ảnh đại diện"
+                />
+              </div>
 
-            <Table responsive hover>
-              <thead>
-                <tr>
-                  <th style={{ width: '40%' }}>Tiêu đề</th>
-                  <th>Tác giả</th>
-                  <th>Danh mục</th>
-                  <th>Trạng thái</th>
-                  <th>Ngày đăng</th>
-                  <th>Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredPosts.map((post) => (
-                  <tr key={post.id}>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        {post.featured_image && (
-                          <img
-                            src={post.featured_image}
-                            alt=""
-                            className="me-2 rounded"
-                            style={{ width: '40px', height: '40px', objectFit: 'cover' }}
-                          />
-                        )}
-                        <div>
-                          <div className="fw-bold">{post.title}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>{post.author}</td>
-                    <td>{post.category}</td>
-                    <td>
-                      <Badge bg={post.status === 'published' ? 'success' : 'warning'}>
-                        {post.status === 'published' ? 'Đã đăng' : 'Bản nháp'}
-                      </Badge>
-                    </td>
-                    <td>{post.date}</td>
-                    <td>
-                      <Dropdown>
-                        <Dropdown.Toggle variant="light" size="sm">
-                          <i className="fas fa-ellipsis-h"></i>
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu>
-                          <Dropdown.Item>
-                            <i className="fas fa-edit me-2"></i>
-                            Chỉnh sửa
-                          </Dropdown.Item>
-                          <Dropdown.Item>
-                            <i className="fas fa-eye me-2"></i>
-                            Xem trước
-                          </Dropdown.Item>
-                          <Dropdown.Divider />
-                          <Dropdown.Item className="text-danger">
-                            <i className="fas fa-trash me-2"></i>
-                            Xóa
-                          </Dropdown.Item>
-                        </Dropdown.Menu>
-                      </Dropdown>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </Card.Body>
-        </Card>
-      )}
-    </Container>
+              <div className="sidebar-section">
+                <h5>Tóm tắt</h5>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={excerpt}
+                  onChange={(e) => setExcerpt(e.target.value)}
+                  placeholder="Nhập tóm tắt bài viết"
+                />
+              </div>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+    </div>
   );
 };
 

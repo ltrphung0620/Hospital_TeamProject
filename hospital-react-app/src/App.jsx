@@ -11,7 +11,7 @@ import BookingPage from './pages/BookingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import BlogPage from './pages/BlogPage';
-import BlogSinglePage from './pages/BlogSinglePage';
+import BlogDetailPage from './pages/BlogDetailPage';
 import ContactPage from './pages/ContactPage';
 import TeamPage from './pages/TeamPage';
 import ReviewPage from './pages/ReviewPage';
@@ -61,7 +61,7 @@ function App() {
           <Route path="booking" element={<BookingPage />} />
           <Route path="appointments" element={<AppointmentsPage />} />
           <Route path="blog" element={<BlogPage />} />
-          <Route path="blog/:id" element={<BlogSinglePage />} />
+          <Route path="blog/:id" element={<BlogDetailPage />} />
           <Route path="contact" element={<ContactPage />} />
           <Route path="team" element={<TeamPage />} />
           <Route path="review" element={<ReviewPage />} />
