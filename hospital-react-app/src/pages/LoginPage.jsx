@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { API_BASE_URL } from '../services/api';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -29,55 +31,20 @@ const LoginPage = () => {
   //   }
   // };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setError(null); // Clear previous errors
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const response = await fetch(
-        "https://api.demoproject.software/api/Auth/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ Username: username, Password: password }),
-        }
-      );
+      const response = await axios.post(`${API_BASE_URL}/Auth/login`, {
+        username,
+        password,
+      });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({
-          message: "Login failed. Please check your username or password.",
-        }));
-        throw new Error(
-          errorData.message || "Login failed. Please check your credentials."
-        );
+      if (response.data.token) {
+        localStorage.setItem("authToken", response.data.token);
+        navigate("/");
       }
-      const data = await response.json();
-      console.log("Login successful:", data);
-
-      const token = data.token;
-
-      // TODO: Store token (e.g., in localStorage or context)
-      // Example: localStorage.setItem('authToken', data.token);
-      localStorage.setItem("authToken", token.token);
-      localStorage.setItem("authUsername", token.username);
-      localStorage.setItem("authFullName", token.fullName);
-      localStorage.setItem("authRoles", JSON.stringify(token.roles));
-
-      // Redirect to home page
-
-      if (token.roles.includes("Admin")) {
-        window.location.href = "https://demoproject.software/admin";
-      } else {
-        console.warn(
-          "Navigate prop not found, cannot redirect programmatically."
-        );
-        window.location.href = "/"; // Less ideal full page reload
-      }
-    } catch (err) {
-      console.error("Login error:", err);
-      setError(err.message);
+    } catch (error) {
+      setError(error.response?.data?.message || "Login failed");
     }
   };
 

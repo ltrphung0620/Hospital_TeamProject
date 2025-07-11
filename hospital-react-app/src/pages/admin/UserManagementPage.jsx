@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   Row,
@@ -14,29 +14,24 @@ import {
 import { FaPlus, FaEdit, FaTrash, FaUsers, FaKey } from "react-icons/fa";
 import Avatar from "../../components/common/Avatar";
 import axios from "axios";
-import { useEffect } from "react";
-import {
-  getCurrentUserRole,
-  isTokenExpired,
-  checkTokenAndProceed,
-} from "../../utils/auth";
+import { API_BASE_URL } from '../../services/api';
 
-//call the API to create a new user
-const API_URL = "https://api.demoproject.software/api/User/create";
+// Sửa các URL constants
+const API_URL = `${API_BASE_URL}/User/create`;
 export const createUser = async (userData) => {
   const response = await axios.post(API_URL, userData);
   return response.data;
 };
 
 //call the API to get all users
-const API_URL_GET = "https://api.demoproject.software/api/User";
+const API_URL_GET = `${API_BASE_URL}/User`;
 
 const fetchUsers = async () => {
   const response = await axios.get(API_URL_GET);
   return response.data;
 };
 
-const API_URL_UPDATE = "https://api.demoproject.software/api/User/edit";
+const API_URL_UPDATE = `${API_BASE_URL}/User/edit`;
 export const updateUser = async (id, userData) => {
   const token = localStorage.getItem("authToken");
   const response = await axios.put(`${API_URL_UPDATE}/${id}`, userData, {
@@ -51,7 +46,7 @@ export const updateUser = async (id, userData) => {
 const deleteUser = async (id) => {
   const token = localStorage.getItem("authToken");
   return await axios.delete(
-    `https://api.demoproject.software/api/User/delete/${id}`,
+    `${API_BASE_URL}/User/delete/${id}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

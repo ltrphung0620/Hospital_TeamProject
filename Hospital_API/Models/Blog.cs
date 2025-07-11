@@ -24,10 +24,11 @@ namespace Hospital_API.Models
         public string Category { get; set; }
 
         [Required]
-        public string Status { get; set; } // Published, Draft
+        [StringLength(20)]
+        public string Status { get; set; } = "Draft"; // Default to Draft, can be "Published" or "Draft"
 
         [Required]
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }
 

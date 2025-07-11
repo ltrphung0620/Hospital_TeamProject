@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   Row,
@@ -13,8 +13,7 @@ import {
 } from "react-bootstrap";
 import { FaPlus, FaEdit, FaTrash, FaUserMd } from "react-icons/fa";
 import Avatar from "../../components/common/Avatar";
-import { useEffect } from "react";
-import axios from "axios";
+import { API_BASE_URL } from '../../services/api';
 
 // Mock data reflecting the joined User + Doctor model
 const initialDoctors = [
@@ -72,8 +71,11 @@ function DoctorManagementPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  //call the API to get all users
-  const API_URL_GET = "https://api.demoproject.software/api/Doctor";
+  // Sửa các URL constants
+  const API_URL_GET = `${API_BASE_URL}/Doctor`;
+  const API_URL_UPDATE = `${API_BASE_URL}/Doctor/edit`;
+  const API_URL_CREATE = `${API_BASE_URL}/Doctor`;
+  const API_URL_DELETE = `${API_BASE_URL}/Doctor/delete`;
 
   const fetchUsers = async () => {
     const response = await axios.get(API_URL_GET);
@@ -138,12 +140,12 @@ function DoctorManagementPage() {
         };
 
         await axios.put(
-          `https://api.demoproject.software/api/Doctor/edit/${doctorToUpdate.id}`,
+          `${API_URL_UPDATE}/${doctorToUpdate.id}`,
           payload
         );
       } else {
         await axios.post(
-          `https://api.demoproject.software/api/Doctor`,
+          API_URL_CREATE,
           currentDoctor
         );
       }
@@ -163,7 +165,7 @@ function DoctorManagementPage() {
     if (window.confirm("Bạn có chắc chắn muốn xoá bác sĩ này?")) {
       try {
         await axios.delete(
-          `https://api.demoproject.software/api/Doctor/delete/${id}`
+          `${API_URL_DELETE}/${id}`
         );
         await loadUsers(); // reload danh sách sau khi xoá
       } catch (error) {

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { API_BASE_URL } from '../services/api';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ const RegisterPage = () => {
         dateOfBirth: formData.dateOfBirth,
       };
 
-      await axios.post("https://api.demoproject.software/api/Auth/register", dataToSend);
+      await axios.post(`${API_BASE_URL}/Auth/register`, dataToSend);
 
       toast.success("Registration successful! Redirecting to login page...");
       setTimeout(() => {

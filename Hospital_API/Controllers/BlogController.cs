@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System;
 
 namespace Hospital_API.Controllers
 {
@@ -81,10 +82,12 @@ namespace Hospital_API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<BlogResponseDTO>> Update(int id, [FromBody] BlogUpdateDTO blogDto)
         {
+            Console.WriteLine($"Updating blog {id} with status: {blogDto.Status}"); // Debug log
             var updatedBlog = await _blogService.UpdateAsync(id, blogDto);
             if (updatedBlog == null)
                 return NotFound();
 
+            Console.WriteLine($"Blog {id} updated, new status: {updatedBlog.Status}"); // Debug log
             return Ok(updatedBlog);
         }
 

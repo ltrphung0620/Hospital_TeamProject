@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import Avatar from "../common/Avatar";
-import { mockUser } from "../../data/mockUserData";
 import "./Header.css";
 
 const Header = () => {
@@ -32,10 +31,21 @@ const Header = () => {
       }
     };
 
-    // For demo: Get user from localStorage or use mock data
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (isLoggedIn === "true") {
-      setUser(mockUser);
+    // Lấy thông tin user từ token
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      try {
+        const payloadBase64 = token.split(".")[1];
+        const decodedPayload = JSON.parse(atob(payloadBase64));
+        setUser({
+          fullName: decodedPayload.name || "User",
+          email: decodedPayload.email || "",
+          role: decodedPayload.role || ""
+        });
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        setUser(null);
+      }
     }
 
     window.addEventListener("scroll", handleScroll);
@@ -48,9 +58,9 @@ const Header = () => {
   }, [isMenuOpen]);
 
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("authToken");
     setUser(null);
-    navigate("/");
+    navigate("/login");
   };
 
   const toggleMenu = () => {

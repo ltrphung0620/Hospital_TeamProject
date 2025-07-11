@@ -8,6 +8,7 @@ import {
   FaStickyNote,
 } from "react-icons/fa";
 import axios from "axios";
+import { API_BASE_URL } from '../../services/api';
 const DoctorScheduleModal = ({ show, onHide, onSave, schedule }) => {
   const [formData, setFormData] = useState({
     doctorId: "",
@@ -81,33 +82,24 @@ const DoctorScheduleModal = ({ show, onHide, onSave, schedule }) => {
   useEffect(() => {
     const fetchRooms = async () => {
       try {
-        const res = await axios.get(
-          "https://api.demoproject.software/api/Room"
-        );
-        setRooms(res.data);
+        const response = await axios.get(`${API_BASE_URL}/Room`);
+        setRooms(response.data);
       } catch (error) {
-        console.error("❌ Error loading rooms:", error);
+        console.error("Error fetching rooms:", error);
+      }
+    };
+
+    const fetchDoctors = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/Doctor`);
+        setDoctors(response.data);
+      } catch (error) {
+        console.error("Error fetching doctors:", error);
       }
     };
 
     if (show) {
       fetchRooms();
-    }
-  }, [show]);
-
-  useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        const res = await axios.get(
-          "https://api.demoproject.software/api/Doctor"
-        );
-        setDoctors(res.data);
-      } catch (error) {
-        console.error("❌ Error loading doctors:", error);
-      }
-    };
-
-    if (show) {
       fetchDoctors();
     }
   }, [show]);
@@ -138,7 +130,7 @@ const DoctorScheduleModal = ({ show, onHide, onSave, schedule }) => {
       } else {
         // Là create → Modal tự xử lý POST
         await axios.post(
-          "http://localhost:5247/api/DoctorSchedule",
+          `${API_BASE_URL}/DoctorSchedule`,
           payload,
           config
         );

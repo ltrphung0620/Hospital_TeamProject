@@ -66,6 +66,8 @@ namespace Hospital_API.Services
 
         public async Task<BlogResponseDTO> UpdateAsync(int id, BlogUpdateDTO blogDto)
         {
+            Console.WriteLine($"BlogService: Updating blog {id} with status: {blogDto.Status}"); // Debug log
+            
             var existingBlog = await _blogRepository.GetByIdAsync(id);
             if (existingBlog == null)
                 return null;
@@ -77,7 +79,11 @@ namespace Hospital_API.Services
             existingBlog.Status = blogDto.Status;
             existingBlog.Excerpt = blogDto.Excerpt;
 
+            Console.WriteLine($"BlogService: Mapped DTO to entity, status: {existingBlog.Status}"); // Debug log
+
             var updatedBlog = await _blogRepository.UpdateAsync(existingBlog);
+            Console.WriteLine($"BlogService: Blog updated in repository, status: {updatedBlog.Status}"); // Debug log
+
             return MapToResponseDTO(updatedBlog);
         }
 

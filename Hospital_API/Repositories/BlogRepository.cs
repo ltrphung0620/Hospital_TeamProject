@@ -70,16 +70,30 @@ namespace Hospital_API.Repositories
 
         public async Task<Blog> UpdateAsync(Blog blog)
         {
+            Console.WriteLine($"BlogRepository: Updating blog {blog.Id} with status: {blog.Status}"); // Debug log
+            
             var existingBlog = await _context.Blogs.FindAsync(blog.Id);
             if (existingBlog == null)
                 return null;
 
-            blog.UpdatedAt = DateTime.UtcNow;
-            blog.Slug = GenerateSlug(blog.Title);
-            
-            _context.Entry(existingBlog).CurrentValues.SetValues(blog);
+            existingBlog.Title = blog.Title;
+            existingBlog.Content = blog.Content;
+            existingBlog.FeaturedImage = blog.FeaturedImage;
+            existingBlog.Category = blog.Category;
+            existingBlog.Status = blog.Status;
+            existingBlog.Excerpt = blog.Excerpt;
+            existingBlog.UpdatedAt = DateTime.UtcNow;
+            existingBlog.Slug = GenerateSlug(blog.Title);
+
+            Console.WriteLine($"BlogRepository: Before SaveChanges, status: {existingBlog.Status}"); // Debug log
             await _context.SaveChangesAsync();
-            return blog;
+            Console.WriteLine($"BlogRepository: After SaveChanges, status: {existingBlog.Status}"); // Debug log
+
+            // Refresh from database to verify
+            await _context.Entry(existingBlog).ReloadAsync();
+            Console.WriteLine($"BlogRepository: After reload, status: {existingBlog.Status}"); // Debug log
+
+            return existingBlog;
         }
 
         public async Task<bool> DeleteAsync(int id)

@@ -5,6 +5,7 @@ import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import DoctorScheduleModal from "../../components/admin/DoctorScheduleModal";
 import Swal from "sweetalert2";
 import axios from "axios";
+import { API_BASE_URL } from '../../services/api';
 
 const DoctorSchedulesPage = () => {
   const [schedules, setSchedules] = useState([]);
@@ -65,10 +66,10 @@ const DoctorSchedulesPage = () => {
     if (confirm.isConfirmed) {
       try {
         // Gọi API delete theo ID
-        await axios.delete(`http://localhost:5247/api/DoctorSchedule/${id}`);
+        await axios.delete(`${API_BASE_URL}/DoctorSchedule/${id}`);
 
         // Gọi lại danh sách sau khi xoá
-        const res = await axios.get("http://localhost:5247/api/DoctorSchedule");
+        const res = await axios.get(`${API_BASE_URL}/DoctorSchedule`);
         setSchedules(res.data);
 
         Swal.fire("Deleted!", "The schedule has been deleted.", "success");
@@ -85,7 +86,7 @@ const DoctorSchedulesPage = () => {
   useEffect(() => {
     const fetchSchedules = async () => {
       try {
-        const res = await axios.get("http://localhost:5247/api/DoctorSchedule");
+        const res = await axios.get(`${API_BASE_URL}/DoctorSchedule`);
         setSchedules(res.data);
       } catch (error) {
         console.error("❌ Error loading schedules:", error);
@@ -97,11 +98,11 @@ const DoctorSchedulesPage = () => {
   const handleUpdate = async (formData) => {
     try {
       await axios.put(
-        `http://localhost:5247/api/DoctorSchedule/${selectedSchedule.id}`,
+        `${API_BASE_URL}/DoctorSchedule/${selectedSchedule.id}`,
         formData
       );
       Swal.fire("Success", "Schedule updated successfully!", "success");
-      const res = await axios.get("http://localhost:5247/api/DoctorSchedule");
+      const res = await axios.get(`${API_BASE_URL}/DoctorSchedule`);
       setSchedules(res.data);
       setShowModal(false);
     } catch (error) {
