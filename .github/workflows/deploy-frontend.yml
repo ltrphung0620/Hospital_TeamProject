@@ -43,6 +43,8 @@ jobs:
 
       - name: Build React App
         if: steps.filter.outputs.frontend == 'true'
+        env:
+          VITE_TINYMCE_API_KEY: ${{ secrets.TINYMCE_API_KEY }}
         run: npm run build
 
       # Create deployment archive

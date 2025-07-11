@@ -17,7 +17,8 @@ import {
     FaFlask,
     FaVial,
     FaClipboardCheck,
-    FaDollarSign
+    FaDollarSign,
+    FaNewspaper
 } from 'react-icons/fa';
 import './AdminStyles.css';
 
@@ -28,7 +29,8 @@ const Sidebar = ({ isOpen }) => {
     clinical: false,
     pharmacy: false,
     services: false,
-    payments: false
+    payments: false,
+    content: false
   });
 
   const staffRoutes = ["/admin/users", "/admin/doctors", "/admin/doctor-schedules"];
@@ -36,6 +38,7 @@ const Sidebar = ({ isOpen }) => {
   const pharmacyRoutes = ["/admin/medicines"];
   const servicesRoutes = ["/admin/medical-services", "/admin/lab-tests", "/admin/test-requests", "/admin/test-results"];
   const paymentRoutes = ["/admin/prescription-payments", "/admin/lab-test-payments", "/admin/service-payments"];
+  const contentRoutes = ["/admin/blog"];
 
   useEffect(() => {
     setOpen({
@@ -43,7 +46,8 @@ const Sidebar = ({ isOpen }) => {
       clinical: clinicalRoutes.some(route => location.pathname.startsWith(route)),
       pharmacy: pharmacyRoutes.some(route => location.pathname.startsWith(route)),
       services: servicesRoutes.some(route => location.pathname.startsWith(route)),
-      payments: paymentRoutes.some(route => location.pathname.startsWith(route))
+      payments: paymentRoutes.some(route => location.pathname.startsWith(route)),
+      content: contentRoutes.some(route => location.pathname.startsWith(route))
     });
   }, [location.pathname]);
 
@@ -145,6 +149,20 @@ const Sidebar = ({ isOpen }) => {
                 <li><NavLink to="/admin/service-payments" className="admin-menu-link sub-link">Service Payments</NavLink></li>
                 <li><NavLink to="/admin/prescription-payments" className="admin-menu-link sub-link">Prescription Payments</NavLink></li>
                 <li><NavLink to="/admin/lab-test-payments" className="admin-menu-link sub-link">Lab Test Payments</NavLink></li>
+              </ul>
+            </Collapse>
+          </li>
+
+          {/* Content Management */}
+          <li>
+            <div className="admin-menu-link" onClick={() => toggleMenu('content')} aria-expanded={open.content}>
+              <FaNewspaper className="admin-menu-icon" />
+              <span className="admin-menu-text">Nội dung</span>
+              <FaChevronDown className={`arrow-icon ${open.content ? 'open' : ''}`} />
+            </div>
+            <Collapse in={open.content}>
+              <ul className="admin-submenu">
+                <li><NavLink to="/admin/blog" className="admin-menu-link sub-link">Quản lý bài viết</NavLink></li>
               </ul>
             </Collapse>
           </li>

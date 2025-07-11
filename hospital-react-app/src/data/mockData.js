@@ -27,7 +27,8 @@ export const doctors = [
     qualification: "MD, PhD in Cardiology",
     experience: 15,
     image: "/images/team-item.jpg",
-    branchId: 1
+    branchId: 1,
+    languages: ["English", "Vietnamese"]
   },
   {
     id: 2,
@@ -36,7 +37,8 @@ export const doctors = [
     qualification: "MD, Specialist in Pediatrics",
     experience: 10,
     image: "/images/team-item1.jpg",
-    branchId: 1
+    branchId: 1,
+    languages: ["English", "French"]
   },
   {
     id: 3,
@@ -45,7 +47,8 @@ export const doctors = [
     qualification: "MD, Neurosurgery Specialist",
     experience: 12,
     image: "/images/team-item2.jpg",
-    branchId: 2
+    branchId: 2,
+    languages: ["English", "Spanish"]
   },
   {
     id: 4,
@@ -54,7 +57,8 @@ export const doctors = [
     qualification: "MD, Dermatology Expert",
     experience: 8,
     image: "/images/team-item.jpg",
-    branchId: 2
+    branchId: 2,
+    languages: ["English", "Vietnamese"]
   },
   {
     id: 5,
@@ -63,7 +67,8 @@ export const doctors = [
     qualification: "MD, Orthopedic Surgeon",
     experience: 20,
     image: "/images/team-item1.jpg",
-    branchId: 3
+    branchId: 3,
+    languages: ["English", "German"]
   }
 ];
 
