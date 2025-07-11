@@ -39,11 +39,28 @@ const LoginPage = () => {
         password,
       });
 
-      if (response.data.token) {
-        localStorage.setItem("authToken", response.data.token);
-        navigate("/");
+      console.log('Login response:', response.data); // Thêm log để kiểm tra
+
+      if (response.data) {
+        // Lưu token
+        localStorage.setItem("authToken", response.data.token.token);
+        
+        // Lưu thông tin user từ token data
+        localStorage.setItem("authUsername", response.data.token.username);
+        localStorage.setItem("authFullName", response.data.token.fullName);
+        localStorage.setItem("authRoles", JSON.stringify(response.data.token.roles || []));
+        localStorage.setItem("authAvatar", response.data.token.avatar || '');
+
+        // Redirect dựa vào role
+        const userRoles = response.data.token.roles || [];
+        if (userRoles.includes("Admin")) {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
       }
     } catch (error) {
+      console.error('Login error:', error); // Thêm log để kiểm tra lỗi
       setError(error.response?.data?.message || "Login failed");
     }
   };

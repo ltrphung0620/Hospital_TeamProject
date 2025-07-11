@@ -31,21 +31,26 @@ const Header = () => {
       }
     };
 
-    // Lấy thông tin user từ token
+    // Lấy thông tin user từ localStorage
     const token = localStorage.getItem("authToken");
     if (token) {
-      try {
-        const payloadBase64 = token.split(".")[1];
-        const decodedPayload = JSON.parse(atob(payloadBase64));
+      const username = localStorage.getItem("authUsername");
+      const fullName = localStorage.getItem("authFullName");
+      const roles = localStorage.getItem("authRoles");
+      const avatar = localStorage.getItem("authAvatar");
+
+      if (username || fullName) { // Chỉ set user nếu có ít nhất username hoặc fullName
         setUser({
-          fullName: decodedPayload.name || "User",
-          email: decodedPayload.email || "",
-          role: decodedPayload.role || ""
+          fullName: fullName || username || "User", // Fallback to username or "User"
+          username: username || "",
+          roles: roles ? JSON.parse(roles) : [],
+          avatar: avatar || ""
         });
-      } catch (error) {
-        console.error("Error decoding token:", error);
+      } else {
         setUser(null);
       }
+    } else {
+      setUser(null);
     }
 
     window.addEventListener("scroll", handleScroll);
@@ -59,6 +64,10 @@ const Header = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
+    localStorage.removeItem("authUsername");
+    localStorage.removeItem("authFullName");
+    localStorage.removeItem("authRoles");
+    localStorage.removeItem("authAvatar");
     setUser(null);
     navigate("/login");
   };
@@ -109,16 +118,26 @@ const Header = () => {
                       aria-expanded="false"
                     >
                       <div className="position-relative">
-                        <Avatar
-                          name={user.fullName}
-                          size={40}
-                          className="border-2 border-primary"
-                        />
+                        {user.avatar ? (
+                          <img
+                            src={user.avatar}
+                            alt={user.fullName}
+                            className="rounded-circle"
+                            width="40"
+                            height="40"
+                          />
+                        ) : (
+                          <Avatar
+                            name={user.fullName}
+                            size={40}
+                            className="border-2 border-primary"
+                          />
+                        )}
                         <span className="avatar-status"></span>
                       </div>
                       <div className="d-none d-md-block text-start">
-                        <div className="fw-semibold">{user.fullName}</div>
-                        <div className="text-muted small">{user.email}</div>
+                        <div className="fw-semibold">{user?.fullName || "User"}</div>
+                        <div className="text-muted small">{user?.username || ""}</div>
                       </div>
                     </button>
                     <ul className="dropdown-menu dropdown-menu-end animate slideIn">
@@ -137,6 +156,19 @@ const Header = () => {
                           </div>
                         </Link>
                       </li>
+                      {user.roles.includes("Admin") && (
+                        <li>
+                          <Link to="/admin" className="dropdown-item">
+                            <span className="item-icon">
+                              <i className="fas fa-cog"></i>
+                            </span>
+                            <div className="item-content">
+                              <div className="item-title">Quản trị hệ thống</div>
+                              <div className="item-subtitle">Truy cập trang quản trị</div>
+                            </div>
+                          </Link>
+                        </li>
+                      )}
                       <li>
                         <Link
                           to="/user-info?tab=appointments"
