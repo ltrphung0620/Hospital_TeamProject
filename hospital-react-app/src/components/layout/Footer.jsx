@@ -1,101 +1,118 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import "./Footer.css";
 
 const Footer = () => {
   return (
-    <footer id="footer" className="bg-dark-grey">
+    <footer id="footer">
       <div className="container">
         <div className="row">
-          <div className="col-lg-4 col-md-6 col-sm-6 pb-3">
+          <div className="col-lg-4 col-md-6 col-sm-12 mb-4">
             <div className="footer-menu">
-              <img src="/images/main-logo.png" alt="logo" className="pb-3" />
-              <p>
+              <img 
+                src="/images/main-logo.png" 
+                alt="logo" 
+                className="footer-logo mb-4" 
+                height="50"
+              />
+              <p className="footer-description mb-4">
                 Chúng tôi tận tâm mang đến dịch vụ chăm sóc sức khỏe toàn diện
                 và chất lượng cao cho mọi bệnh nhân.
               </p>
-              <div className="contact-item">
-                <p>
-                  <svg
-                    className="location primary-color"
-                    width="25"
-                    height="25"
-                  >
-                    <use xlinkHref="#location"></use>
-                  </svg>
-                  <span>355 Đường 3/2 , phường 3, Quận 10</span>
-                </p>
-                <p>
-                  <svg className="email primary-color" width="25" height="25">
-                    <use xlinkHref="#email"></use>
-                  </svg>
-                  <a href="mailto:">lienhe@benhvienabc.com</a>
-                </p>
-                <p>
-                  <svg className="phone primary-color" width="25" height="25">
-                    <use xlinkHref="#phone"></use>
-                  </svg>
-                  <span>(+84) 123 456 789</span>
-                </p>
+            </div>
+          </div>
+
+          <div className="col-lg-4 col-md-6 col-sm-12 mb-4">
+            <div className="footer-menu">
+              <h5 className="footer-title mb-4">Liên kết nhanh</h5>
+              <div className="row">
+                <div className="col-6">
+                  <ul className="quick-links list-unstyled">
+                    <li className="mb-2">
+                      <Link to="/" className="text-decoration-none">
+                        <i className="fas fa-chevron-right me-2 small"></i>
+                        Trang chủ
+                      </Link>
+                    </li>
+                    <li className="mb-2">
+                      <Link to="/about" className="text-decoration-none">
+                        <i className="fas fa-chevron-right me-2 small"></i>
+                        Giới thiệu
+                      </Link>
+                    </li>
+                    <li className="mb-2">
+                      <Link to="/services" className="text-decoration-none">
+                        <i className="fas fa-chevron-right me-2 small"></i>
+                        Dịch vụ
+                      </Link>
+                    </li>
+                    <li className="mb-2">
+                      <Link to="/booking" className="text-decoration-none">
+                        <i className="fas fa-chevron-right me-2 small"></i>
+                        Đặt lịch hẹn
+                      </Link>
+                    </li>
+                    <li className="mb-2">
+                      <Link to="/review" className="text-decoration-none">
+                        <i className="fas fa-chevron-right me-2 small"></i>
+                        Đánh giá
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+                <div className="col-6">
+                  <ul className="quick-links list-unstyled">
+                    <li className="mb-2">
+                      <Link to="/team" className="text-decoration-none">
+                        <i className="fas fa-chevron-right me-2 small"></i>
+                        Đội ngũ
+                      </Link>
+                    </li>
+                    <li className="mb-2">
+                      <Link to="/faq" className="text-decoration-none">
+                        <i className="fas fa-chevron-right me-2 small"></i>
+                        Câu hỏi thường gặp
+                      </Link>
+                    </li>
+                    <li className="mb-2">
+                      <Link to="/departments" className="text-decoration-none">
+                        <i className="fas fa-chevron-right me-2 small"></i>
+                        Chuyên khoa
+                      </Link>
+                    </li>
+                    <li className="mb-2">
+                      <Link to="/blog" className="text-decoration-none">
+                        <i className="fas fa-chevron-right me-2 small"></i>
+                        Tin tức
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
-          <div className="col-lg-4 col-md-6 col-sm-6 pb-3">
+
+          <div className="col-lg-4 col-md-6 col-sm-12 mb-4">
             <div className="footer-menu">
-              <h5 className="widget-title pb-2 fw-semibold">Liên kết nhanh</h5>
-              <ul className="menu-list list-unstyled">
-                <li className="pb-2">
-                  <Link to="/">Trang chủ</Link>
-                </li>
-                <li className="pb-2">
-                  <Link to="/about">Giới thiệu</Link>
-                </li>
-                <li className="pb-2">
-                  <Link to="/services">Dịch vụ</Link>
-                </li>
-                <li className="pb-2">
-                  <Link to="/booking">Đặt lịch hẹn</Link>
-                </li>
-                <li className="pb-2">
-                  <Link to="/review">Đánh giá</Link>
-                </li>
-                <li className="pb-2">
-                  <Link to="/team">Đội ngũ</Link>
-                </li>
-                <li className="pb-2">
-                  <Link to="/faq">Câu hỏi thường gặp</Link>
-                </li>
-                <li className="pb-2">
-                  <Link to="/departments">Chuyên khoa</Link>
-                </li>
-                <li className="pb-2">
-                  <Link to="/blog">Tin tức</Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="col-lg-4 col-md-6 col-sm-6 pb-3">
-            <div className="footer-menu">
-              <h5 className="widget-title fw-semibold">Giờ mở cửa</h5>
-              <table className="schedule">
-                <tbody>
-                  <tr className="d-flex justify-content-between border-bottom py-2">
-                    <td>Thứ Hai - Thứ Năm</td>
-                    <td className="text-primary">8:00 - 18:00</td>
-                  </tr>
-                  <tr className="d-flex justify-content-between border-bottom py-2">
-                    <td>Thứ Sáu - Thứ Bảy</td>
-                    <td className="text-primary">10:00 - 16:00</td>
-                  </tr>
-                  <tr className="d-flex justify-content-between border-bottom py-2">
-                    <td>Chủ Nhật</td>
-                    <td className="text-primary">Chỉ nhận cấp cứu</td>
-                  </tr>
-                  <tr className="d-flex justify-content-between border-bottom py-2">
-                    <td>Khám cá nhân</td>
-                    <td className="text-primary">19:00 - 21:00</td>
-                  </tr>
-                </tbody>
-              </table>
+              <h5 className="footer-title mb-4">Giờ mở cửa</h5>
+              <div className="opening-hours">
+                <div className="time-slot d-flex justify-content-between align-items-center mb-3">
+                  <span className="day">Thứ Hai - Thứ Năm</span>
+                  <span className="hours text-primary">8:00 - 18:00</span>
+                </div>
+                <div className="time-slot d-flex justify-content-between align-items-center mb-3">
+                  <span className="day">Thứ Sáu - Thứ Bảy</span>
+                  <span className="hours text-primary">10:00 - 16:00</span>
+                </div>
+                <div className="time-slot d-flex justify-content-between align-items-center mb-3">
+                  <span className="day">Chủ Nhật</span>
+                  <span className="hours text-primary">Chỉ nhận cấp cứu</span>
+                </div>
+                <div className="time-slot d-flex justify-content-between align-items-center">
+                  <span className="day">Khám cá nhân</span>
+                  <span className="hours text-primary">19:00 - 21:00</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

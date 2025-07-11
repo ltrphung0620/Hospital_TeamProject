@@ -36,13 +36,14 @@ import TestResultManagementPage from './pages/admin/TestResultManagementPage';
 import PrescriptionPaymentPage from './pages/admin/PrescriptionPaymentPage';
 import LabTestPaymentPage from './pages/admin/LabTestPaymentPage';
 import ServicePaymentManagementPage from './pages/admin/ServicePaymentManagementPage';
+import BlogManagementPage from './pages/admin/BlogManagementPage';
 
 function App() {
   return (
     <>
       <ToastContainer
         position="top-right"
-        autoClose={5000}
+        autoClose={3000}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
@@ -50,7 +51,6 @@ function App() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme="light"
       />
       <Routes>
         <Route path="/" element={<Layout />}>
@@ -89,6 +89,7 @@ function App() {
           <Route path="prescription-payments" element={<PrescriptionPaymentPage />} />
           <Route path="lab-test-payments" element={<LabTestPaymentPage />} />
           <Route path="service-payments" element={<ServicePaymentManagementPage />} />
+          <Route path="blog" element={<BlogManagementPage />} />
         </Route>
       </Routes>
     </>

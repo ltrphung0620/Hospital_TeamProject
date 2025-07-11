@@ -18,6 +18,7 @@ import PrescriptionPaymentPage from '../../pages/admin/PrescriptionPaymentPage';
 import LabTestPaymentPage from '../../pages/admin/LabTestPaymentPage';
 import ServicePaymentManagementPage from '../../pages/admin/ServicePaymentManagementPage';
 import DoctorSchedulesPage from '../../pages/admin/DoctorSchedulesPage';
+import BlogManagementPage from '../../pages/admin/BlogManagementPage';
 import './AdminStyles.css';
 
 const AdminLayout = () => {
@@ -64,6 +65,7 @@ const AdminLayout = () => {
                     <Route path="/prescription-payments" element={<PrescriptionPaymentPage />} />
                     <Route path="/lab-test-payments" element={<LabTestPaymentPage />} />
                     <Route path="/service-payments" element={<ServicePaymentManagementPage />} />
+                    <Route path="/blog" element={<BlogManagementPage />} />
                 </Routes>
             </main>
         </div>

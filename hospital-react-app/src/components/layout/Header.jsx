@@ -228,7 +228,7 @@ const Header = () => {
       >
         <div className="container">
           <div className="bg-white rounded-3 shadow-sm">
-            <div className="d-flex justify-content-between align-items-center px-5 py-3">
+            <div className="nav-container px-4 py-3">
               <button
                 className="menu-toggle d-lg-none"
                 onClick={toggleMenu}
@@ -237,107 +237,54 @@ const Header = () => {
               >
                 <i className={`fas ${isMenuOpen ? "fa-times" : "fa-bars"}`}></i>
               </button>
-              <ul className={`nav gap-5 m-0 ${isMenuOpen ? "show" : ""}`}>
+
+              <ul className={`nav ${isMenuOpen ? "show" : ""}`}>
                 <li className="nav-item">
-                  <NavLink
-                    to="/"
-                    className={({ isActive }) =>
-                      `nav-link fs-6 ${
-                        isActive ? "text-info" : "text-secondary"
-                      }`
-                    }
-                    onClick={() => setIsMenuOpen(false)}
-                  >
+                  <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? "active text-info" : "text-secondary"}`} onClick={closeMenu}>
                     Trang chủ
                   </NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink
-                    to="/about"
-                    className={({ isActive }) =>
-                      `nav-link fs-6 ${
-                        isActive ? "text-info" : "text-secondary"
-                      }`
-                    }
-                    onClick={() => setIsMenuOpen(false)}
-                  >
+                  <NavLink to="/about" className={({ isActive }) => `nav-link ${isActive ? "active text-info" : "text-secondary"}`} onClick={closeMenu}>
                     Giới thiệu
                   </NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink
-                    to="/booking"
-                    className={({ isActive }) =>
-                      `nav-link fs-6 ${
-                        isActive ? "text-info" : "text-secondary"
-                      }`
-                    }
-                    onClick={() => setIsMenuOpen(false)}
-                  >
+                  <NavLink to="/booking" className={({ isActive }) => `nav-link ${isActive ? "active text-info" : "text-secondary"}`} onClick={closeMenu}>
                     Đặt lịch khám
                   </NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink
-                    to="/services"
-                    className={({ isActive }) =>
-                      `nav-link fs-6 ${
-                        isActive ? "text-info" : "text-secondary"
-                      }`
-                    }
-                    onClick={() => setIsMenuOpen(false)}
-                  >
+                  <NavLink to="/services" className={({ isActive }) => `nav-link ${isActive ? "active text-info" : "text-secondary"}`} onClick={closeMenu}>
                     Dịch vụ
                   </NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink
-                    to="/pricing"
-                    className={({ isActive }) =>
-                      `nav-link fs-6 ${
-                        isActive ? "text-info" : "text-secondary"
-                      }`
-                    }
-                    onClick={() => setIsMenuOpen(false)}
-                  >
+                  <NavLink to="/pricing" className={({ isActive }) => `nav-link ${isActive ? "active text-info" : "text-secondary"}`} onClick={closeMenu}>
                     Bảng giá
                   </NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink
-                    to="/team"
-                    className={({ isActive }) =>
-                      `nav-link fs-6 ${
-                        isActive ? "text-info" : "text-secondary"
-                      }`
-                    }
-                    onClick={() => setIsMenuOpen(false)}
-                  >
+                  <NavLink to="/doctors" className={({ isActive }) => `nav-link ${isActive ? "active text-info" : "text-secondary"}`} onClick={closeMenu}>
                     Đội ngũ bác sĩ
                   </NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink
-                    to="/blog"
-                    className={({ isActive }) =>
-                      `nav-link fs-6 ${
-                        isActive ? "text-info" : "text-secondary"
-                      }`
-                    }
-                    onClick={() => setIsMenuOpen(false)}
-                  >
+                  <NavLink to="/blog" className={({ isActive }) => `nav-link ${isActive ? "active text-info" : "text-secondary"}`} onClick={closeMenu}>
                     Blog
                   </NavLink>
                 </li>
               </ul>
+
               <div className="search-container">
                 <input
                   type="text"
-                  className="search-input"
-                  placeholder="Search..."
-                  aria-label="Search"
+                  className="form-control search-input"
+                  placeholder="Tìm kiếm..."
                 />
-                <i className="fas fa-search search-icon"></i>
+                <span className="search-icon">
+                  <i className="fas fa-search"></i>
+                </span>
               </div>
             </div>
           </div>
