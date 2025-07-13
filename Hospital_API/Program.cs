@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Globalization;
+using System.Reflection;
 
 // Set the culture to invariant
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
@@ -60,26 +61,18 @@ builder.Services.Configure<FormOptions>(options =>
     options.MultipartBodyLengthLimit = 10 * 1024 * 1024; // 10MB
 });
 
-builder.Services.AddSwaggerGen(options =>
+builder.Services.AddSwaggerGen(c =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Hospital API", Version = "v1" });
-
-    // Enable XML comments
-    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    options.IncludeXmlComments(xmlPath);
-
-    // Configure file upload
-    options.MapType<IFormFile>(() => new OpenApiSchema
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Hospital API", Version = "v1" });
+    
+    // Sửa lại đường dẫn file XML
+    var xmlPath = Path.Combine(Directory.GetCurrentDirectory(), "docs", "Hospital_API.xml");
+    if (File.Exists(xmlPath))
     {
-        Type = "string",
-        Format = "binary"
-    });
-
-    // Add support for multipart/form-data
-    options.OperationFilter<SwaggerFileOperationFilter>();
-
-    // Cấu hình xác thực JWT
+        c.IncludeXmlComments(xmlPath);
+    }
+    
+    // Cấu hình xác thực JWT cho Swagger
     var securityScheme = new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -105,8 +98,8 @@ builder.Services.AddSwaggerGen(options =>
         }
     };
 
-    options.AddSecurityDefinition("Bearer", securityScheme);
-    options.AddSecurityRequirement(securityRequirement);
+    c.AddSecurityDefinition("Bearer", securityScheme);
+    c.AddSecurityRequirement(securityRequirement);
 });
 builder.Services.AddOpenApi();
 
