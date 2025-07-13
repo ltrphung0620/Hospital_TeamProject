@@ -15,6 +15,7 @@ import { FaPlus, FaEdit, FaTrash, FaUsers, FaKey } from "react-icons/fa";
 import Avatar from "../../components/common/Avatar";
 import axios from "axios";
 import { API_BASE_URL } from '../../services/api';
+import { getCurrentUserRole, isTokenExpired, checkTokenAndProceed } from '../../utils/auth';
 
 // Sửa các URL constants
 const API_URL = `${API_BASE_URL}/User/create`;
@@ -87,6 +88,82 @@ const initialUsers = [
   },
 ];
 
+const modalStyles = `
+  .user-edit-modal .modal-content {
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .user-edit-modal .modal-header {
+    background-color: #f8f9fa;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .user-edit-modal .modal-title {
+    font-weight: 600;
+    color: #2c3e50;
+  }
+
+  .user-edit-modal .modal-body {
+    background-color: white;
+  }
+
+  .user-edit-modal .form-label {
+    font-weight: 500;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+
+  .user-edit-modal .form-control,
+  .user-edit-modal .form-select {
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    padding: 0.625rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  }
+
+  .user-edit-modal .form-control:focus,
+  .user-edit-modal .form-select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+  }
+
+  .user-edit-modal .modal-footer {
+    background-color: #f8f9fa;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .user-edit-modal .btn {
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 500;
+  }
+
+  .user-edit-modal .btn-primary {
+    background-color: #3498db;
+    border-color: #3498db;
+  }
+
+  .user-edit-modal .btn-primary:hover {
+    background-color: #2980b9;
+    border-color: #2980b9;
+  }
+
+  .user-edit-modal .btn-secondary {
+    background-color: #95a5a6;
+    border-color: #95a5a6;
+  }
+
+  .user-edit-modal .btn-secondary:hover {
+    background-color: #7f8c8d;
+    border-color: #7f8c8d;
+  }
+`;
+
 function UserManagementPage() {
   const [users, setUsers] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -124,32 +201,53 @@ function UserManagementPage() {
     return date.toISOString().split("T")[0]; // format: yyyy-MM-dd
   };
 
-  const checkTokenAndProceed = async (callback) => {
+  // Add a function to handle token expiration
+  const handleTokenExpiration = () => {
+    localStorage.clear(); // Clear all localStorage data
+    window.location.href = "/login"; // Redirect to login page
+  };
+
+  // Update checkTokenAndProceed to use the new handler
+  const checkTokenAndProceedWithRedirect = async (callback) => {
     if (isTokenExpired()) {
-      alert("Your session has expired. Please log in again.");
-      localStorage.removeItem("authToken");
-      window.location.href = "/login";
-    } else {
-      await callback(); // ✅ thêm await
+      handleTokenExpiration();
+      return;
+    }
+    try {
+      await callback();
+    } catch (error) {
+      if (error.response?.status === 401) {
+        handleTokenExpiration();
+      } else {
+        console.error('Error:', error);
+      }
     }
   };
+
   const handleShowModal = async (user = null) => {
-    await checkTokenAndProceed(async () => {
+    await checkTokenAndProceedWithRedirect(async () => {
       const role = getCurrentUserRole();
-      console.log("Current role from token:", role); // ← LOG QUAN TRỌNG
+      console.log("Current role from token:", role);
       if (user) {
         if (role?.trim() !== "Admin") {
           alert("Only Admins can edit users.");
           return;
         }
 
+        // Log user data for debugging
+        console.log("User data being set:", user);
+
         setCurrentUser({
-          ...user,
-          password: "",
+          id: user.id,
+          username: user.username || "",
           fullName: user.fullName || user.name || "",
-          dateOfBirth: formatDate(user.dateOfBirth),
-          status: user.status ?? "Active",
-          role: getRoleIdByName(user.roles?.[0]) || "", // ← THÊM DÒNG NÀY
+          email: user.email || "",
+          phone: user.phone || "",
+          dateOfBirth: formatDate(user.dateOfBirth) || "",
+          gender: user.gender || "Male",
+          status: user.status || "Active",
+          role: getRoleIdByName(user.roles?.[0]) || roles[0]?.id || "",
+          avatar: user.avatar || null
         });
         setIsEditing(true);
         setAvatarPreview(user.avatar);
@@ -169,9 +267,22 @@ function UserManagementPage() {
         setIsEditing(false);
         setAvatarPreview(null);
       }
+
+      // Log state for debugging
+      console.log("Setting showModal to true");
       setShowModal(true);
     });
   };
+
+  // Add useEffect to log when modal state changes
+  useEffect(() => {
+    console.log("Modal state changed:", showModal);
+  }, [showModal]);
+
+  // Add useEffect to log when currentUser changes
+  useEffect(() => {
+    console.log("Current user changed:", currentUser);
+  }, [currentUser]);
 
   // const handleSave = () => {
   //   if (isEditing) {
@@ -247,7 +358,7 @@ function UserManagementPage() {
   };
 
   const handleSave = async () => {
-    await checkTokenAndProceed(async () => {
+    await checkTokenAndProceedWithRedirect(async () => {
       try {
         if (isEditing) {
           const userToUpdate = {
@@ -294,7 +405,7 @@ function UserManagementPage() {
   };
 
   const handleDelete = async (id) => {
-    await checkTokenAndProceed(async () => {
+    await checkTokenAndProceedWithRedirect(async () => {
       const confirmDelete = window.confirm(
         "Are you sure you want to delete this user?"
       );
@@ -343,6 +454,18 @@ function UserManagementPage() {
         return <Badge bg="secondary">{status}</Badge>;
     }
   };
+
+  useEffect(() => {
+    // Add styles to document
+    const styleElement = document.createElement('style');
+    styleElement.innerHTML = modalStyles;
+    document.head.appendChild(styleElement);
+
+    // Cleanup on component unmount
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
 
   return (
     <Container fluid className="p-4">
@@ -445,90 +568,95 @@ function UserManagementPage() {
       </Card>
 
       {/* Add/Edit Modal */}
-      <Modal show={showModal} onHide={handleCloseModal} centered>
-        <Modal.Header closeButton>
+      <Modal 
+        show={showModal} 
+        onHide={handleCloseModal} 
+        centered
+        backdrop="static"
+        size="lg"
+        className="user-edit-modal"
+      >
+        <Modal.Header closeButton className="border-bottom">
           <Modal.Title>{isEditing ? "Edit User" : "Add New User"}</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className="p-4">
           <Form>
-            <Form.Group className="mb-3 text-center">
-              <Avatar src={avatarPreview} name={currentUser?.name} size={100} />
+            {/* Avatar Section */}
+            <div className="text-center mb-4">
+              <Avatar 
+                src={avatarPreview} 
+                name={currentUser?.fullName || currentUser?.username} 
+                size={100} 
+              />
               <Form.Control
                 type="file"
                 name="avatar"
                 onChange={handleAvatarChange}
-                className="mt-3"
-                accept="image/*"
+                className="mt-3 mx-auto"
+                style={{ maxWidth: '300px' }}
               />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>User Name</Form.Label>
-              <Form.Control
-                type="text"
-                name="username"
-                value={currentUser?.username || ""}
-                onChange={handleChange}
-                placeholder="Enter user name"
-                readOnly={isEditing}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Full Name</Form.Label>
-              <Form.Control
-                type="text"
-                name="fullName"
-                value={currentUser?.fullName || ""}
-                onChange={handleChange}
-                placeholder="Enter full name"
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Email Address</Form.Label>
-              <Form.Control
-                type="email"
-                name="email"
-                value={currentUser?.email || ""}
-                onChange={handleChange}
-                placeholder="Enter email"
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Phone Number</Form.Label>
-              <Form.Control
-                type="tel"
-                name="phone"
-                value={currentUser?.phone || ""}
-                onChange={handleChange}
-                placeholder="Enter phone number"
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Password</Form.Label>
-              <Form.Control
-                type="password"
-                name="password"
-                value={currentUser?.password || ""}
-                onChange={handleChange}
-                placeholder={
-                  isEditing
-                    ? "Leave blank to keep current password"
-                    : "Enter password"
-                }
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Date of Birth</Form.Label>
-              <Form.Control
-                type="date"
-                name="dateOfBirth"
-                value={currentUser?.dateOfBirth || ""}
-                onChange={handleChange}
-                placeholder="Select date of birth"
-              />
-            </Form.Group>
+            </div>
 
+            {/* Form Fields in Grid Layout */}
             <Row>
-              <Col>
+              {/* Left Column */}
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Username</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="username"
+                    value={currentUser?.username || ""}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Full Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="fullName"
+                    value={currentUser?.fullName || ""}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Email</Form.Label>
+                  <Form.Control
+                    type="email"
+                    name="email"
+                    value={currentUser?.email || ""}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Phone</Form.Label>
+                  <Form.Control
+                    type="tel"
+                    name="phone"
+                    value={currentUser?.phone || ""}
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+              </Col>
+
+              {/* Right Column */}
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Date of Birth</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="dateOfBirth"
+                    value={currentUser?.dateOfBirth || ""}
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+
                 <Form.Group className="mb-3">
                   <Form.Label>Gender</Form.Label>
                   <Form.Select
@@ -541,46 +669,64 @@ function UserManagementPage() {
                     <option value="Other">Other</option>
                   </Form.Select>
                 </Form.Group>
-              </Col>
-              <Col>
+
                 <Form.Group className="mb-3">
                   <Form.Label>Role</Form.Label>
                   <Form.Select
                     name="role"
-                    value={currentUser?.role || ""}
-                    disabled={isEditing}
-                    onChange={(e) => {
-                      setCurrentUser((prev) => ({
-                        ...prev,
-                        role: parseInt(e.target.value),
-                      }));
-                    }}
-                  >
-                    {roles.map((role) => (
-                      <option key={role.id} value={role.id}>
-                        {role.name}
-                      </option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-              <Col>
-                <Form.Group className="mb-3">
-                  <Form.Label>Status</Form.Label>
-                  <Form.Select
-                    name="status"
-                    value={currentUser?.status || "Active"}
+                    value={currentUser?.role || "User"}
                     onChange={handleChange}
                   >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Doctor">Doctor</option>
+                    <option value="User">User</option>
                   </Form.Select>
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Address</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    name="address"
+                    value={currentUser?.address || ""}
+                    onChange={handleChange}
+                  />
                 </Form.Group>
               </Col>
             </Row>
+
+            {!isEditing && (
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Password</Form.Label>
+                    <Form.Control
+                      type="password"
+                      name="password"
+                      value={currentUser?.password || ""}
+                      onChange={handleChange}
+                      required={!isEditing}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Confirm Password</Form.Label>
+                    <Form.Control
+                      type="password"
+                      name="confirmPassword"
+                      value={currentUser?.confirmPassword || ""}
+                      onChange={handleChange}
+                      required={!isEditing}
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+            )}
           </Form>
         </Modal.Body>
-        <Modal.Footer>
+        <Modal.Footer className="border-top">
           <Button variant="secondary" onClick={handleCloseModal}>
             Cancel
           </Button>
