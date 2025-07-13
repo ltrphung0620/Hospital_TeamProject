@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { FaBars, FaTimes } from 'react-icons/fa';
+import { FaBars } from 'react-icons/fa';
 import './AdminStyles.css';
 
 const AdminLayout = () => {
@@ -27,11 +27,17 @@ const AdminLayout = () => {
     return (
         <div className="admin-layout">
             <Sidebar isOpen={isSidebarOpen} />
-            <button className="admin-sidebar-toggle-btn" onClick={toggleSidebar}>
-                {isSidebarOpen ? <FaTimes /> : <FaBars />}
+            <button 
+                className={`admin-sidebar-toggle-btn ${isSidebarOpen ? 'open' : ''}`}
+                onClick={toggleSidebar}
+                aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+            >
+                <FaBars />
             </button>
             <main className={`admin-main-content ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
-                <Outlet />
+                <div className="admin-content-wrapper">
+                    <Outlet />
+                </div>
             </main>
         </div>
     );

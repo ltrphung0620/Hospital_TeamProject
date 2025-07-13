@@ -1,67 +1,58 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useApp } from '../contexts/AppContext';
 import axios from "axios";
 import { API_BASE_URL } from '../services/api';
 
 const LoginPage = () => {
+  const { setLoading, showNotification } = useApp();
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/';
+
+  const [formData, setFormData] = useState({
+    username: '',
+    password: ''
+  });
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
-    if (name === "username") {
-      setUsername(value);
-    } else if (name === "password") {
-      setPassword(value);
-    }
+    setFormData(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
   };
-
-  // const handleSubmit = async (event) => {
-  //   event.preventDefault();
-  //   setError(null);
-
-  //   // For demo: Simple validation
-  //   if (username === "demo" && password === "demo") {
-  //     localStorage.setItem("isLoggedIn", "true");
-  //     navigate("/");
-  //   } else {
-  //     setError("Invalid username or password. Try demo/demo");
-  //   }
-  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${API_BASE_URL}/Auth/login`, {
-        username,
-        password,
-      });
+      setLoading(true);
+      const response = await axios.post(`${API_BASE_URL}/Auth/login`, formData);
+      
+      // Lưu thông tin auth vào localStorage
+      const authData = {
+        token: response.data.token.token,
+        userId: response.data.token.userId,
+        username: response.data.token.username,
+        roles: response.data.token.roles,
+        avatar: response.data.token.avatar || ""
+      };
+      
+      localStorage.setItem('authData', JSON.stringify(authData));
+      localStorage.setItem('authToken', authData.token); // Giữ lại cho các API calls
 
-      console.log('Login response:', response.data); // Thêm log để kiểm tra
+      showNotification('Đăng nhập thành công');
 
-      if (response.data) {
-        // Lưu token
-        localStorage.setItem("authToken", response.data.token.token);
-        
-        // Lưu thông tin user từ token data
-        localStorage.setItem("authUsername", response.data.token.username);
-        localStorage.setItem("authFullName", response.data.token.fullName);
-        localStorage.setItem("authRoles", JSON.stringify(response.data.token.roles || []));
-        localStorage.setItem("authAvatar", response.data.token.avatar || '');
-
-        // Redirect dựa vào role
-        const userRoles = response.data.token.roles || [];
-        if (userRoles.includes("Admin")) {
-          navigate("/admin");
-        } else {
-          navigate("/");
-        }
-      }
-    } catch (error) {
-      console.error('Login error:', error); // Thêm log để kiểm tra lỗi
-      setError(error.response?.data?.message || "Login failed");
+      // Redirect về trang trước đó hoặc trang chủ
+      navigate(from, { replace: true });
+    } catch (err) {
+      console.error('Login error:', err);
+      showNotification(
+        err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.',
+        'danger'
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -95,24 +86,13 @@ const LoginPage = () => {
                     className="form-group"
                     onSubmit={handleSubmit}
                   >
-                    {error && (
-                      <div
-                        style={{
-                          color: "red",
-                          textAlign: "center",
-                          marginBottom: "10px",
-                        }}
-                      >
-                        {error}
-                      </div>
-                    )}
                     <div className="row">
                       <div className="col-md-12 mb-3">
                         <input
                           type="text"
                           name="username"
                           placeholder="Your Username *"
-                          value={username}
+                          value={formData.username}
                           onChange={handleInputChange}
                           className="form-control"
                           required
@@ -125,7 +105,7 @@ const LoginPage = () => {
                           type="password"
                           name="password"
                           placeholder="Your Password *"
-                          value={password}
+                          value={formData.password}
                           className="form-control"
                           onChange={handleInputChange}
                           required
