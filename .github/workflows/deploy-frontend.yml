@@ -45,7 +45,7 @@ jobs:
         if: steps.filter.outputs.frontend == 'true'
         env:
           VITE_TINYMCE_API_KEY: ${{ secrets.TINYMCE_API_KEY }}
-          VITE_API_URL: https://api.demoproject.software/api
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: npm run build
 
       # Create deployment archive

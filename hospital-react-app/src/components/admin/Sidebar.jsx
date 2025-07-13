@@ -38,7 +38,7 @@ const Sidebar = ({ isOpen }) => {
   const pharmacyRoutes = ["/admin/medicines"];
   const servicesRoutes = ["/admin/medical-services", "/admin/lab-tests", "/admin/test-requests", "/admin/test-results"];
   const paymentRoutes = ["/admin/prescription-payments", "/admin/lab-test-payments", "/admin/service-payments"];
-  const contentRoutes = ["/admin/blog"];
+  const contentRoutes = ["/admin/blogs"];
 
   useEffect(() => {
     setOpen({
@@ -162,7 +162,7 @@ const Sidebar = ({ isOpen }) => {
             </div>
             <Collapse in={open.content}>
               <ul className="admin-submenu">
-                <li><NavLink to="/admin/blog" className="admin-menu-link sub-link">Quản lý bài viết</NavLink></li>
+                <li><NavLink to="/admin/blogs" className="admin-menu-link sub-link">Quản lý bài viết</NavLink></li>
               </ul>
             </Collapse>
           </li>

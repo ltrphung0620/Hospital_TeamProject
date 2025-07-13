@@ -6,13 +6,10 @@ namespace Hospital_API.Interfaces
 {
     public interface IBlogService
     {
-        Task<IEnumerable<BlogResponseDTO>> GetAllAsync();
-        Task<IEnumerable<BlogResponseDTO>> GetPublishedAsync();
-        Task<BlogResponseDTO> GetByIdAsync(int id);
-        Task<BlogResponseDTO> GetBySlugAsync(string slug);
-        Task<IEnumerable<BlogResponseDTO>> GetByCategoryAsync(string category);
-        Task<BlogResponseDTO> CreateAsync(BlogCreateDTO blogDto, int authorId);
-        Task<BlogResponseDTO> UpdateAsync(int id, BlogUpdateDTO blogDto);
-        Task<bool> DeleteAsync(int id);
+        Task<BlogDTO> CreateBlog(BlogCreateDTO blogCreateDTO, int authorId);
+        Task<BlogDTO> UpdateBlog(int id, BlogUpdateDTO blogUpdateDTO);
+        Task<BlogDTO> GetBlogById(int id);
+        Task<IEnumerable<BlogDTO>> GetAllBlogs();
+        Task<bool> DeleteBlog(int id);
     }
 } 

@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
 namespace Hospital_API.Models
 {
@@ -43,5 +44,8 @@ namespace Hospital_API.Models
 
         [StringLength(200)]
         public string? Slug { get; set; } // URL-friendly version of title
+
+        // Collection of blog images
+        public virtual ICollection<BlogImage> BlogImages { get; set; } = new List<BlogImage>();
     }
 } 

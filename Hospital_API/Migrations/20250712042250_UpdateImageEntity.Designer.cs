@@ -4,6 +4,7 @@ using Hospital_API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,13 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Hospital_API.Migrations
 {
     [DbContext(typeof(HospitalDbContext))]
-    partial class HospitalDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250712042250_UpdateImageEntity")]
+    partial class UpdateImageEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("ProductVersion", "9.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -119,42 +122,6 @@ namespace Hospital_API.Migrations
                     b.HasIndex("AuthorId");
 
                     b.ToTable("Blogs");
-                });
-
-            modelBuilder.Entity("Hospital_API.Models.BlogImage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BlogId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Caption")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<bool>("IsFeatured")
-                        .HasColumnType("bit");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BlogId");
-
-                    b.ToTable("BlogImages");
                 });
 
             modelBuilder.Entity("Hospital_API.Models.Branch", b =>
@@ -978,17 +945,6 @@ namespace Hospital_API.Migrations
                     b.Navigation("Author");
                 });
 
-            modelBuilder.Entity("Hospital_API.Models.BlogImage", b =>
-                {
-                    b.HasOne("Hospital_API.Models.Blog", "Blog")
-                        .WithMany("BlogImages")
-                        .HasForeignKey("BlogId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Blog");
-                });
-
             modelBuilder.Entity("Hospital_API.Models.Doctor", b =>
                 {
                     b.HasOne("Hospital_API.Models.User", "User")
@@ -1248,11 +1204,6 @@ namespace Hospital_API.Migrations
             modelBuilder.Entity("Hospital_API.Models.Appointment", b =>
                 {
                     b.Navigation("Invoice");
-                });
-
-            modelBuilder.Entity("Hospital_API.Models.Blog", b =>
-                {
-                    b.Navigation("BlogImages");
                 });
 
             modelBuilder.Entity("Hospital_API.Models.Branch", b =>
