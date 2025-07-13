@@ -1,6 +1,12 @@
-# Build results
+# Ignore bin and obj folders
 bin/
 obj/
+
+# But keep the docs folder and its contents
+!docs/
+!docs/*
+
+# Build results
 *.dll
 *.exe
 *.pdb
