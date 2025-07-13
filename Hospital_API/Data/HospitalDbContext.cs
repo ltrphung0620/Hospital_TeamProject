@@ -50,6 +50,8 @@ namespace Hospital_API.Data
         public DbSet<DoctorSchedule> DoctorSchedules { get; set; }
         public DbSet<RevenueReport> RevenueReports { get; set; }
         public DbSet<Blog> Blogs { get; set; }
+        public DbSet<BlogImage> BlogImages { get; set; }
+        public DbSet<Image> Images { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

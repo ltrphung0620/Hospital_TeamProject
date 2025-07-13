@@ -4,6 +4,7 @@ using Hospital_API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,13 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Hospital_API.Migrations
 {
     [DbContext(typeof(HospitalDbContext))]
-    partial class HospitalDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250712040939_AddImageEntity")]
+    partial class AddImageEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("ProductVersion", "9.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -121,42 +124,6 @@ namespace Hospital_API.Migrations
                     b.ToTable("Blogs");
                 });
 
-            modelBuilder.Entity("Hospital_API.Models.BlogImage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BlogId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Caption")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<bool>("IsFeatured")
-                        .HasColumnType("bit");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BlogId");
-
-                    b.ToTable("BlogImages");
-                });
-
             modelBuilder.Entity("Hospital_API.Models.Branch", b =>
                 {
                     b.Property<int>("Id")
@@ -255,14 +222,8 @@ namespace Hospital_API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("BlogId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("DoctorId")
-                        .HasColumnType("int");
 
                     b.Property<string>("FileName")
                         .IsRequired()
@@ -279,31 +240,10 @@ namespace Hospital_API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Module")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ReferenceId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("UploadDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("UploadedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("BlogId");
-
-                    b.HasIndex("DoctorId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Images");
                 });
@@ -978,17 +918,6 @@ namespace Hospital_API.Migrations
                     b.Navigation("Author");
                 });
 
-            modelBuilder.Entity("Hospital_API.Models.BlogImage", b =>
-                {
-                    b.HasOne("Hospital_API.Models.Blog", "Blog")
-                        .WithMany("BlogImages")
-                        .HasForeignKey("BlogId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Blog");
-                });
-
             modelBuilder.Entity("Hospital_API.Models.Doctor", b =>
                 {
                     b.HasOne("Hospital_API.Models.User", "User")
@@ -1017,27 +946,6 @@ namespace Hospital_API.Migrations
                     b.Navigation("Doctor");
 
                     b.Navigation("Room");
-                });
-
-            modelBuilder.Entity("Hospital_API.Models.Image", b =>
-                {
-                    b.HasOne("Hospital_API.Models.Blog", "Blog")
-                        .WithMany()
-                        .HasForeignKey("BlogId");
-
-                    b.HasOne("Hospital_API.Models.Doctor", "Doctor")
-                        .WithMany()
-                        .HasForeignKey("DoctorId");
-
-                    b.HasOne("Hospital_API.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("Blog");
-
-                    b.Navigation("Doctor");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Hospital_API.Models.Inventory", b =>
@@ -1248,11 +1156,6 @@ namespace Hospital_API.Migrations
             modelBuilder.Entity("Hospital_API.Models.Appointment", b =>
                 {
                     b.Navigation("Invoice");
-                });
-
-            modelBuilder.Entity("Hospital_API.Models.Blog", b =>
-                {
-                    b.Navigation("BlogImages");
                 });
 
             modelBuilder.Entity("Hospital_API.Models.Branch", b =>

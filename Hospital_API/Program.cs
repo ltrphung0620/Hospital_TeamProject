@@ -2,12 +2,15 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Hospital_API.Data;
+using Hospital_API.Filters;
 using Hospital_API.Interfaces;
 using Hospital_API.Repositories;
 using Hospital_API.Repositories.Interfaces;
 using Hospital_API.Services;
 using Hospital_API.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -50,9 +53,31 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+// Configure file upload limits
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 10 * 1024 * 1024; // 10MB
+});
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "Hospital API", Version = "v1" });
+
+    // Enable XML comments
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    options.IncludeXmlComments(xmlPath);
+
+    // Configure file upload
+    options.MapType<IFormFile>(() => new OpenApiSchema
+    {
+        Type = "string",
+        Format = "binary"
+    });
+
+    // Add support for multipart/form-data
+    options.OperationFilter<SwaggerFileOperationFilter>();
 
     // Cấu hình xác thực JWT
     var securityScheme = new OpenApiSecurityScheme
@@ -153,7 +178,8 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-
+// Thêm cấu hình phục vụ file tĩnh
+builder.Services.AddDirectoryBrowser();
 
 //congfig dbContext
 
@@ -167,6 +193,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IBlogRepository, BlogRepository>();
 builder.Services.AddScoped<IBlogService, BlogService>();
+builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddScoped<IRolePermissionRepository, RolePermissionRepository>();
@@ -213,6 +240,11 @@ var app = builder.Build();
 // Phải được gọi trước các middleware khác như UseRouting, UseAuthentication, v.v.
 app.UseForwardedHeaders();
 
+// Configure static files
+app.UseStaticFiles();
+
+// Configure CORS
+app.UseCors("AllowMyFrontend");
 
 // Automatically apply migrations on startup
 using (var scope = app.Services.CreateScope())
@@ -240,7 +272,8 @@ using (var scope = app.Services.CreateScope())
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 // Enable Swagger in all environments
@@ -267,7 +300,7 @@ app.UseSwaggerUI(c =>
 
 
 // Sử dụng CORS - đặt trước UseAuthentication/UseAuthorization
-app.UseCors("AllowMyFrontend");
+// app.UseCors("AllowMyFrontend"); // Moved to top
 
 // Use Authentication & Authorization
 app.UseAuthentication();
@@ -275,6 +308,16 @@ app.UseAuthorization();
 
 app.UseHttpsRedirection();
 app.MapControllers();
+
+// Thêm sau app.UseRouting()
+// app.UseStaticFiles(); // Cho phép truy cập static files // Moved to top
+
+// Tạo thư mục wwwroot/uploads/images nếu chưa tồn tại
+var uploadPath = Path.Combine(builder.Environment.WebRootPath ?? "wwwroot", "uploads", "images");
+if (!Directory.Exists(uploadPath))
+{
+    Directory.CreateDirectory(uploadPath);
+}
 
 
 // var summaries = new[]

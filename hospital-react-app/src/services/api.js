@@ -86,7 +86,7 @@ export const getAllBlogs = async () => {
 };
 
 export const getAllBlogsAdmin = async () => {
-  const response = await api.get('/blog/admin');
+  const response = await api.get('/blog');  // Removed /admin since we don't have that endpoint
   return response.data;
 };
 
@@ -97,13 +97,29 @@ export const getBlogById = async (id) => {
 
 export const createBlog = async (data) => {
   console.log('Creating blog with data:', data);
-  const response = await api.post('/blog', data);
+  const formData = new FormData();
+  Object.keys(data).forEach(key => {
+    formData.append(key, data[key]);
+  });
+  const response = await api.post('/blog', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
   return response.data;
 };
 
 export const updateBlog = async (id, data) => {
   console.log('Updating blog with data:', data);
-  const response = await api.put(`/blog/${id}`, data);
+  const formData = new FormData();
+  Object.keys(data).forEach(key => {
+    formData.append(key, data[key]);
+  });
+  const response = await api.put(`/blog/${id}`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
   return response.data;
 };
 

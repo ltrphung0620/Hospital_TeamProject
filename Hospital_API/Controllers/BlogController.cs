@@ -2,15 +2,15 @@ using Hospital_API.DTOs;
 using Hospital_API.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using System;
 
 namespace Hospital_API.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
     public class BlogController : ControllerBase
     {
         private readonly IBlogService _blogService;
@@ -20,86 +20,58 @@ namespace Hospital_API.Controllers
             _blogService = blogService;
         }
 
-        // GET: api/blog
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BlogResponseDTO>>> GetAll()
+        public async Task<IActionResult> GetAllBlogs()
         {
-            var blogs = await _blogService.GetPublishedAsync();
+            var blogs = await _blogService.GetAllBlogs();
             return Ok(blogs);
         }
 
-        // GET: api/blog/admin
-        [HttpGet("admin")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<IEnumerable<BlogResponseDTO>>> GetAllAdmin()
-        {
-            var blogs = await _blogService.GetAllAsync();
-            return Ok(blogs);
-        }
-
-        // GET: api/blog/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<BlogResponseDTO>> GetById(int id)
+        public async Task<IActionResult> GetBlogById(int id)
         {
-            var blog = await _blogService.GetByIdAsync(id);
-            if (blog == null)
+            try
+            {
+                var blog = await _blogService.GetBlogById(id);
+                return Ok(blog);
+            }
+            catch (KeyNotFoundException)
+            {
                 return NotFound();
-
-            return Ok(blog);
+            }
         }
 
-        // GET: api/blog/slug/my-blog-post
-        [HttpGet("slug/{slug}")]
-        public async Task<ActionResult<BlogResponseDTO>> GetBySlug(string slug)
-        {
-            var blog = await _blogService.GetBySlugAsync(slug);
-            if (blog == null)
-                return NotFound();
-
-            return Ok(blog);
-        }
-
-        // GET: api/blog/category/news
-        [HttpGet("category/{category}")]
-        public async Task<ActionResult<IEnumerable<BlogResponseDTO>>> GetByCategory(string category)
-        {
-            var blogs = await _blogService.GetByCategoryAsync(category);
-            return Ok(blogs);
-        }
-
-        // POST: api/blog
         [HttpPost]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<BlogResponseDTO>> Create([FromBody] BlogCreateDTO blogDto)
+        [Authorize]
+        public async Task<IActionResult> CreateBlog([FromForm] BlogCreateDTO blogCreateDTO)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var createdBlog = await _blogService.CreateAsync(blogDto, userId);
-            return CreatedAtAction(nameof(GetById), new { id = createdBlog.Id }, createdBlog);
+            var authorId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var blog = await _blogService.CreateBlog(blogCreateDTO, authorId);
+            return CreatedAtAction(nameof(GetBlogById), new { id = blog.Id }, blog);
         }
 
-        // PUT: api/blog/5
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<BlogResponseDTO>> Update(int id, [FromBody] BlogUpdateDTO blogDto)
+        [Authorize]
+        public async Task<IActionResult> UpdateBlog(int id, [FromForm] BlogUpdateDTO blogUpdateDTO)
         {
-            Console.WriteLine($"Updating blog {id} with status: {blogDto.Status}"); // Debug log
-            var updatedBlog = await _blogService.UpdateAsync(id, blogDto);
-            if (updatedBlog == null)
+            try
+            {
+                var blog = await _blogService.UpdateBlog(id, blogUpdateDTO);
+                return Ok(blog);
+            }
+            catch (KeyNotFoundException)
+            {
                 return NotFound();
-
-            Console.WriteLine($"Blog {id} updated, new status: {updatedBlog.Status}"); // Debug log
-            return Ok(updatedBlog);
+            }
         }
 
-        // DELETE: api/blog/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> Delete(int id)
+        [Authorize]
+        public async Task<IActionResult> DeleteBlog(int id)
         {
-            var result = await _blogService.DeleteAsync(id);
+            var result = await _blogService.DeleteBlog(id);
             if (!result)
                 return NotFound();
-
             return NoContent();
         }
     }

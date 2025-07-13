@@ -89,7 +89,7 @@ function App() {
           <Route path="prescription-payments" element={<PrescriptionPaymentPage />} />
           <Route path="lab-test-payments" element={<LabTestPaymentPage />} />
           <Route path="service-payments" element={<ServicePaymentManagementPage />} />
-          <Route path="blog" element={<BlogManagementPage />} />
+          <Route path="blogs" element={<BlogManagementPage />} />
         </Route>
       </Routes>
     </>
