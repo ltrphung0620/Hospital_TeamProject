@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
+import NotFoundPage from '../../pages/NotFoundPage';
 
 const AdminRoute = ({ children }) => {
   const location = useLocation();
@@ -23,24 +24,19 @@ const AdminRoute = ({ children }) => {
       // Kiểm tra token
       if (!parsedAuthData.token) {
         showNotification('Phiên đăng nhập không hợp lệ', 'warning');
-        localStorage.removeItem('authData');
-        localStorage.removeItem('authToken');
         return false;
       }
 
       // Kiểm tra roles
       if (!parsedAuthData.roles || !Array.isArray(parsedAuthData.roles)) {
         showNotification('Không có thông tin về quyền truy cập', 'error');
-        localStorage.removeItem('authData');
-        localStorage.removeItem('authToken');
         return false;
       }
 
-      // Kiểm tra role Admin
-      if (!parsedAuthData.roles.includes('Admin')) {
+      // Kiểm tra role Admin, Doctor hoặc Accountant
+      const allowedRoles = ['Admin', 'Doctor', 'Accountant'];
+      if (!parsedAuthData.roles.some(role => allowedRoles.includes(role))) {
         showNotification('Bạn không có quyền truy cập trang này', 'error');
-        localStorage.removeItem('authData');
-        localStorage.removeItem('authToken');
         return false;
       }
 
@@ -48,8 +44,6 @@ const AdminRoute = ({ children }) => {
     } catch (error) {
       console.error('Error checking admin access:', error);
       showNotification('Có lỗi xảy ra khi kiểm tra quyền truy cập', 'error');
-      localStorage.removeItem('authData');
-      localStorage.removeItem('authToken');
       return false;
     }
   };
@@ -65,9 +59,9 @@ const AdminRoute = ({ children }) => {
     return null;
   }
 
-  // Nếu không có quyền truy cập
+  // Nếu không có quyền truy cập, hiển thị trang 404
   if (!isAuthorized) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <NotFoundPage />;
   }
 
   // Nếu có quyền truy cập

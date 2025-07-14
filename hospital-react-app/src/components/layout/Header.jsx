@@ -64,6 +64,7 @@ const Header = () => {
   }, [isMenuOpen]);
 
   const handleLogout = () => {
+    // Chỉ xóa token khi user chủ động logout
     localStorage.removeItem("authData");
     localStorage.removeItem("authToken");
     setUser(null);

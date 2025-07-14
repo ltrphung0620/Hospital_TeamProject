@@ -39,6 +39,7 @@ import ServicePaymentManagementPage from './pages/admin/ServicePaymentManagement
 import BlogManagementPage from './pages/admin/BlogManagementPage';
 import { AppProvider } from './contexts/AppContext';
 import AdminRoute from './components/auth/AdminRoute';
+import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
   return (
@@ -105,8 +106,8 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* Catch all route - redirect to home */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* 404 route */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </AppProvider>
   );
