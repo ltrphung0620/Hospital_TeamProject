@@ -6,7 +6,7 @@ import axios from 'axios';
 import { API_BASE_URL } from '../../services/api';
 
 function MedicalServiceManagementPage() {
-  const [services, setServices] = useState(mockMedicalServices);
+  const [services, setServices] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentService, setCurrentService] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -48,19 +48,28 @@ function MedicalServiceManagementPage() {
     setShowModal(true);
   };
 
+  // Thêm hoặc sửa medical service qua API
   const handleSave = () => {
     if (isEditing) {
-      setServices(services.map(s => (s.id === currentService.id ? currentService : s)));
+      axios.put(`${API_URL}/${currentService.id}`, currentService)
+        .then(res => {
+          setServices(services.map(s => (s.id === res.data.id ? res.data : s)));
+          handleCloseModal();
+        });
     } else {
-      const newService = { ...currentService, id: Math.max(...services.map(s => s.id), 0) + 1 };
-      setServices([...services, newService]);
+      axios.post(API_URL, currentService)
+        .then(res => {
+          setServices([...services, res.data]);
+          handleCloseModal();
+        });
     }
-    handleCloseModal();
   };
 
+  // Xóa medical service qua API
   const handleDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this medical service?')) {
-      setServices(services.filter(s => s.id !== id));
+      axios.delete(`${API_URL}/${id}`)
+        .then(() => setServices(services.filter(s => s.id !== id)));
     }
   };
 
@@ -173,4 +182,4 @@ function MedicalServiceManagementPage() {
   );
 }
 
-export default MedicalServiceManagementPage; 
+export default MedicalServiceManagementPage;

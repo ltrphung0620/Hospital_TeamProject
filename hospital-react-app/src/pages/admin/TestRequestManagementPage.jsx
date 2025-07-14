@@ -1,16 +1,33 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination, Badge } from 'react-bootstrap';
-import { FaPlus, FaEdit, FaEye, FaVial } from 'react-icons/fa';
-import { mockTestRequests, mockLabTests } from '../../data/mockServiceData';
+import React, { useState, useEffect } from 'react';
+import {
+  Container, Row, Col, Card, Button,
+  Table, Modal, Form, Pagination, Badge
+} from 'react-bootstrap';
+import { FaPlus, FaEdit, FaVial } from 'react-icons/fa';
+import axios from 'axios';
+
+const API_URL = 'http://localhost:5247/api/TestRequest';
+const LABTEST_API_URL = 'http://localhost:5247/api/LabTest';
 
 function TestRequestManagementPage() {
-  const [requests, setRequests] = useState(mockTestRequests);
+  const [requests, setRequests] = useState([]);
+  const [labTests, setLabTests] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentRequest, setCurrentRequest] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // Load test requests & lab tests
+  useEffect(() => {
+    axios.get(API_URL)
+      .then(res => setRequests(res.data))
+      .catch(() => setRequests([]));
+    axios.get(LABTEST_API_URL)
+      .then(res => setLabTests(res.data))
+      .catch(() => setLabTests([]));
+  }, []);
 
   const handleCloseModal = () => {
     setShowModal(false);
@@ -19,10 +36,10 @@ function TestRequestManagementPage() {
   };
 
   const handleShowModal = (request = null, editMode = false) => {
-    if(request) {
-        setCurrentRequest({ ...request });
+    if (request) {
+      setCurrentRequest({ ...request });
     } else {
-        setCurrentRequest({ patientName: '', testName: '', status: 'Pending'});
+      setCurrentRequest({ labTestId: '', status: 'Pending' });
     }
     setIsEditing(editMode);
     setShowModal(true);
@@ -30,18 +47,24 @@ function TestRequestManagementPage() {
 
   const handleSave = () => {
     if (isEditing) {
-      setRequests(requests.map(r => (r.id === currentRequest.id ? currentRequest : r)));
+      axios.put(`${API_URL}/${currentRequest.id}`, currentRequest)
+        .then(res => {
+          setRequests(requests.map(r => (r.id === res.data.id ? res.data : r)));
+          handleCloseModal();
+        });
     } else {
-       const newRequest = { 
-        ...currentRequest, 
-        id: Math.max(...requests.map(r => r.id), 0) + 1,
+      const newRequest = {
+        ...currentRequest,
         requestedAt: new Date().toISOString()
       };
-      setRequests([...requests, newRequest]);
+      axios.post(API_URL, newRequest)
+        .then(res => {
+          setRequests([...requests, res.data]);
+          handleCloseModal();
+        });
     }
-    handleCloseModal();
   };
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setCurrentRequest(prev => ({ ...prev, [name]: value }));
@@ -66,22 +89,25 @@ function TestRequestManagementPage() {
     <Container fluid className="p-4">
       <Row className="mb-4">
         <Col>
-          <h2 className="admin-page-title"><FaVial className="me-2" /> Lab Test Request Management</h2>
+          <h2 className="admin-page-title">
+            <FaVial className="me-2" /> Lab Test Request Management
+          </h2>
         </Col>
       </Row>
 
       <Card className="admin-card">
         <Card.Header className="d-flex justify-content-between align-items-center">
           <span>Test Requests List</span>
-           <Button variant="primary" onClick={() => handleShowModal(null, true)}><FaPlus className="me-2" /> New Request</Button>
+          <Button variant="primary" onClick={() => handleShowModal(null, false)}>
+            <FaPlus className="me-2" /> New Request
+          </Button>
         </Card.Header>
         <Card.Body>
           <Table responsive hover className="admin-table">
             <thead>
               <tr>
                 <th>#</th>
-                <th>Patient</th>
-                <th>Test Name</th>
+                <th>Lab Test</th>
                 <th>Requested At</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -90,9 +116,8 @@ function TestRequestManagementPage() {
             <tbody>
               {currentItems.map((request, index) => (
                 <tr key={request.id}>
-                  <td>{request.id}</td>
-                  <td>{request.patientName}</td>
-                  <td>{request.testName}</td>
+                  <td>{indexOfFirstItem + index + 1}</td>
+                  <td>{labTests.find(t => t.id === request.labTestId)?.name || request.labTestId}</td>
                   <td>{new Date(request.requestedAt).toLocaleString()}</td>
                   <td>{getStatusBadge(request.status)}</td>
                   <td>
@@ -109,7 +134,9 @@ function TestRequestManagementPage() {
           <Card.Footer>
             <Pagination className="justify-content-center mb-0">
               {Array.from({ length: totalPages }, (_, i) => (
-                <Pagination.Item key={i + 1} active={i + 1 === currentPage} onClick={() => paginate(i + 1)}>{i + 1}</Pagination.Item>
+                <Pagination.Item key={i + 1} active={i + 1 === currentPage} onClick={() => paginate(i + 1)}>
+                  {i + 1}
+                </Pagination.Item>
               ))}
             </Pagination>
           </Card.Footer>
@@ -124,27 +151,16 @@ function TestRequestManagementPage() {
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>Patient Name</Form.Label>
-              <Form.Control 
-                type="text" 
-                name="patientName" 
-                value={currentRequest?.patientName || ''} 
-                onChange={handleChange} 
-                placeholder="Enter patient name"
-                disabled={isEditing}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
               <Form.Label>Lab Test</Form.Label>
-              <Form.Select 
-                name="testName" 
-                value={currentRequest?.testName || ''} 
-                onChange={handleChange} 
+              <Form.Select
+                name="labTestId"
+                value={currentRequest?.labTestId || ''}
+                onChange={handleChange}
                 disabled={isEditing}
               >
                 <option value="" disabled>Select Test</option>
-                {mockLabTests.map(t => (
-                  <option key={t.id} value={t.name}>{t.name}</option>
+                {labTests.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </Form.Select>
             </Form.Group>
@@ -167,4 +183,4 @@ function TestRequestManagementPage() {
   );
 }
 
-export default TestRequestManagementPage; 
+export default TestRequestManagementPage;

@@ -7,12 +7,21 @@ namespace Hospital_API.Models
     {
         [Key]
         public int Id { get; set; }
+
+        public string Code { get; set; }
+
         public string Name { get; set; }
-        public int Quantity { get; set; }
-        public string Unit { get; set; }
-        public decimal Price { get; set; }
+
+        public string Type { get; set; }
+
+        public DateTime ExpiryDate { get; set; }
+
         public int SupplierId { get; set; }
+
         [ForeignKey("SupplierId")]
         public MedicineSupplier Supplier { get; set; }
+
+        [NotMapped]
+        public bool IsExpired => DateTime.Now > ExpiryDate;
     }
 }

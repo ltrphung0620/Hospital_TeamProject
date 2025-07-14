@@ -1,16 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination } from 'react-bootstrap';
 import { FaClipboardCheck, FaEdit, FaEye, FaPlus } from 'react-icons/fa';
-import { mockTestResults, mockPendingRequests } from '../../data/mockServiceData';
+import axios from 'axios';
+
+const API_URL = 'https://api.demoproject.software/api/TestResult';
+const REQUEST_API_URL = 'https://api.demoproject.software/api/TestRequest';
 
 function TestResultManagementPage() {
-  const [results, setResults] = useState(mockTestResults);
+  const [results, setResults] = useState([]);
+  const [pendingRequests, setPendingRequests] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentResult, setCurrentResult] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // Load test results and pending requests from API
+  useEffect(() => {
+    axios.get(API_URL)
+      .then(res => setResults(res.data))
+      .catch(() => setResults([]));
+    axios.get(REQUEST_API_URL)
+      .then(res => setPendingRequests(res.data))
+      .catch(() => setPendingRequests([]));
+  }, []);
 
   const handleCloseModal = () => {
     setShowModal(false);
@@ -19,32 +33,34 @@ function TestResultManagementPage() {
   };
 
   const handleShowModal = (result = null, editMode = false) => {
-    if(result) {
-        setCurrentResult({ ...result });
+    if (result) {
+      setCurrentResult({ ...result });
     } else {
-        setCurrentResult({ testRequestId: '', result: '', resultDate: new Date().toISOString()});
+      setCurrentResult({ testRequestID: '', result: '', resultDate: new Date().toISOString() });
     }
     setIsEditing(editMode);
     setShowModal(true);
   };
 
+  // Thêm hoặc sửa test result qua API
   const handleSave = () => {
-    if (currentResult.id) { // Editing existing result
-      setResults(results.map(r => (r.id === currentResult.id ? currentResult : r)));
-    } else { // Adding a new result
-      const requestInfo = mockPendingRequests.find(r => r.id === parseInt(currentResult.testRequestId));
-      const newResult = { 
-        ...currentResult,
-        id: Math.max(...results.map(r => r.id), 0) + 1,
-        patientName: requestInfo.patientName,
-        testName: requestInfo.testName,
-        resultDate: new Date(currentResult.resultDate).toISOString()
-      };
-      setResults([...results, newResult]);
+    if (currentResult.id) {
+      // Update
+      axios.put(`${API_URL}/${currentResult.id}`, currentResult)
+        .then(res => {
+          setResults(results.map(r => (r.id === res.data.id ? res.data : r)));
+          handleCloseModal();
+        });
+    } else {
+      // Add new
+      axios.post(API_URL, currentResult)
+        .then(res => {
+          setResults([...results, res.data]);
+          handleCloseModal();
+        });
     }
-    handleCloseModal();
   };
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setCurrentResult(prev => ({ ...prev, [name]: value }));
@@ -55,6 +71,16 @@ function TestResultManagementPage() {
   const currentItems = results.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(results.length / itemsPerPage);
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  // Helper: get patient & test info from request
+  const getRequestInfo = (testRequestID) => {
+    const req = pendingRequests.find(r => r.id === parseInt(testRequestID));
+    if (!req) return { patientName: '', testName: '' };
+    return {
+      patientName: req.patientName || req.PatientName || '',
+      testName: req.labTestName || req.LabTestName || req.testName || ''
+    };
+  };
 
   return (
     <Container fluid className="p-4">
@@ -83,22 +109,25 @@ function TestResultManagementPage() {
               </tr>
             </thead>
             <tbody>
-              {currentItems.map((result, index) => (
-                <tr key={result.id}>
-                  <td>{result.id}</td>
-                  <td>{result.patientName}</td>
-                  <td>{result.testName}</td>
-                  <td>{new Date(result.resultDate).toLocaleString()}</td>
-                  <td>
-                     <Button variant="outline-info" size="sm" className="me-2" onClick={() => handleShowModal(result, false)}>
-                      <FaEye />
-                    </Button>
-                    <Button variant="outline-primary" size="sm" onClick={() => handleShowModal(result, true)}>
-                      <FaEdit />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
+              {currentItems.map((result, index) => {
+                const info = getRequestInfo(result.testRequestID);
+                return (
+                  <tr key={result.id}>
+                    <td>{result.id}</td>
+                    <td>{info.patientName}</td>
+                    <td>{info.testName}</td>
+                    <td>{new Date(result.resultDate).toLocaleString()}</td>
+                    <td>
+                      <Button variant="outline-info" size="sm" className="me-2" onClick={() => handleShowModal(result, false)}>
+                        <FaEye />
+                      </Button>
+                      <Button variant="outline-primary" size="sm" onClick={() => handleShowModal(result, true)}>
+                        <FaEdit />
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </Table>
         </Card.Body>
@@ -116,52 +145,58 @@ function TestResultManagementPage() {
       {/* Add/Edit/View Modal */}
       <Modal show={showModal} onHide={handleCloseModal} centered size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>{isEditing ? (currentResult?.id ? 'Edit Test Result' : 'Add Test Result') : 'View Test Result'}</Modal.Title>
+          <Modal.Title>
+            {isEditing ? (currentResult?.id ? 'Edit Test Result' : 'Add Test Result') : 'View Test Result'}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
-             {currentResult?.id ? ( // Viewing or Editing existing result
-                <>
-                    <Row className="mb-3">
-                        <Col><p><strong>Patient:</strong> {currentResult.patientName}</p></Col>
-                        <Col><p><strong>Test:</strong> {currentResult.testName}</p></Col>
-                    </Row>
-                    <hr/>
-                </>
-             ) : ( // Adding a new result
-                <Form.Group className="mb-3">
-                    <Form.Label>Pending Test Request</Form.Label>
-                    <Form.Select name="testRequestId" value={currentResult?.testRequestId || ''} onChange={handleChange}>
-                        <option value="" disabled>Select a pending test...</option>
-                        {mockPendingRequests.map(req => (
-                            <option key={req.id} value={req.id}>{req.patientName} - {req.testName}</option>
-                        ))}
-                    </Form.Select>
-                </Form.Group>
-             )}
+            {currentResult?.id ? (
+              // Viewing or Editing existing result
+              <>
+                <Row className="mb-3">
+                  <Col><p><strong>Patient:</strong> {getRequestInfo(currentResult.testRequestID).patientName}</p></Col>
+                  <Col><p><strong>Test:</strong> {getRequestInfo(currentResult.testRequestID).testName}</p></Col>
+                </Row>
+                <hr />
+              </>
+            ) : (
+              // Adding a new result
+              <Form.Group className="mb-3">
+                <Form.Label>Pending Test Request</Form.Label>
+                <Form.Select name="testRequestID" value={currentResult?.testRequestID || ''} onChange={handleChange}>
+                  <option value="" disabled>Select a pending test...</option>
+                  {pendingRequests.map(req => (
+                    <option key={req.id} value={req.id}>
+                      {getRequestInfo(req.id).patientName} - {getRequestInfo(req.id).testName}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            )}
 
             <Form.Group className="mb-3">
               <Form.Label>Result</Form.Label>
-              <Form.Control 
-                as="textarea" 
-                rows={5} 
-                name="result" 
-                value={currentResult?.result || ''} 
-                onChange={handleChange} 
-                placeholder="Enter test result details..." 
-                readOnly={!isEditing} 
+              <Form.Control
+                as="textarea"
+                rows={5}
+                name="result"
+                value={currentResult?.result || ''}
+                onChange={handleChange}
+                placeholder="Enter test result details..."
+                readOnly={!isEditing}
               />
             </Form.Group>
-            
+
             <Form.Group className="mb-3">
-                <Form.Label>Result Date</Form.Label>
-                <Form.Control 
-                    type="datetime-local"
-                    name="resultDate"
-                    value={currentResult?.resultDate ? new Date(currentResult.resultDate).toISOString().slice(0, 16) : ''}
-                    onChange={handleChange}
-                    readOnly={!isEditing}
-                />
+              <Form.Label>Result Date</Form.Label>
+              <Form.Control
+                type="datetime-local"
+                name="resultDate"
+                value={currentResult?.resultDate ? new Date(currentResult.resultDate).toISOString().slice(0, 16) : ''}
+                onChange={handleChange}
+                readOnly={!isEditing}
+              />
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -174,4 +209,4 @@ function TestResultManagementPage() {
   );
 }
 
-export default TestResultManagementPage; 
+export default TestResultManagementPage;

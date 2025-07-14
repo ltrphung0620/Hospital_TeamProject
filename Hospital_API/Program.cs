@@ -204,6 +204,8 @@ builder.Services.AddScoped<ILabTestRepo, LabTestRepo>();
 builder.Services.AddScoped<ILabTestService, LabTestService>();
 builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 builder.Services.AddScoped<IBranchService, BranchService>();
+builder.Services.AddScoped<ITestRequestRepository, TestRequestRepository>();
+builder.Services.AddScoped<ITestRequestService, TestRequestService>();
 
 
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
