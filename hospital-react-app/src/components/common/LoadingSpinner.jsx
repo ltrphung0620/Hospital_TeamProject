@@ -1,32 +1,13 @@
 import React from 'react';
 import './LoadingSpinner.css';
 
-const LoadingSpinner = ({ fullScreen }) => {
-  if (fullScreen) {
-    return (
-      <div className="loading-spinner-overlay">
-        <div className="loading-spinner-container">
-          <div className="loading-spinner">
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-          </div>
-          <p className="loading-text">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
+const LoadingSpinner = () => {
   return (
-    <div className="loading-spinner-container">
+    <div className="loading-container">
       <div className="loading-spinner">
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
+        <div className="spinner-circle"></div>
+        <div className="spinner-circle inner"></div>
+        <div className="spinner-circle outer"></div>
       </div>
     </div>
   );

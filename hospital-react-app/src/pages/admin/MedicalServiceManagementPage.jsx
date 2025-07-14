@@ -1,16 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination } from 'react-bootstrap';
 import { FaPlus, FaEdit, FaTrash, FaStethoscope } from 'react-icons/fa';
-import { mockMedicalServices } from '../../data/mockServiceData';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import axios from 'axios';
+import { API_BASE_URL } from '../../services/api';
 
 function MedicalServiceManagementPage() {
   const [services, setServices] = useState(mockMedicalServices);
   const [showModal, setShowModal] = useState(false);
   const [currentService, setCurrentService] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Added loading state
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get(`${API_BASE_URL}/MedicalService`);
+        setServices(response.data);
+      } catch (error) {
+        console.error('Failed to fetch medical services:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, []);
 
   const handleCloseModal = () => {
     setShowModal(false);
@@ -71,35 +90,39 @@ function MedicalServiceManagementPage() {
           <Button variant="primary" onClick={() => handleShowModal()}><FaPlus className="me-2" /> Add Service</Button>
         </Card.Header>
         <Card.Body>
-          <Table responsive hover className="admin-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Service Name</th>
-                <th>Type</th>
-                <th>Price</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentItems.map((service, index) => (
-                <tr key={service.id}>
-                  <td>{indexOfFirstItem + index + 1}</td>
-                  <td>{service.name}</td>
-                  <td>{service.type}</td>
-                  <td>${service.price.toFixed(2)}</td>
-                  <td>
-                    <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleShowModal(service)}>
-                      <FaEdit />
-                    </Button>
-                    <Button variant="outline-danger" size="sm" onClick={() => handleDelete(service.id)}>
-                      <FaTrash />
-                    </Button>
-                  </td>
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <Table responsive hover className="admin-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Service Name</th>
+                  <th>Type</th>
+                  <th>Price</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {currentItems.map((service, index) => (
+                  <tr key={service.id}>
+                    <td>{indexOfFirstItem + index + 1}</td>
+                    <td>{service.name}</td>
+                    <td>{service.type}</td>
+                    <td>${service.price.toFixed(2)}</td>
+                    <td>
+                      <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleShowModal(service)}>
+                        <FaEdit />
+                      </Button>
+                      <Button variant="outline-danger" size="sm" onClick={() => handleDelete(service.id)}>
+                        <FaTrash />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
         </Card.Body>
         {totalPages > 1 && (
           <Card.Footer>

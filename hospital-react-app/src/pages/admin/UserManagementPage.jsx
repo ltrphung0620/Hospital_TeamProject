@@ -13,6 +13,7 @@ import {
 } from "react-bootstrap";
 import { FaPlus, FaEdit, FaTrash, FaUsers, FaKey } from "react-icons/fa";
 import Avatar from "../../components/common/Avatar";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 import axios from "axios";
 import { API_BASE_URL } from '../../services/api';
 import { getCurrentUserRole, isTokenExpired, checkTokenAndProceed } from '../../utils/auth';
@@ -172,6 +173,7 @@ function UserManagementPage() {
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [roles, setRoles] = useState([]);
   const [newRoleId, setNewRoleId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [showPermissionModal, setShowPermissionModal] = useState(false);
   const [permissionUser, setPermissionUser] = useState(null);
@@ -295,10 +297,13 @@ function UserManagementPage() {
   // };
   const loadUsers = async () => {
     try {
+      setIsLoading(true);
       const data = await fetchUsers();
       setUsers(data);
     } catch (error) {
       console.error("Failed to fetch users:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
   useEffect(() => {
@@ -489,7 +494,10 @@ function UserManagementPage() {
           </Button>
         </Card.Header>
         <Card.Body>
-          <Table responsive hover className="admin-table">
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <Table responsive hover className="admin-table">
             <thead>
               <tr>
                 <th>#</th>
@@ -549,6 +557,7 @@ function UserManagementPage() {
               ))}
             </tbody>
           </Table>
+          )}
         </Card.Body>
         {totalPages > 1 && (
           <Card.Footer>
