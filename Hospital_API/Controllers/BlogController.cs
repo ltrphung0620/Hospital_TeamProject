@@ -23,6 +23,14 @@ namespace Hospital_API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllBlogs()
         {
+            var blogs = await _blogService.GetPublishedBlogs();
+            return Ok(blogs);
+        }
+
+        [HttpGet("admin")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllBlogsAdmin()
+        {
             var blogs = await _blogService.GetAllBlogs();
             return Ok(blogs);
         }
