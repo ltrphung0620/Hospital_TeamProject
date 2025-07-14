@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination, Badge } from 'react-bootstrap';
 import { FaPlus, FaEdit, FaTrash, FaCalendarAlt } from 'react-icons/fa';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import axios from 'axios';
+import { API_BASE_URL } from '../../services/api';
 
 // Mock data - In a real app, this would come from an API
 const initialDoctors = [
@@ -24,10 +27,27 @@ function DoctorScheduleManagementPage() {
   const [showModal, setShowModal] = useState(false);
   const [currentSchedule, setCurrentSchedule] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Added loading state
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  useEffect(() => {
+    const fetchSchedules = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get(`${API_BASE_URL}/DoctorSchedule`);
+        setSchedules(response.data);
+      } catch (error) {
+        console.error('Failed to fetch schedules:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSchedules();
+  }, []);
 
   const handleCloseModal = () => {
     setShowModal(false);
@@ -109,7 +129,10 @@ function DoctorScheduleManagementPage() {
           </Button>
         </Card.Header>
         <Card.Body>
-          <Table responsive hover className="admin-table">
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <Table responsive hover className="admin-table">
             <thead>
               <tr>
                 <th>#</th>
@@ -140,6 +163,7 @@ function DoctorScheduleManagementPage() {
               ))}
             </tbody>
           </Table>
+        )}
         </Card.Body>
         {totalPages > 1 && (
             <Card.Footer>
