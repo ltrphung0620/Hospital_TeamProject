@@ -4,6 +4,7 @@ import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination, Badg
 import { FaPlus, FaEdit, FaTrash, FaCalendarAlt } from 'react-icons/fa';
 import axios from 'axios';
 import { API_BASE_URL } from '../../services/api'; // nếu bạn có sẵn BASE_URL
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 // Mock data - In a real app, this would come from an API
 const initialDoctors = [
@@ -22,12 +23,13 @@ const initialSchedules = [
 ];
 
 function DoctorScheduleManagementPage() {
-  const [schedules, setSchedules] = useState(initialSchedules);
+  const [schedules, setSchedules] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentSchedule, setCurrentSchedule] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [rooms, setRooms] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -50,6 +52,7 @@ function DoctorScheduleManagementPage() {
 useEffect(() => {
   const fetchDoctors = async () => {
     try {
+      setIsLoading(true);
       const token = localStorage.getItem("authToken");
       const response = await axios.get(`${API_BASE_URL}/Doctor`, {
         headers: {
@@ -71,10 +74,31 @@ useEffect(() => {
     }
   };
 
-  fetchDoctors();
-  fetchRooms();
-  fetchSchedules();
-}, []);
+  const fetchSchedules = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/DoctorSchedule`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+      },
+    });
+    setSchedules(response.data);
+  } catch (error) {
+    console.error("Failed to fetch schedules:", error);
+  }
+};
+
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      await Promise.all([fetchDoctors(), fetchRooms(), fetchSchedules()]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '';
@@ -111,24 +135,6 @@ const formatTime = (timeStr) => {
     setShowModal(true);
   };
 
-  const fetchSchedules = async () => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/DoctorSchedule`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-      },
-    });
-    setSchedules(response.data);
-  } catch (error) {
-    console.error("Failed to fetch schedules:", error);
-  }
-};
-
-
-
-
-
-
   const handleSave =async  () => {
     const token = localStorage.getItem("authToken");
     const doctor = doctors.find(d => d.id === parseInt(currentSchedule.doctorId));
@@ -156,7 +162,7 @@ const formatTime = (timeStr) => {
       });
     }
       
-    await fetchSchedules();  // refresh danh sách
+    await loadData();  // refresh danh sách
     handleCloseModal();      // đóng modal
   } catch (error) {
     console.error("Save failed:", error);
@@ -201,70 +207,89 @@ const formatTime = (timeStr) => {
       <Row className="mb-4">
         <Col>
           <h2 className="admin-page-title">
-            <FaCalendarAlt className="me-2" /> Doctor Schedule Management
+            <FaCalendarAlt className="me-2" /> Quản Lý Lịch Khám
           </h2>
+        </Col>
+        <Col xs="auto">
+          <Button variant="primary" onClick={() => handleShowModal()}>
+            <FaPlus className="me-2" /> Thêm Lịch Khám
+          </Button>
         </Col>
       </Row>
 
       <Card className="admin-card">
         <Card.Header className="d-flex justify-content-between align-items-center">
-          <span>Schedules List</span>
-          <Button variant="primary" onClick={() => handleShowModal()}>
-            <FaPlus className="me-2" /> Add Schedule
-          </Button>
+          <h5 className="mb-0">Danh Sách Lịch Khám</h5>
         </Card.Header>
         <Card.Body>
           {isLoading ? (
-            <LoadingSpinner />
+            <div className="text-center">
+              <LoadingSpinner />
+            </div>
           ) : (
-            <Table responsive hover className="admin-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Doctor</th>
-                <th>Room</th>
-                <th>Date</th>
-                <th>Time Slot</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentItems.map((schedule, index) => (
-                <tr key={schedule.id}>
-                  <td>{indexOfFirstItem + index + 1}</td>
-                  <td>{schedule.doctorName}</td>
-                  <td>
-                      <div className="fw-bold">{schedule.roomName}</div>
-                    </td>
-                  <td>{formatDate(schedule.date)}</td>
-                  <td>{`${formatTime(schedule.startTime)} - ${formatTime(schedule.endTime)}`}</td>
-                  <td>{getStatusBadge(schedule.status)}</td>
-                  <td>
-                    <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleShowModal(schedule)}>
-                      <FaEdit />
-                    </Button>
-                    <Button variant="outline-danger" size="sm" onClick={() => handleDelete(schedule.id)}>
-                      <FaTrash />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        )}
-        </Card.Body>
-        {totalPages > 1 && (
-            <Card.Footer>
-                <Pagination className="justify-content-center mb-0">
-                    {Array.from({ length: totalPages }, (_, i) => (
-                        <Pagination.Item key={i + 1} active={i + 1 === currentPage} onClick={() => paginate(i + 1)}>
-                        {i + 1}
-                        </Pagination.Item>
-                    ))}
+            <>
+              <Table responsive striped bordered hover>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Bác Sĩ</th>
+                    <th>Ngày</th>
+                    <th>Giờ Bắt Đầu</th>
+                    <th>Giờ Kết Thúc</th>
+                    <th>Trạng Thái</th>
+                    <th>Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentItems.map((schedule, index) => (
+                    <tr key={schedule.id}>
+                      <td>{indexOfFirstItem + index + 1}</td>
+                      <td>{schedule.doctorName}</td>
+                      <td>{formatDate(schedule.date)}</td>
+                      <td>{formatTime(schedule.startTime)}</td>
+                      <td>{formatTime(schedule.endTime)}</td>
+                      <td>{getStatusBadge(schedule.status)}</td>
+                      <td>
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          className="me-2"
+                          onClick={() => handleShowModal(schedule)}
+                        >
+                          <FaEdit />
+                        </Button>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => handleDelete(schedule.id)}
+                        >
+                          <FaTrash />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+              <div className="d-flex justify-content-center mt-4">
+                <Pagination>
+                  <Pagination.First onClick={() => paginate(1)} disabled={currentPage === 1} />
+                  <Pagination.Prev onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} />
+                  {[...Array(totalPages)].map((_, index) => (
+                    <Pagination.Item
+                      key={index + 1}
+                      active={index + 1 === currentPage}
+                      onClick={() => paginate(index + 1)}
+                    >
+                      {index + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} />
+                  <Pagination.Last onClick={() => paginate(totalPages)} disabled={currentPage === totalPages} />
                 </Pagination>
-            </Card.Footer>
-        )}
+              </div>
+            </>
+          )}
+        </Card.Body>
       </Card>
 
       {/* Add/Edit Modal */}

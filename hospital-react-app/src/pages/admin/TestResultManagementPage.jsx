@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination } from 'react-bootstrap';
 import { FaClipboardCheck, FaEdit, FaEye, FaPlus } from 'react-icons/fa';
 import axios from 'axios';
+import { API_BASE_URL } from '../../services/api';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
-const API_URL = 'https://api.demoproject.software/api/TestResult';
-const REQUEST_API_URL = 'https://api.demoproject.software/api/TestRequest';
+const API_URL = `${API_BASE_URL}/TestResult`;
+const REQUEST_API_URL = `${API_BASE_URL}/TestRequest`;
 
 function TestResultManagementPage() {
   const [results, setResults] = useState([]);
@@ -12,18 +14,31 @@ function TestResultManagementPage() {
   const [showModal, setShowModal] = useState(false);
   const [currentResult, setCurrentResult] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   // Load test results and pending requests from API
   useEffect(() => {
-    axios.get(API_URL)
-      .then(res => setResults(res.data))
-      .catch(() => setResults([]));
-    axios.get(REQUEST_API_URL)
-      .then(res => setPendingRequests(res.data))
-      .catch(() => setPendingRequests([]));
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const [resultsRes, requestsRes] = await Promise.all([
+          axios.get(API_URL),
+          axios.get(REQUEST_API_URL)
+        ]);
+        setResults(resultsRes.data);
+        setPendingRequests(requestsRes.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setResults([]);
+        setPendingRequests([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
   const handleCloseModal = () => {

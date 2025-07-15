@@ -51,13 +51,13 @@ function MedicalServiceManagementPage() {
   // Thêm hoặc sửa medical service qua API
   const handleSave = () => {
     if (isEditing) {
-      axios.put(`${API_URL}/${currentService.id}`, currentService)
+      axios.put(`${API_BASE_URL}/${currentService.id}`, currentService)
         .then(res => {
           setServices(services.map(s => (s.id === res.data.id ? res.data : s)));
           handleCloseModal();
         });
     } else {
-      axios.post(API_URL, currentService)
+      axios.post(API_BASE_URL, currentService)
         .then(res => {
           setServices([...services, res.data]);
           handleCloseModal();
@@ -68,7 +68,7 @@ function MedicalServiceManagementPage() {
   // Xóa medical service qua API
   const handleDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this medical service?')) {
-      axios.delete(`${API_URL}/${id}`)
+      axios.delete(`${API_BASE_URL}/${id}`)
         .then(() => setServices(services.filter(s => s.id !== id)));
     }
   };
@@ -95,55 +95,67 @@ function MedicalServiceManagementPage() {
 
       <Card className="admin-card">
         <Card.Header className="d-flex justify-content-between align-items-center">
-          <span>Medical Services List</span>
-          <Button variant="primary" onClick={() => handleShowModal()}><FaPlus className="me-2" /> Add Service</Button>
+          <h5 className="mb-0">Danh Sách Dịch Vụ Y Tế</h5>
+          <Button variant="primary" onClick={() => handleShowModal()}>
+            <FaPlus className="me-2" /> Thêm Dịch Vụ
+          </Button>
         </Card.Header>
         <Card.Body>
           {isLoading ? (
-            <LoadingSpinner />
+            <div className="text-center">
+              <LoadingSpinner />
+            </div>
           ) : (
-            <Table responsive hover className="admin-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Service Name</th>
-                  <th>Type</th>
-                  <th>Price</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentItems.map((service, index) => (
-                  <tr key={service.id}>
-                    <td>{indexOfFirstItem + index + 1}</td>
-                    <td>{service.name}</td>
-                    <td>{service.type}</td>
-                    <td>${service.price.toFixed(2)}</td>
-                    <td>
-                      <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleShowModal(service)}>
-                        <FaEdit />
-                      </Button>
-                      <Button variant="outline-danger" size="sm" onClick={() => handleDelete(service.id)}>
-                        <FaTrash />
-                      </Button>
-                    </td>
+            <>
+              <Table responsive striped bordered hover>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Tên Dịch Vụ</th>
+                    <th>Loại</th>
+                    <th>Giá</th>
+                    <th>Thao Tác</th>
                   </tr>
-                ))}
-              </tbody>
-            </Table>
+                </thead>
+                <tbody>
+                  {currentItems.map((service, index) => (
+                    <tr key={service.id}>
+                      <td>{indexOfFirstItem + index + 1}</td>
+                      <td>{service.name}</td>
+                      <td>{service.type}</td>
+                      <td>${service.price.toFixed(2)}</td>
+                      <td>
+                        <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleShowModal(service)}>
+                          <FaEdit />
+                        </Button>
+                        <Button variant="outline-danger" size="sm" onClick={() => handleDelete(service.id)}>
+                          <FaTrash />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+              <div className="d-flex justify-content-center mt-4">
+                <Pagination>
+                  <Pagination.First onClick={() => paginate(1)} disabled={currentPage === 1} />
+                  <Pagination.Prev onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} />
+                  {[...Array(totalPages)].map((_, index) => (
+                    <Pagination.Item
+                      key={index + 1}
+                      active={index + 1 === currentPage}
+                      onClick={() => paginate(index + 1)}
+                    >
+                      {index + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} />
+                  <Pagination.Last onClick={() => paginate(totalPages)} disabled={currentPage === totalPages} />
+                </Pagination>
+              </div>
+            </>
           )}
         </Card.Body>
-        {totalPages > 1 && (
-          <Card.Footer>
-            <Pagination className="justify-content-center mb-0">
-              {Array.from({ length: totalPages }, (_, i) => (
-                <Pagination.Item key={i + 1} active={i + 1 === currentPage} onClick={() => paginate(i + 1)}>
-                  {i + 1}
-                </Pagination.Item>
-              ))}
-            </Pagination>
-          </Card.Footer>
-        )}
       </Card>
 
       {/* Add/Edit Modal */}
