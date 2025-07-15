@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Editor } from '@tinymce/tinymce-react';
 import { Table, Button, Form, Modal } from 'react-bootstrap';
-import { getAllBlogsAdmin, createBlog, updateBlog, deleteBlog } from '../../services/api';
+import { getAllBlogsAdmin, createBlog, updateBlog, deleteBlog, MEDIA_BASE_URL } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ImageUploader from '../../components/common/ImageUploader';
 import { confirmAlert } from 'react-confirm-alert';
@@ -180,11 +180,11 @@ const BlogManagementPage = () => {
         <thead>
           <tr>
             <th style={{ width: '80px' }}>Hình ảnh</th>
-            <th>Tiêu đề</th>
-            <th>Danh mục</th>
-            <th>Trạng thái</th>
-            <th>Ngày tạo</th>
-            <th>Thao tác</th>
+            <th style={{ width: '30%' }}>Tiêu đề</th>
+            <th style={{ width: '15%' }}>Danh mục</th>
+            <th style={{ width: '20%' }}>Trạng thái</th>
+            <th style={{ width: '15%' }}>Ngày tạo</th>
+            <th style={{ width: '15%' }}>Thao tác</th>
           </tr>
         </thead>
         <tbody>
@@ -192,7 +192,7 @@ const BlogManagementPage = () => {
             <tr key={blog.id}>
               <td>
                 <img
-                  src={blog.featuredImage ? `${import.meta.env.VITE_API_URL}${blog.featuredImage}` : 'https://placehold.co/600x400/e9ecef/495057?text=Blog+Image'}
+                  src={blog.featuredImage ? `${MEDIA_BASE_URL}${blog.featuredImage}` : 'https://placehold.co/600x400/e9ecef/495057?text=Blog+Image'}
                   alt={blog.title}
                   style={{ width: '60px', height: '60px', objectFit: 'cover' }}
                   onError={(e) => {
@@ -278,21 +278,21 @@ const BlogManagementPage = () => {
                   />
                 </Form.Group>
 
-                <Form.Group className="mb-4">
-                  <Form.Label className="required">Nội dung bài viết</Form.Label>
+                <Form.Group className="mb-3">
+                  <Form.Label>Nội dung</Form.Label>
                   <Editor
                     apiKey={import.meta.env.VITE_TINYMCE_API_KEY}
                     init={{
                       height: 500,
                       menubar: true,
                       plugins: [
-                        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
-                        'preview', 'anchor', 'searchreplace', 'visualblocks', 'code',
-                        'fullscreen', 'insertdatetime', 'media', 'table', 'code',
-                        'help', 'wordcount', 'emoticons'
+                        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                        'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount',
+                        'emoticons'
                       ],
-                      toolbar: 'undo redo | formatselect | ' +
-                        'bold italic backcolor | alignleft aligncenter ' +
+                      toolbar: 'undo redo | blocks | ' +
+                        'bold italic forecolor | alignleft aligncenter ' +
                         'alignright alignjustify | bullist numlist outdent indent | ' +
                         'removeformat | image media link emoticons | help',
                       content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
@@ -374,16 +374,16 @@ const BlogManagementPage = () => {
                   <div className="d-grid gap-2">
                     <Button
                       variant="primary"
-                      onClick={() => handleSubmit(null, status)}
-                      disabled={!title || !content || !category || saving}
+                      onClick={(e) => handleSubmit(e, status)}
+                      disabled={saving}
                     >
                       {saving ? (
                         <>
-                          <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                          {status === 'Published' ? 'Đang xuất bản...' : 'Đang lưu...'}
+                          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                          Đang lưu...
                         </>
                       ) : (
-                        status === 'Published' ? 'Xuất bản' : 'Lưu nháp'
+                        <>Lưu {status === 'Published' ? '& Xuất bản' : 'bản nháp'}</>
                       )}
                     </Button>
                   </div>
@@ -397,7 +397,7 @@ const BlogManagementPage = () => {
                 <div className="sidebar-section-content">
                   <ImageUploader
                     onImageSelect={handleImageSelect}
-                    defaultImage={editingBlog?.featuredImage || ''}
+                    defaultImage={editingBlog?.featuredImage ? `${MEDIA_BASE_URL}${editingBlog.featuredImage}` : null}
                   />
                 </div>
               </div>
@@ -440,8 +440,7 @@ const BlogManagementPage = () => {
           </div>
 
           {error && (
-            <div className="alert alert-danger">
-              <i className="fas fa-exclamation-circle me-2"></i>
+            <div className="alert alert-danger mt-3">
               {error}
             </div>
           )}
