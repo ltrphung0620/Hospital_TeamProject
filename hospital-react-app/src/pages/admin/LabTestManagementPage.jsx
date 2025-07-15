@@ -2,33 +2,58 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination } from 'react-bootstrap';
 import { FaPlus, FaEdit, FaTrash, FaFlask } from 'react-icons/fa';
 import axios from 'axios';
+import { API_BASE_URL } from '../../services/api';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
-const API_URL = 'http://localhost:5247/api/LabTest';
+const API_URL = `${API_BASE_URL}/LabTest`;
 
 function LabTestManagementPage() {
   const [labTests, setLabTests] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentTest, setCurrentTest] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Lấy danh sách lab test từ API khi load trang
   useEffect(() => {
-  axios.get(API_URL)
-    .then(res => {
-      const mapped = res.data.map(item => ({
-        id: item.labTestId,
-        name: item.labTestName,
-        description: item.labTestDescription,
-        price: item.labTestPrice,
-      }));
-      setLabTests(mapped);
-    })
-    .catch(() => setLabTests([]));
-}, []);
+    fetchLabTests();
+  }, []);
 
+  const fetchLabTests = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await axios.get(API_URL);
+      setLabTests(response.data);
+    } catch (err) {
+      setError('Có lỗi xảy ra khi tải dữ liệu xét nghiệm. Vui lòng thử lại sau.');
+      console.error('Error fetching lab tests:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Container className="mt-4">
+        <LoadingSpinner />
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container className="mt-4">
+        <div className="text-center text-danger">
+          <h4>{error}</h4>
+          <Button variant="primary" onClick={fetchLabTests}>Thử lại</Button>
+        </div>
+      </Container>
+    );
+  }
 
   const handleCloseModal = () => {
     setShowModal(false);
@@ -109,22 +134,28 @@ function LabTestManagementPage() {
               </tr>
             </thead>
             <tbody>
-              {currentItems.map((test, index) => (
-                <tr key={test.id}>
-                  <td>{indexOfFirstItem + index + 1}</td>
-                  <td>{test.name}</td>
-                  <td>${test.price?.toFixed(2)}</td>
-                  <td>{test.description}</td>
-                  <td>
-                    <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleShowModal(test)}>
-                      <FaEdit />
-                    </Button>
-                    <Button variant="outline-danger" size="sm" onClick={() => handleDelete(test.id)}>
-                      <FaTrash />
-                    </Button>
-                  </td>
+              {currentItems.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="text-center py-4">No lab tests found.</td>
                 </tr>
-              ))}
+              ) : (
+                currentItems.map((test, index) => (
+                  <tr key={test.id}>
+                    <td>{indexOfFirstItem + index + 1}</td>
+                    <td>{test.name}</td>
+                    <td>${test.price?.toFixed(2)}</td>
+                    <td>{test.description}</td>
+                    <td>
+                      <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleShowModal(test)}>
+                        <FaEdit />
+                      </Button>
+                      <Button variant="outline-danger" size="sm" onClick={() => handleDelete(test.id)}>
+                        <FaTrash />
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </Table>
         </Card.Body>

@@ -5,9 +5,11 @@ import {
 } from 'react-bootstrap';
 import { FaPlus, FaEdit, FaVial } from 'react-icons/fa';
 import axios from 'axios';
+import { API_BASE_URL } from '../../services/api';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
-const API_URL = 'http://localhost:5247/api/TestRequest';
-const LABTEST_API_URL = 'http://localhost:5247/api/LabTest';
+const API_URL = `${API_BASE_URL}/TestRequest`;
+const LABTEST_API_URL = `${API_BASE_URL}/LabTest`;
 
 function TestRequestManagementPage() {
   const [requests, setRequests] = useState([]);
@@ -15,18 +17,32 @@ function TestRequestManagementPage() {
   const [showModal, setShowModal] = useState(false);
   const [currentRequest, setCurrentRequest] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   // Load test requests & lab tests
   useEffect(() => {
-    axios.get(API_URL)
-      .then(res => setRequests(res.data))
-      .catch(() => setRequests([]));
-    axios.get(LABTEST_API_URL)
-      .then(res => setLabTests(res.data))
-      .catch(() => setLabTests([]));
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const [requestsResponse, labTestsResponse] = await Promise.all([
+          axios.get(API_URL),
+          axios.get(LABTEST_API_URL)
+        ]);
+        setRequests(requestsResponse.data);
+        setLabTests(labTestsResponse.data);
+      } catch (err) {
+        setError('Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại sau.');
+        console.error('Error fetching data:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
   const handleCloseModal = () => {
@@ -84,6 +100,25 @@ function TestRequestManagementPage() {
   const currentItems = requests.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(requests.length / itemsPerPage);
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  if (isLoading) {
+    return (
+      <Container className="mt-4">
+        <LoadingSpinner />
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container className="mt-4">
+        <div className="text-center text-danger">
+          <h4>{error}</h4>
+          <Button variant="primary" onClick={fetchData}>Thử lại</Button>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container fluid className="p-4">
