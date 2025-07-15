@@ -354,18 +354,47 @@ const BlogManagementPage = () => {
                       file_picker_types: 'image',
                       image_title: true,
                       automatic_uploads: true,
-                      images_upload_url: '/api/upload-image',
+                      images_upload_handler: async (blobInfo, progress) => {
+                        try {
+                          const formData = new FormData();
+                          formData.append('file', blobInfo.blob(), blobInfo.filename());
+
+                          const token = localStorage.getItem('authToken');
+                          if (!token) {
+                            throw new Error('Không tìm thấy token xác thực');
+                          }
+
+                          const response = await fetch(`${import.meta.env.VITE_API_URL}/Image/upload`, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                              'Authorization': `Bearer ${token}`
+                            }
+                          });
+
+                          if (!response.ok) {
+                            const errorData = await response.text();
+                            throw new Error(`Lỗi từ server: ${errorData}`);
+                          }
+
+                          const data = await response.json();
+                          return data.location;
+                        } catch (error) {
+                          console.error('Lỗi khi tải lên hình ảnh:', error);
+                          throw new Error(`Lỗi tải lên: ${error.message}`);
+                        }
+                      },
                       images_reuse_filename: true,
                       browser_spellcheck: true,
                       contextmenu: false,
                       custom_elements: 'quillbot-extension',
                       extended_valid_elements: 'quillbot-extension[*]',
                       valid_children: '+body[quillbot-extension]',
-                      content_security_policy: "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:",
+                      content_security_policy: "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; img-src 'self' data: blob: http://localhost:5247",
                       referrer_policy: 'origin'
                     }}
                     value={content}
-                    onEditorChange={setContent}
+                    onEditorChange={(newContent) => setContent(newContent)}
                   />
                 </Form.Group>
               </Form>

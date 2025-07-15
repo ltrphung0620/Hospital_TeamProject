@@ -21,6 +21,7 @@ import {
 } from "react-icons/fa";
 import Avatar from "../../components/common/Avatar";
 import { API_BASE_URL } from '../../services/api';
+import axios from "axios"; 
 
 // Mock data reflecting the joined User + Patient model
 const initialPatients = [

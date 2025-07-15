@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Layout from './components/layout/Layout';
@@ -37,10 +37,12 @@ import PrescriptionPaymentPage from './pages/admin/PrescriptionPaymentPage';
 import LabTestPaymentPage from './pages/admin/LabTestPaymentPage';
 import ServicePaymentManagementPage from './pages/admin/ServicePaymentManagementPage';
 import BlogManagementPage from './pages/admin/BlogManagementPage';
+import { AppProvider } from './contexts/AppContext';
+import AdminRoute from './components/auth/AdminRoute';
 
 function App() {
   return (
-    <>
+    <AppProvider>
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -53,6 +55,7 @@ function App() {
         pauseOnHover
       />
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="about" element={<About />} />
@@ -69,30 +72,43 @@ function App() {
           <Route path="gallery" element={<GalleryPage />} />
           <Route path="user-info" element={<UserInfoPage />} />
         </Route>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/admin" element={<AdminLayout />}>
+
+        {/* Admin routes */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }
+        >
           <Route index element={<AdminDashboard />} />
-          <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="users" element={<UserManagementPage />} />
+          <Route path="appointments" element={<AppointmentManagementPage />} />
+          <Route path="medicines" element={<MedicineManagementPage />} />
           <Route path="doctors" element={<DoctorManagementPage />} />
           <Route path="doctor-schedules" element={<DoctorScheduleManagementPage />} />
           <Route path="patients" element={<PatientManagementPage />} />
-          <Route path="appointments" element={<AppointmentManagementPage />} />
           <Route path="medical-records" element={<MedicalRecordManagementPage />} />
           <Route path="waiting-list" element={<WaitingListManagementPage />} />
           <Route path="medical-services" element={<MedicalServiceManagementPage />} />
           <Route path="lab-tests" element={<LabTestManagementPage />} />
           <Route path="test-requests" element={<TestRequestManagementPage />} />
           <Route path="test-results" element={<TestResultManagementPage />} />
-          <Route path="medicines" element={<MedicineManagementPage />} />
           <Route path="prescription-payments" element={<PrescriptionPaymentPage />} />
           <Route path="lab-test-payments" element={<LabTestPaymentPage />} />
           <Route path="service-payments" element={<ServicePaymentManagementPage />} />
-          <Route path="blog" element={<BlogManagementPage />} />
+          <Route path="blogs" element={<BlogManagementPage />} />
         </Route>
+
+        {/* Auth routes */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+
+        {/* Catch all route - redirect to home */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </>
+    </AppProvider>
   );
 }
 

@@ -12,12 +12,15 @@ import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
-import SubscribeSection from "../components/SubscribeSection";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "./BookingPage.css";
-import { branches, doctors, generateTimeSlots } from "../data/mockData";
+import { generateTimeSlots } from "../data/mockData";
+
 import LoadingSpinner from "../components/common/LoadingSpinner";
+import { API_BASE_URL } from '../services/api'; 
+
+
 
 const BookingPage = () => {
   const [selectedDoctor, setSelectedDoctor] = useState("");
@@ -28,14 +31,54 @@ const BookingPage = () => {
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const [selectedBranch, setSelectedBranch] = useState("");
-  const [filteredDoctors, setFilteredDoctors] = useState([]);
   const [doctorDetails, setDoctorDetails] = useState(null);
+
+const [branchList, setBranchList] = useState([]);
+const [doctorList, setDoctorList] = useState([]);
+const [doctorSchedules, setDoctorSchedules] = useState([]);
+const [patientId, setPatientId] = useState(null);
+
+
+
+
 
   const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const selectedService = searchParams.get("service");
   const servicePrice = searchParams.get("price");
+
+
+  
+useEffect(() => {
+  const fetchPatientId = async () => {
+    const authData = JSON.parse(localStorage.getItem("authData"));
+    const userId = authData?.userId;
+
+    if (!userId) return;
+
+    try {
+      const res = await axios.get(`${API_BASE_URL}/Patient/user/${userId}`);
+      setPatientId(res.data.id); 
+    } catch (error) {
+      console.error("Error fetching patientId:", error);
+    }
+  };
+
+  fetchPatientId();
+}, []);
+
+  
+useEffect(() => {
+  if (!selectedDoctor) return;
+
+  axios
+    .get(`${API_BASE_URL}/DoctorSchedule/doctor/${selectedDoctor}`)
+    .then((res) => setDoctorSchedules(res.data))
+    .catch((err) => console.error("Failed to load schedule", err));
+}, [selectedDoctor]);
+
+
 
   // Simulate initial loading
   useEffect(() => {
@@ -44,41 +87,85 @@ const BookingPage = () => {
     }, 1500);
   }, []);
 
-  // Filter doctors when branch is selected
-  useEffect(() => {
-    if (selectedBranch) {
-      const filtered = doctors.filter(
-        (doctor) => doctor.branchId === parseInt(selectedBranch)
-      );
-      setFilteredDoctors(filtered);
-      setSelectedDoctor(""); // Reset selected doctor when branch changes
-    } else {
-      setFilteredDoctors([]);
+useEffect(() => {
+  const fetchBranches = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/Branch`);
+      setBranchList(response.data);
+    } catch (error) {
+      console.error("Failed to fetch branches:", error);
     }
-  }, [selectedBranch]);
+  };
+  fetchBranches();
+}, []);
+
+
+useEffect(() => {
+  if (!selectedBranch) {
+    setDoctorList([]);
+    return;
+  }
+
+  const fetchDoctors = async () => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/Doctor/branchId/${selectedBranch}`
+      );
+      setDoctorList(response.data);
+    } catch (error) {
+      console.error("Failed to fetch doctors:", error);
+      setDoctorList([]);
+    }
+  };
+
+  fetchDoctors();
+}, [selectedBranch]);
+
+
+
+
+useEffect(() => {
+  if (!selectedDoctor || !selectedDate) {
+    setAvailableSlots([]);
+    return;
+  }
+
+  setLoading(true);
+
+ const selectedDateString = selectedDate.toLocaleDateString("en-CA");
+  const filtered = doctorSchedules.filter((s) => {
+    const scheduleDate = s.date.split("T")[0];
+     return scheduleDate === selectedDateString && s.status?.toLowerCase() === "available";
+  });
+
+  // Chuyển sang Date object để render giờ
+const slots = filtered.map((s) => {
+  return {
+    id: s.id,
+    startTime: new Date(`${s.date.split("T")[0]}T${s.startTime}`),
+    endTime: new Date(`${s.date.split("T")[0]}T${s.endTime}`),
+  };
+});
+
+  setAvailableSlots(slots);
+  setLoading(false);
+}, [selectedDate, doctorSchedules]);
+
+
+
+
 
   // Set doctor details when doctor is selected
   useEffect(() => {
     if (selectedDoctor) {
-      const doctor = doctors.find((d) => d.id === parseInt(selectedDoctor));
+      const doctor = doctorList.find((d) => d.id === parseInt(selectedDoctor));
       setDoctorDetails(doctor);
     } else {
-      setDoctorDetails(null);
+      setDoctorDetails(null); 
     }
   }, [selectedDoctor]);
 
-  // Update available slots when date or doctor changes
-  useEffect(() => {
-    if (selectedDoctor && selectedDate) {
-      setLoading(true);
-      // Simulate API call delay
-      setTimeout(() => {
-        const slots = generateTimeSlots(parseInt(selectedDoctor), selectedDate);
-        setAvailableSlots(slots);
-        setLoading(false);
-      }, 1000);
-    }
-  }, [selectedDoctor, selectedDate]);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -88,20 +175,32 @@ const BookingPage = () => {
     }
 
     try {
-      setLoading(true);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+    setLoading(true);
 
-      toast.success("Appointment booked successfully!");
-      setTimeout(() => {
-        navigate("/appointments");
-      }, 2000);
-    } catch (err) {
-      toast.error("Failed to book appointment. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const payload = {
+      doctorId: parseInt(selectedDoctor),
+      branchId: parseInt(selectedBranch),
+      patientId: patientId,
+      appointmentDate: selectedDate.toISOString().split("T")[0],
+      startTime: selectedSlot.startTime.toTimeString().substring(0, 5), // "HH:mm"
+      endTime: selectedSlot.endTime.toTimeString().substring(0, 5),
+      note: note || ""
+    };
+
+    console.log("Payload gửi đi:", payload);
+    // Gửi payload tới API
+    await axios.post(`${API_BASE_URL}/Appointment`, payload);
+
+    toast.success("Appointment booked successfully!");
+    setTimeout(() => {
+      navigate("/appointments");
+    }, 2000);
+  } catch (err) {
+    toast.error("Failed to book appointment. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (pageLoading) {
     return <LoadingSpinner fullScreen />;
@@ -169,7 +268,7 @@ const BookingPage = () => {
                               disabled={loading}
                             >
                               <option value="">Select a branch</option>
-                              {branches.map((branch) => (
+                              {branchList.map((branch) => (
                                 <option key={branch.id} value={branch.id}>
                                   {branch.name}
                                 </option>
@@ -187,9 +286,9 @@ const BookingPage = () => {
                               disabled={!selectedBranch || loading}
                             >
                               <option value="">Select a doctor</option>
-                              {filteredDoctors.map((doctor) => (
+                              {doctorList.map((doctor) => (
                                 <option key={doctor.id} value={doctor.id}>
-                                  Dr. {doctor.name} - {doctor.specialty}
+                                  Dr. {doctor.fullName} - {doctor.specialization}
                                 </option>
                               ))}
                             </Form.Select>
@@ -199,13 +298,13 @@ const BookingPage = () => {
                             <div className="doctor-info mt-3">
                               <h6>Doctor Information</h6>
                               <p className="mb-1">
-                                Specialty: {doctorDetails.specialty}
+                                Specialty: {doctorDetails.specialization}
                               </p>
                               <p className="mb-1">
-                                Experience: {doctorDetails.experience} years
+                                Experience: {doctorDetails.yearOfExperience} years
                               </p>
                               <p className="mb-0">
-                                Languages: {doctorDetails.languages.join(", ")}
+                                 Languages: {doctorDetails.languages ? doctorDetails.languages.join(", ") : "N/A"}
                               </p>
                             </div>
                           )}
@@ -238,38 +337,34 @@ const BookingPage = () => {
                                   <LoadingSpinner />
                                 </div>
                               ) : availableSlots.length > 0 ? (
-                                <div className="d-grid gap-2">
-                                  {availableSlots.map((slot, index) => (
-                                    <Button
-                                      key={index}
-                                      variant={
-                                        selectedSlot === slot
-                                          ? "primary"
-                                          : "outline-primary"
-                                      }
-                                      onClick={() => setSelectedSlot(slot)}
-                                      className="text-start"
-                                    >
-                                      {new Date(
-                                        slot.startTime
-                                      ).toLocaleTimeString([], {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                      })}
-                                      {" - "}
-                                      {new Date(
-                                        slot.endTime
-                                      ).toLocaleTimeString([], {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                      })}
-                                    </Button>
-                                  ))}
-                                </div>
-                              ) : (
-                                <Alert variant="info">
-                                  No available slots for the selected date.
-                                </Alert>
+                                  <div className="d-grid gap-2">
+    {availableSlots.map((slot, index) => (
+      <Button
+        key={index}
+        variant={
+          selectedSlot === slot ? "primary" : "outline-primary"
+        }
+        onClick={() => setSelectedSlot(slot)}
+        className="text-start"
+      >
+        {slot.startTime.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false, 
+        })}{" "}
+        -{" "}
+        {slot.endTime.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false, 
+        })}
+      </Button>
+    ))}
+  </div>
+) : (
+  <Alert variant="info">
+    No available slots for the selected date.
+  </Alert>
                               )}
                             </div>
                           </Form.Group>

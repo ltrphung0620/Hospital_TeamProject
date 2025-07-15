@@ -32,21 +32,22 @@ const Header = () => {
     };
 
     // Lấy thông tin user từ localStorage
-    const token = localStorage.getItem("authToken");
-    if (token) {
-      const username = localStorage.getItem("authUsername");
-      const fullName = localStorage.getItem("authFullName");
-      const roles = localStorage.getItem("authRoles");
-      const avatar = localStorage.getItem("authAvatar");
-
-      if (username || fullName) { // Chỉ set user nếu có ít nhất username hoặc fullName
-        setUser({
-          fullName: fullName || username || "User", // Fallback to username or "User"
-          username: username || "",
-          roles: roles ? JSON.parse(roles) : [],
-          avatar: avatar || ""
-        });
-      } else {
+    const authData = localStorage.getItem("authData");
+    if (authData) {
+      try {
+        const userData = JSON.parse(authData);
+        if (userData && userData.token) {
+          setUser({
+            fullName: userData.username || "User",
+            username: userData.username || "",
+            roles: userData.roles || [],
+            avatar: userData.avatar || ""
+          });
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        console.error("Error parsing auth data:", error);
         setUser(null);
       }
     } else {
@@ -63,11 +64,8 @@ const Header = () => {
   }, [isMenuOpen]);
 
   const handleLogout = () => {
+    localStorage.removeItem("authData");
     localStorage.removeItem("authToken");
-    localStorage.removeItem("authUsername");
-    localStorage.removeItem("authFullName");
-    localStorage.removeItem("authRoles");
-    localStorage.removeItem("authAvatar");
     setUser(null);
     navigate("/login");
   };

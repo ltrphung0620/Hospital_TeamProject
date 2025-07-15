@@ -50,6 +50,8 @@ namespace Hospital_API.Data
         public DbSet<DoctorSchedule> DoctorSchedules { get; set; }
         public DbSet<RevenueReport> RevenueReports { get; set; }
         public DbSet<Blog> Blogs { get; set; }
+        public DbSet<BlogImage> BlogImages { get; set; }
+        public DbSet<Image> Images { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -91,6 +93,12 @@ namespace Hospital_API.Data
                 .HasOne(p => p.User)
                 .WithOne(u => u.Doctor)
                 .HasForeignKey<Doctor>(p => p.UserId);
+
+            modelBuilder.Entity<Doctor>()
+                    .HasOne(d => d.Branch)
+                    .WithMany(b => b.Doctors)
+                    .HasForeignKey(d => d.BranchId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Appointment>()
                 .HasOne(a => a.Patient)

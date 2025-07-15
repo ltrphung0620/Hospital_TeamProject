@@ -58,9 +58,10 @@ namespace Hospital_API.Services
             {
                 DoctorId = dto.DoctorId,
                 RoomId = dto.RoomId,
-                DayOfWeek = dto.DayOfWeek,
+                Date = dto.Date,
                 StartTime = dto.StartTime,
                 EndTime = dto.EndTime,
+                Status = dto.Status,
                 Note = dto.Note
             };
 
@@ -89,9 +90,10 @@ namespace Hospital_API.Services
 
             entity.DoctorId = dto.DoctorId;
             entity.RoomId = dto.RoomId;
-            entity.DayOfWeek = dto.DayOfWeek;
+            entity.Date = dto.Date;
             entity.StartTime = dto.StartTime;
             entity.EndTime = dto.EndTime;
+            entity.Status = dto.Status;
             entity.Note = dto.Note;
 
             await _repo.UpdateAsync(entity);
@@ -117,11 +119,12 @@ namespace Hospital_API.Services
                 Id = entity.Id,
                 DoctorId = entity.DoctorId,
                 DoctorName = entity.Doctor?.User.FullName,
+                Date = entity.Date, 
                 RoomId = entity.RoomId,
                 RoomName = entity.Room?.Name,
-                DayOfWeek = entity.DayOfWeek,
                 StartTime = entity.StartTime,
                 EndTime = entity.EndTime,
+                Status = entity.Status,
                 Note = entity.Note
             };
         }

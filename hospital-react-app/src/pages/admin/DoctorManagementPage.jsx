@@ -13,85 +13,40 @@ import {
 } from "react-bootstrap";
 import { FaPlus, FaEdit, FaTrash, FaUserMd } from "react-icons/fa";
 import Avatar from "../../components/common/Avatar";
+import axios from "axios";
 import { API_BASE_URL } from '../../services/api';
-
-// Mock data reflecting the joined User + Doctor model
-const initialDoctors = [
-  {
-    id: 1,
-    userId: 101,
-    fullName: "Dr. John Doe",
-    username: "johndoe",
-    email: "john.doe@hospital.com",
-    phone: "123-456-7890",
-    gender: "Male",
-    dateOfBirth: "1980-05-20",
-    specialty: "Cardiology",
-    degree: "MD, PhD",
-    yearOfExperience: 15,
-    status: "Active",
-  },
-  {
-    id: 2,
-    userId: 102,
-    fullName: "Dr. Jane Smith",
-    username: "janesmith",
-    email: "jane.smith@hospital.com",
-    phone: "234-567-8901",
-    gender: "Female",
-    dateOfBirth: "1985-11-10",
-    specialty: "Neurology",
-    degree: "MD",
-    yearOfExperience: 10,
-    status: "Active",
-  },
-  {
-    id: 3,
-    userId: 103,
-    fullName: "Dr. Emily White",
-    username: "emilywhite",
-    email: "emily.white@hospital.com",
-    phone: "345-678-9012",
-    gender: "Female",
-    dateOfBirth: "1988-02-25",
-    specialty: "Pediatrics",
-    degree: "MD",
-    yearOfExperience: 8,
-    status: "On Leave",
-  },
-];
+import { getCurrentUserRole, isTokenExpired, checkTokenAndProceed } from '../../utils/auth';
 
 function DoctorManagementPage() {
   const [doctors, setDoctors] = useState([]);
-
   const [showModal, setShowModal] = useState(false);
   const [currentDoctor, setCurrentDoctor] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-
   const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   const itemsPerPage = 10;
 
-  // Sửa các URL constants
+  // API URLs
   const API_URL_GET = `${API_BASE_URL}/Doctor`;
   const API_URL_UPDATE = `${API_BASE_URL}/Doctor/edit`;
   const API_URL_CREATE = `${API_BASE_URL}/Doctor`;
   const API_URL_DELETE = `${API_BASE_URL}/Doctor/delete`;
 
-  const fetchUsers = async () => {
-    const response = await axios.get(API_URL_GET);
-    return response.data;
-  };
-
-  const loadUsers = async () => {
+  const fetchDoctors = async () => {
     try {
-      const data = await fetchUsers();
-      setDoctors(data);
+      setIsLoading(true);
+      const response = await axios.get(API_URL_GET);
+      setDoctors(response.data);
     } catch (error) {
-      console.error("Failed to fetch users:", error);
+      console.error("Failed to fetch doctors:", error);
+      alert("Không thể tải danh sách bác sĩ. Vui lòng thử lại sau.");
+    } finally {
+      setIsLoading(false);
     }
   };
+
   useEffect(() => {
-    loadUsers();
+    fetchDoctors();
   }, []);
 
   const handleCloseModal = () => {
@@ -100,79 +55,100 @@ function DoctorManagementPage() {
     setIsEditing(false);
   };
 
-  const handleShowModal = (doctor = null) => {
-    if (doctor) {
-      setCurrentDoctor({
-        ...doctor,
-        password: "",
-        dateOfBirth: doctor.dateOfBirth?.split("T")[0] || "",
-      }); // Don't show password on edit
-
-      setIsEditing(true);
-    } else {
-      // Initialize a new doctor object with all required fields
-      setCurrentDoctor({
-        fullName: "",
-        username: "",
-        password: "",
-        email: "",
-        phone: "",
-        gender: "Male",
-        dateOfBirth: "",
-        specialization: "",
-        degree: "",
-        yearOfExperience: 0,
-        status: "Active",
-      });
-      setIsEditing(false);
-    }
-    setShowModal(true);
+  const handleShowModal = async (doctor = null) => {
+    await checkTokenAndProceed(async () => {
+      const role = getCurrentUserRole();
+      if (doctor) {
+        if (role?.trim() !== "Admin") {
+          alert("Chỉ Admin mới có quyền chỉnh sửa thông tin bác sĩ.");
+          return;
+        }
+        setCurrentDoctor({
+          id: doctor.id,
+          userId: doctor.userId,
+          fullName: doctor.fullName || "",
+          username: doctor.username || "",
+          email: doctor.email || "",
+          phone: doctor.phone || "",
+          dateOfBirth: doctor.dateOfBirth?.split("T")[0] || "",
+          gender: doctor.gender || "Male",
+          specialization: doctor.specialization || "",
+          degree: doctor.degree || "",
+          yearOfExperience: doctor.yearOfExperience || 0,
+          status: doctor.status || "Active",
+        });
+        setIsEditing(true);
+      } else {
+        setCurrentDoctor({
+          fullName: "",
+          username: "",
+          password: "",
+          email: "",
+          phone: "",
+          gender: "Male",
+          dateOfBirth: "",
+          specialization: "",
+          degree: "",
+          yearOfExperience: 0,
+          status: "Active",
+        });
+        setIsEditing(false);
+      }
+      setShowModal(true);
+    });
   };
 
   const handleSave = async () => {
-    try {
-      if (isEditing) {
-        const { password, ...doctorToUpdate } = currentDoctor;
-
-        const payload = {
-          ...doctorToUpdate,
-          password: password || null, // Nếu password rỗng thì gửi null
-        };
-
-        await axios.put(
-          `${API_URL_UPDATE}/${doctorToUpdate.id}`,
-          payload
-        );
-      } else {
-        await axios.post(
-          API_URL_CREATE,
-          currentDoctor
-        );
+    await checkTokenAndProceed(async () => {
+      try {
+        setIsLoading(true);
+        if (isEditing) {
+          const { password, ...doctorToUpdate } = currentDoctor;
+          await axios.put(
+            `${API_URL_UPDATE}/${doctorToUpdate.id}`,
+            {
+              ...doctorToUpdate,
+              password: password || undefined,
+            }
+          );
+          alert("Cập nhật thông tin bác sĩ thành công!");
+        } else {
+          await axios.post(API_URL_CREATE, currentDoctor);
+          alert("Thêm bác sĩ mới thành công!");
+        }
+        await fetchDoctors();
+        handleCloseModal();
+      } catch (error) {
+        console.error("Save doctor failed:", error.response?.data || error.message);
+        alert(error.response?.data?.message || "Lưu thông tin bác sĩ thất bại. Vui lòng thử lại.");
+      } finally {
+        setIsLoading(false);
       }
-
-      await loadUsers(); // reload danh sách
-      handleCloseModal();
-    } catch (error) {
-      console.error(
-        "Save doctor failed:",
-        error.response?.data || error.message
-      );
-      alert("Lưu bác sĩ thất bại. Xem console để biết chi tiết.");
-    }
+    });
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Bạn có chắc chắn muốn xoá bác sĩ này?")) {
-      try {
-        await axios.delete(
-          `${API_URL_DELETE}/${id}`
-        );
-        await loadUsers(); // reload danh sách sau khi xoá
-      } catch (error) {
-        console.error("Delete failed:", error.response?.data || error.message);
-        alert("Xoá bác sĩ thất bại. Xem console để biết chi tiết.");
+    await checkTokenAndProceed(async () => {
+      const role = getCurrentUserRole();
+      if (role?.trim() !== "Admin") {
+        alert("Chỉ Admin mới có quyền xóa bác sĩ.");
+        return;
       }
-    }
+
+      if (window.confirm("Bạn có chắc chắn muốn xóa bác sĩ này?")) {
+        try {
+          setIsLoading(true);
+          await axios.delete(`${API_URL_DELETE}/${id}`);
+          alert("Xóa bác sĩ thành công!");
+          await fetchDoctors();
+        } catch (error) {
+          console.error("Delete failed:", error.response?.data || error.message);
+          alert(error.response?.data?.message || "Xóa bác sĩ thất bại. Vui lòng thử lại.");
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    });
   };
 
   const handleChange = (e) => {
@@ -190,11 +166,11 @@ function DoctorManagementPage() {
   const getStatusBadge = (status) => {
     switch (status) {
       case "Active":
-        return <Badge bg="success">Active</Badge>;
+        return <Badge bg="success">Đang làm việc</Badge>;
       case "On Leave":
-        return <Badge bg="warning">On Leave</Badge>;
+        return <Badge bg="warning">Nghỉ phép</Badge>;
       case "Inactive":
-        return <Badge bg="danger">Inactive</Badge>;
+        return <Badge bg="danger">Ngưng làm việc</Badge>;
       default:
         return <Badge bg="secondary">{status}</Badge>;
     }
@@ -208,65 +184,87 @@ function DoctorManagementPage() {
             <FaUserMd className="me-2" /> Quản Lý Danh Mục Bác Sĩ
           </h2>
         </Col>
+        <Col xs="auto">
+          <Button 
+            variant="primary" 
+            onClick={() => handleShowModal()}
+            disabled={isLoading}
+          >
+            <FaPlus className="me-2" /> Thêm Bác Sĩ
+          </Button>
+        </Col>
       </Row>
 
       <Card className="admin-card">
         <Card.Header className="d-flex justify-content-between align-items-center">
           <span>Danh sách Bác Sĩ</span>
-          {/* <Button variant="primary" onClick={() => handleShowModal()}><FaPlus className="me-2" /> Add Doctor</Button> */}
         </Card.Header>
         <Card.Body>
-          <Table responsive hover className="admin-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Họ và tên</th>
-                <th>Chuyên khoa</th>
-                <th>Bằng cấp</th>
-                <th>Kinh nghiệm</th>
-                <th>Số điện thoại</th>
-                <th>Email</th>
-                <th>Trạng thái</th>
-                <th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentItems.map((doctor, index) => (
-                <tr key={doctor.id}>
-                  <td>{indexOfFirstItem + index + 1}</td>
-                  <td>
-                    <div className="d-flex align-items-center">
-                      <Avatar name={doctor.fullName} />
-                      <span className="ms-2">{doctor.fullName}</span>
-                    </div>
-                  </td>
-                  <td>{doctor.specialization}</td>
-                  <td>{doctor.degree}</td>
-                  <td>{doctor.yearOfExperience}</td>
-                  <td>{doctor.phone}</td>
-                  <td>{doctor.email}</td>
-                  <td>{getStatusBadge(doctor.status)}</td>
-                  <td>
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      className="me-2"
-                      onClick={() => handleShowModal(doctor)}
-                    >
-                      <FaEdit />
-                    </Button>
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      onClick={() => handleDelete(doctor.id)}
-                    >
-                      <FaTrash />
-                    </Button>
-                  </td>
+          {isLoading ? (
+            <div className="text-center py-5">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Đang tải...</span>
+              </div>
+            </div>
+          ) : (
+            <Table responsive hover className="admin-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Họ và tên</th>
+                  <th>Chuyên khoa</th>
+                  <th>Bằng cấp</th>
+                  <th>Kinh nghiệm</th>
+                  <th>Số điện thoại</th>
+                  <th>Email</th>
+                  <th>Trạng thái</th>
+                  <th>Thao tác</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {currentItems.map((doctor, index) => (
+                  <tr key={doctor.id}>
+                    <td>{indexOfFirstItem + index + 1}</td>
+                    <td>
+                      <div className="d-flex align-items-center">
+                        <Avatar 
+                          src={doctor.avatarUrl} 
+                          name={doctor.fullName} 
+                          size={40}
+                        />
+                        <span className="ms-2">{doctor.fullName}</span>
+                      </div>
+                    </td>
+                    <td>{doctor.specialization}</td>
+                    <td>{doctor.degree}</td>
+                    <td>{doctor.yearOfExperience} năm</td>
+                    <td>{doctor.phone}</td>
+                    <td>{doctor.email}</td>
+                    <td>{getStatusBadge(doctor.status)}</td>
+                    <td>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        className="me-2"
+                        onClick={() => handleShowModal(doctor)}
+                        disabled={isLoading}
+                      >
+                        <FaEdit />
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleDelete(doctor.id)}
+                        disabled={isLoading}
+                      >
+                        <FaTrash />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
         </Card.Body>
         {totalPages > 1 && (
           <Card.Footer>
@@ -285,141 +283,154 @@ function DoctorManagementPage() {
         )}
       </Card>
 
-      <Modal show={showModal} onHide={handleCloseModal} centered size="lg">
+      <Modal 
+        show={showModal} 
+        onHide={handleCloseModal} 
+        centered 
+        size="lg"
+        backdrop="static"
+      >
         <Modal.Header closeButton>
           <Modal.Title>
-            {isEditing ? "Edit Doctor" : "Add New Doctor"}
+            {isEditing ? "Chỉnh sửa thông tin Bác Sĩ" : "Thêm Bác Sĩ mới"}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
             <Row>
               <Col md={6}>
-                <h5>User Account Details</h5>
+                <h5>Thông tin tài khoản</h5>
                 <Form.Group className="mb-3">
-                  <Form.Label>Full Name</Form.Label>
+                  <Form.Label>Họ và tên</Form.Label>
                   <Form.Control
                     type="text"
                     name="fullName"
                     value={currentDoctor?.fullName || ""}
                     onChange={handleChange}
-                    placeholder="Enter full name"
+                    required
                   />
                 </Form.Group>
+
                 <Form.Group className="mb-3">
-                  <Form.Label>Username</Form.Label>
+                  <Form.Label>Tên đăng nhập</Form.Label>
                   <Form.Control
                     type="text"
                     name="username"
                     value={currentDoctor?.username || ""}
                     onChange={handleChange}
-                    placeholder="Enter username"
                     disabled={isEditing}
+                    required
                   />
                 </Form.Group>
+
+                {!isEditing && (
+                  <Form.Group className="mb-3">
+                    <Form.Label>Mật khẩu</Form.Label>
+                    <Form.Control
+                      type="password"
+                      name="password"
+                      value={currentDoctor?.password || ""}
+                      onChange={handleChange}
+                      required
+                    />
+                  </Form.Group>
+                )}
+
                 <Form.Group className="mb-3">
-                  <Form.Label>Password</Form.Label>
-                  <Form.Control
-                    type="password"
-                    name="password"
-                    value={currentDoctor?.password || ""}
-                    onChange={handleChange}
-                    placeholder={
-                      isEditing
-                        ? "Leave blank to keep current password"
-                        : "Enter password"
-                    }
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label>Email Address</Form.Label>
+                  <Form.Label>Email</Form.Label>
                   <Form.Control
                     type="email"
                     name="email"
                     value={currentDoctor?.email || ""}
                     onChange={handleChange}
-                    placeholder="Enter email"
+                    required
                   />
                 </Form.Group>
+
                 <Form.Group className="mb-3">
-                  <Form.Label>Phone Number</Form.Label>
+                  <Form.Label>Số điện thoại</Form.Label>
                   <Form.Control
-                    type="text"
+                    type="tel"
                     name="phone"
                     value={currentDoctor?.phone || ""}
                     onChange={handleChange}
-                    placeholder="Enter phone number"
+                    required
                   />
                 </Form.Group>
-                <Row>
-                  <Col>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Date of Birth</Form.Label>
-                      <Form.Control
-                        type="date"
-                        name="dateOfBirth"
-                        value={currentDoctor?.dateOfBirth || ""}
-                        onChange={handleChange}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Gender</Form.Label>
-                      <Form.Select
-                        name="gender"
-                        value={currentDoctor?.gender || "Male"}
-                        onChange={handleChange}
-                      >
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                </Row>
               </Col>
+
               <Col md={6}>
-                <h5>Doctor Specific Details</h5>
+                <h5>Thông tin chuyên môn</h5>
                 <Form.Group className="mb-3">
-                  <Form.Label>Specialty</Form.Label>
+                  <Form.Label>Chuyên khoa</Form.Label>
                   <Form.Control
                     type="text"
                     name="specialization"
                     value={currentDoctor?.specialization || ""}
                     onChange={handleChange}
-                    placeholder="e.g., Cardiology"
+                    required
                   />
                 </Form.Group>
+
                 <Form.Group className="mb-3">
-                  <Form.Label>Degree</Form.Label>
+                  <Form.Label>Bằng cấp</Form.Label>
                   <Form.Control
                     type="text"
                     name="degree"
                     value={currentDoctor?.degree || ""}
                     onChange={handleChange}
-                    placeholder="e.g., MD, PhD"
+                    required
                   />
                 </Form.Group>
+
                 <Form.Group className="mb-3">
-                  <Form.Label>Years of Experience</Form.Label>
+                  <Form.Label>Số năm kinh nghiệm</Form.Label>
                   <Form.Control
                     type="number"
                     name="yearOfExperience"
                     value={currentDoctor?.yearOfExperience || 0}
                     onChange={handleChange}
+                    min="0"
+                    required
                   />
                 </Form.Group>
+
                 <Form.Group className="mb-3">
-                  <Form.Label>Account Status</Form.Label>
+                  <Form.Label>Ngày sinh</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="dateOfBirth"
+                    value={currentDoctor?.dateOfBirth || ""}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Giới tính</Form.Label>
+                  <Form.Select
+                    name="gender"
+                    value={currentDoctor?.gender || "Male"}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="Male">Nam</option>
+                    <option value="Female">Nữ</option>
+                    <option value="Other">Khác</option>
+                  </Form.Select>
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Trạng thái</Form.Label>
                   <Form.Select
                     name="status"
                     value={currentDoctor?.status || "Active"}
                     onChange={handleChange}
+                    required
                   >
-                    <option value="Active">Active</option>
-                    <option value="On Leave">On Leave</option>
-                    <option value="Inactive">Inactive</option>
+                    <option value="Active">Đang làm việc</option>
+                    <option value="On Leave">Nghỉ phép</option>
+                    <option value="Inactive">Ngưng làm việc</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
@@ -427,11 +438,18 @@ function DoctorManagementPage() {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
-            Cancel
+          <Button variant="secondary" onClick={handleCloseModal} disabled={isLoading}>
+            Hủy
           </Button>
-          <Button variant="primary" onClick={handleSave}>
-            {isEditing ? "Save Changes" : "Add Doctor"}
+          <Button variant="primary" onClick={handleSave} disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Đang xử lý...
+              </>
+            ) : (
+              isEditing ? "Lưu thay đổi" : "Thêm bác sĩ"
+            )}
           </Button>
         </Modal.Footer>
       </Modal>

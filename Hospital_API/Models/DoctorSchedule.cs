@@ -10,7 +10,9 @@ namespace Hospital_API.Models
     public int RoomId { get; set; }
     public Room Room { get; set; } = null!;
 
-    public DayOfWeek DayOfWeek { get; set; }
+    public DateTime Date { get; set; }
+    public string? Status { get; set; }
+
     public TimeSpan StartTime { get; set; }
     public TimeSpan EndTime { get; set; }
 

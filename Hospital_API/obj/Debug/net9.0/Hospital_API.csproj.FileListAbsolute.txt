@@ -725,16 +725,7 @@ D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Microsoft.EntityFramew
 D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Microsoft.EntityFrameworkCore.Design.dll
 D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Microsoft.EntityFrameworkCore.Relational.dll
 D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Microsoft.EntityFrameworkCore.SqlServer.dll
-D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Microsoft.Extensions.Caching.Abstractions.dll
-D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Microsoft.Extensions.Caching.Memory.dll
-D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Microsoft.Extensions.Configuration.Abstractions.dll
-D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Microsoft.Extensions.DependencyInjection.dll
-D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
 D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Microsoft.Extensions.DependencyModel.dll
-D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Microsoft.Extensions.Logging.dll
-D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Microsoft.Extensions.Logging.Abstractions.dll
-D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Microsoft.Extensions.Options.dll
-D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Microsoft.Extensions.Primitives.dll
 D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Microsoft.Identity.Client.dll
 D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Microsoft.Identity.Client.Extensions.Msal.dll
 D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Microsoft.IdentityModel.Abstractions.dll
@@ -865,3 +856,5 @@ D:\Project\Hospital_Project\Hospital_API\obj\Debug\net9.0\refint\Hospital_API.dl
 D:\Project\Hospital_Project\Hospital_API\obj\Debug\net9.0\Hospital_API.pdb
 D:\Project\Hospital_Project\Hospital_API\obj\Debug\net9.0\Hospital_API.genruntimeconfig.cache
 D:\Project\Hospital_Project\Hospital_API\obj\Debug\net9.0\ref\Hospital_API.dll
+D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Hospital_API.staticwebassets.runtime.json
+D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Hospital_API.xml

@@ -32,10 +32,10 @@ namespace Hospital_API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("doctor/{doctorId}")]
-        public async Task<IActionResult> GetByDoctorId(int doctorId)
+        [HttpGet("doctor/{id}")]
+        public async Task<IActionResult> GetByDoctorId(int id)
         {
-            var data = await _service.GetByDoctorIdAsync(doctorId);
+            var data = await _service.GetByDoctorIdAsync(id);
             return Ok(data);
         }
 

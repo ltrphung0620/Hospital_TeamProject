@@ -13,12 +13,14 @@ import {
     FaFileMedicalAlt,
     FaListOl,
     FaChevronDown,
+    FaChevronRight,
     FaStethoscope,
     FaFlask,
     FaVial,
     FaClipboardCheck,
     FaDollarSign,
-    FaNewspaper
+    FaNewspaper,
+    FaBars
 } from 'react-icons/fa';
 import './AdminStyles.css';
 
@@ -38,7 +40,7 @@ const Sidebar = ({ isOpen }) => {
   const pharmacyRoutes = ["/admin/medicines"];
   const servicesRoutes = ["/admin/medical-services", "/admin/lab-tests", "/admin/test-requests", "/admin/test-results"];
   const paymentRoutes = ["/admin/prescription-payments", "/admin/lab-test-payments", "/admin/service-payments"];
-  const contentRoutes = ["/admin/blog"];
+  const contentRoutes = ["/admin/blogs"];
 
   useEffect(() => {
     setOpen({
@@ -55,6 +57,10 @@ const Sidebar = ({ isOpen }) => {
     setOpen(prev => ({ ...prev, [menu]: !prev[menu] }));
   };
 
+  const renderArrowIcon = (menuName) => {
+    return open[menuName] ? <FaChevronDown className="arrow-icon" /> : <FaChevronRight className="arrow-icon" />;
+  };
+
   return (
     <div className={`admin-sidebar ${isOpen ? 'open' : 'closed'}`}>
       <div className="admin-sidebar-header">
@@ -67,7 +73,7 @@ const Sidebar = ({ isOpen }) => {
         <ul className="admin-menu-list">
           {/* Dashboard */}
           <li>
-            <NavLink to="/admin/dashboard" className="admin-menu-link">
+            <NavLink to="/admin" end className="admin-menu-link">
               <FaTachometerAlt className="admin-menu-icon" />
               <span className="admin-menu-text">Tổng quan</span>
             </NavLink>
@@ -78,7 +84,7 @@ const Sidebar = ({ isOpen }) => {
             <div className="admin-menu-link" onClick={() => toggleMenu('staff')} aria-expanded={open.staff}>
               <FaUsers className="admin-menu-icon" />
               <span className="admin-menu-text">Staff & Doctors</span>
-              <FaChevronDown className={`arrow-icon ${open.staff ? 'open' : ''}`} />
+              {renderArrowIcon('staff')}
             </div>
             <Collapse in={open.staff}>
               <ul className="admin-submenu">
@@ -94,7 +100,7 @@ const Sidebar = ({ isOpen }) => {
             <div className="admin-menu-link" onClick={() => toggleMenu('clinical')} aria-expanded={open.clinical}>
               <FaUserInjured className="admin-menu-icon" />
               <span className="admin-menu-text">Patient & Clinical</span>
-              <FaChevronDown className={`arrow-icon ${open.clinical ? 'open' : ''}`} />
+              {renderArrowIcon('clinical')}
             </div>
             <Collapse in={open.clinical}>
               <ul className="admin-submenu">
@@ -111,7 +117,7 @@ const Sidebar = ({ isOpen }) => {
             <div className="admin-menu-link" onClick={() => toggleMenu('services')} aria-expanded={open.services}>
               <FaStethoscope className="admin-menu-icon" />
               <span className="admin-menu-text">Services & Tests</span>
-              <FaChevronDown className={`arrow-icon ${open.services ? 'open' : ''}`} />
+              {renderArrowIcon('services')}
             </div>
             <Collapse in={open.services}>
               <ul className="admin-submenu">
@@ -128,7 +134,7 @@ const Sidebar = ({ isOpen }) => {
              <div className="admin-menu-link" onClick={() => toggleMenu('pharmacy')} aria-expanded={open.pharmacy}>
               <FaPills className="admin-menu-icon" />
               <span className="admin-menu-text">Pharmacy</span>
-              <FaChevronDown className={`arrow-icon ${open.pharmacy ? 'open' : ''}`} />
+              {renderArrowIcon('pharmacy')}
             </div>
             <Collapse in={open.pharmacy}>
                <ul className="admin-submenu">
@@ -142,7 +148,7 @@ const Sidebar = ({ isOpen }) => {
              <div className="admin-menu-link" onClick={() => toggleMenu('payments')} aria-expanded={open.payments}>
               <FaDollarSign className="admin-menu-icon" />
               <span className="admin-menu-text">Payments</span>
-              <FaChevronDown className={`arrow-icon ${open.payments ? 'open' : ''}`} />
+              {renderArrowIcon('payments')}
             </div>
             <Collapse in={open.payments}>
                <ul className="admin-submenu">
@@ -158,11 +164,11 @@ const Sidebar = ({ isOpen }) => {
             <div className="admin-menu-link" onClick={() => toggleMenu('content')} aria-expanded={open.content}>
               <FaNewspaper className="admin-menu-icon" />
               <span className="admin-menu-text">Nội dung</span>
-              <FaChevronDown className={`arrow-icon ${open.content ? 'open' : ''}`} />
+              {renderArrowIcon('content')}
             </div>
             <Collapse in={open.content}>
               <ul className="admin-submenu">
-                <li><NavLink to="/admin/blog" className="admin-menu-link sub-link">Quản lý bài viết</NavLink></li>
+                <li><NavLink to="/admin/blogs" className="admin-menu-link sub-link">Quản lý bài viết</NavLink></li>
               </ul>
             </Collapse>
           </li>
