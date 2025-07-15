@@ -4,6 +4,7 @@ using System.Text;
 using Hospital_API.Data;
 using Hospital_API.Filters;
 using Hospital_API.Interfaces;
+using Hospital_API.Mapping;
 using Hospital_API.Repositories;
 using Hospital_API.Repositories.Interfaces;
 using Hospital_API.Services;
@@ -17,6 +18,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Globalization;
 using System.Reflection;
+using AutoMapper;
 
 // Set the culture to invariant
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
@@ -25,6 +27,9 @@ Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Thêm AutoMapper
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // Thêm dịch vụ CORS
 builder.Services.AddCors(options =>
@@ -229,6 +234,15 @@ builder.Services.AddScoped<IRoomService, RoomService>();
 
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
+
+builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+
+builder.Services.AddScoped<IWaitingListRepository, WaitingListRepository>();
+builder.Services.AddScoped<IWaitingListService, WaitingListService>();
 
 var app = builder.Build();
 

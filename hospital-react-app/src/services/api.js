@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5247/api';
+export const MEDIA_BASE_URL = API_BASE_URL.replace('/api', ''); // Remove '/api' for media URLs
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -95,12 +96,8 @@ export const getBlogById = async (id) => {
   return response.data;
 };
 
-export const createBlog = async (data) => {
-  console.log('Creating blog with data:', data);
-  const formData = new FormData();
-  Object.keys(data).forEach(key => {
-    formData.append(key, data[key]);
-  });
+export const createBlog = async (formData) => {
+  console.log('Creating blog with data:', formData);
   const response = await api.post('/blog', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
@@ -109,12 +106,8 @@ export const createBlog = async (data) => {
   return response.data;
 };
 
-export const updateBlog = async (id, data) => {
-  console.log('Updating blog with data:', data);
-  const formData = new FormData();
-  Object.keys(data).forEach(key => {
-    formData.append(key, data[key]);
-  });
+export const updateBlog = async (id, formData) => {
+  console.log('Updating blog with data:', formData);
   const response = await api.put(`/blog/${id}`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',

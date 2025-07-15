@@ -215,6 +215,18 @@
         <member name="M:Hospital_API.Migrations.AddBlogImages.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
+        <member name="T:Hospital_API.Migrations.UpdateMedandMedSup">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.UpdateMedandMedSup.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.UpdateMedandMedSup.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.UpdateMedandMedSup.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
         <member name="T:Hospital_API.Migrations.UpdateDoctorSchedule_AddDateAndStatus">
             <inheritdoc />
         </member>
@@ -249,6 +261,18 @@
             <inheritdoc />
         </member>
         <member name="M:Hospital_API.Migrations.UpdateDoctorBranchRelation.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Hospital_API.Migrations.AddBlogFeaturedImage">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.AddBlogFeaturedImage.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.AddBlogFeaturedImage.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.AddBlogFeaturedImage.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
     </members>
