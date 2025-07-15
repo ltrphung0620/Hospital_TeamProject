@@ -1,0 +1,152 @@
+name: CI/CD Docker Workflow for DigitalOcean
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  build_and_push_docker_image:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set image name and registry
+        run: |
+          echo "IMAGE_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          echo "REGISTRY=ghcr.io" >> $GITHUB_ENV
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Hospital_API
+          file: ./Hospital_API/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ghcr.io/${{ env.IMAGE_NAME }}:latest
+
+  deploy-to-production:
+    needs: build_and_push_docker_image
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+
+    steps:
+      - name: Set environment variables
+        run: |
+          echo "IMAGE_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          echo "REGISTRY=ghcr.io" >> $GITHUB_ENV
+
+      - name: Deploy to DigitalOcean Droplet
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USERNAME }}
+          password: ${{ secrets.DO_PASSWORD }}
+          script: |
+            # Create auth file for non-interactive login
+            mkdir -p ~/.docker
+            echo '{"auths":{"ghcr.io":{"auth":"'$(echo -n "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" | base64)'"}}}'> ~/.docker/config.json
+            
+            # Set variables
+            IMAGE_PULL_TAG="ghcr.io/${{ env.IMAGE_NAME }}:latest"
+            CONTAINER_NAME="hospital-api-container"
+            
+            echo "Authenticating with GitHub Container Registry..."
+            docker login ghcr.io -u ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
+            
+            echo "Current Docker images:"
+            docker images
+            
+            # Stop and remove existing container
+            echo "Stopping and removing old container..."
+            docker stop $CONTAINER_NAME || true
+            docker rm $CONTAINER_NAME || true
+            
+            # Pull new image
+            echo "Pulling latest Docker image: $IMAGE_PULL_TAG"
+            docker pull $IMAGE_PULL_TAG
+            
+            if [ $? -ne 0 ]; then
+              echo "Failed to pull image. Retrying with fresh login..."
+              docker logout ghcr.io
+              docker login ghcr.io -u ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
+              docker pull $IMAGE_PULL_TAG
+            fi
+            
+            # Verify image exists
+            if docker images | grep -q "${{ env.IMAGE_NAME }}"; then
+              echo "Image successfully pulled"
+            else
+              echo "Failed to pull image"
+              exit 1
+            fi
+            
+            # Run new container with proper environment variables
+            echo "Starting new container..."
+            docker run -d \
+              --name $CONTAINER_NAME \
+              --restart always \
+              -p 8080:8080 \
+              -e ASPNETCORE_URLS=http://+:8080 \
+              -e DOTNET_EnableDiagnostics=0 \
+              -e DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
+              -e DOTNET_RUNNING_IN_CONTAINER=true \
+              -e DOTNET_gcServer=1 \
+              -e LANG=en_US.UTF-8 \
+              -e LANGUAGE=en_US:en \
+              -e LC_ALL=en_US.UTF-8 \
+              -e TZ=Asia/Ho_Chi_Minh \
+              -e "ConnectionStrings__DefaultConnection=${{ secrets.ASPNETCORE_CONNECTIONSTRING }}" \
+              -e "SendGrid__ApiKey=${{ secrets.SENDGRID_API_KEY }}" \
+              -e "SendGrid__SenderEmail=${{ secrets.SENDGRID_SENDER_EMAIL }}" \
+              -e "SendGrid__SenderName=${{ secrets.SENDGRID_SENDER_NAME }}" \
+              $IMAGE_PULL_TAG
+            
+            # Verify container is running
+            if docker ps | grep -q "$CONTAINER_NAME"; then
+              echo "Container successfully started"
+              
+              # Wait for container to initialize
+              echo "Waiting for container to initialize..."
+              sleep 15
+              
+              # Check container logs
+              echo "Container logs:"
+              docker logs $CONTAINER_NAME
+              
+              # Check if container is still running
+              if ! docker ps | grep -q "$CONTAINER_NAME"; then
+                echo "Container stopped after startup. Checking logs..."
+                docker logs $CONTAINER_NAME
+                exit 1
+              fi
+            else
+              echo "Container failed to start"
+              docker logs $CONTAINER_NAME
+              exit 1
+            fi
+            
+            # Cleanup
+            echo "Cleaning up old images..."
+            docker image prune -af
+            
+            echo "Deployment completed successfully!"
