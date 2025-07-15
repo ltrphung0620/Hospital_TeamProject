@@ -1,10 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Image as BootstrapImage } from 'react-bootstrap';
 
 const MAX_IMAGE_SIZE = 800; // Maximum width or height in pixels
 
 const ImageUploader = ({ onImageSelect, defaultImage }) => {
-  const [preview, setPreview] = useState(defaultImage ? `${import.meta.env.VITE_API_URL}${defaultImage}` : '');
+  const [preview, setPreview] = useState('');
+
+  useEffect(() => {
+    if (defaultImage) {
+      setPreview(defaultImage);
+    }
+  }, [defaultImage]);
 
   const resizeImage = (file) => {
     return new Promise((resolve) => {
@@ -83,6 +89,10 @@ const ImageUploader = ({ onImageSelect, defaultImage }) => {
                 objectPosition: 'center'
               }}
               thumbnail
+              onError={(e) => {
+                console.error('Error loading image:', e);
+                setPreview('');
+              }}
             />
           </div>
         )}

@@ -36,25 +36,6 @@ function LabTestManagementPage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <Container className="mt-4">
-        <LoadingSpinner />
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container className="mt-4">
-        <div className="text-center text-danger">
-          <h4>{error}</h4>
-          <Button variant="primary" onClick={fetchLabTests}>Thử lại</Button>
-        </div>
-      </Container>
-    );
-  }
-
   const handleCloseModal = () => {
     setShowModal(false);
     setCurrentTest(null);
@@ -63,142 +44,195 @@ function LabTestManagementPage() {
 
   const handleShowModal = (test = null) => {
     if (test) {
-      setCurrentTest({ ...test });
+      setCurrentTest({
+        labTestId: test.labTestId,
+        labTestName: test.labTestName,
+        labTestDescription: test.labTestDescription,
+        labTestPrice: test.labTestPrice
+      });
       setIsEditing(true);
     } else {
-      setCurrentTest({ name: '', price: 0, description: '' });
+      setCurrentTest({
+        labTestName: '',
+        labTestDescription: '',
+        labTestPrice: 0
+      });
       setIsEditing(false);
     }
     setShowModal(true);
   };
 
-  // Thêm hoặc sửa lab test qua API
-  const handleSave = () => {
-    if (isEditing) {
-      axios.put(`${API_URL}/${currentTest.id}`, currentTest)
-        .then(res => {
-          setLabTests(labTests.map(t => (t.id === res.data.id ? res.data : t)));
-          handleCloseModal();
-        });
-    } else {
-      axios.post(API_URL, currentTest)
-        .then(res => {
-          setLabTests([...labTests, res.data]);
-          handleCloseModal();
-        });
-    }
-  };
-
-  // Xóa lab test qua API
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this lab test?')) {
-      axios.delete(`${API_URL}/${id}`)
-        .then(() => setLabTests(labTests.filter(t => t.id !== id)));
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value, type } = e.target;
-    setCurrentTest(prev => ({ ...prev, [name]: type === 'number' ? parseFloat(value) : value }));
-  };
-
+  // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = labTests.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(labTests.length / itemsPerPage);
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (isEditing) {
+        await axios.put(`${API_URL}/${currentTest.labTestId}`, currentTest);
+      } else {
+        await axios.post(API_URL, currentTest);
+      }
+      fetchLabTests();
+      handleCloseModal();
+    } catch (error) {
+      console.error('Error saving lab test:', error);
+      alert('Có lỗi xảy ra khi lưu thông tin xét nghiệm');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa xét nghiệm này?')) {
+      try {
+        await axios.delete(`${API_URL}/${id}`);
+        fetchLabTests();
+      } catch (error) {
+        console.error('Error deleting lab test:', error);
+        alert('Có lỗi xảy ra khi xóa xét nghiệm');
+      }
+    }
+  };
 
   return (
-    <Container fluid className="p-4">
+    <Container fluid>
       <Row className="mb-4">
         <Col>
-          <h2 className="admin-page-title"><FaFlask className="me-2" /> Lab Test Management</h2>
+          <Card>
+            <Card.Header className="d-flex justify-content-between align-items-center">
+              <h4 className="mb-0">Quản lý xét nghiệm</h4>
+              <Button variant="primary" onClick={() => handleShowModal()}>
+                <FaPlus className="me-2" /> Thêm xét nghiệm mới
+              </Button>
+            </Card.Header>
+            <Card.Body>
+              <Table responsive striped bordered hover>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Tên xét nghiệm</th>
+                    <th>Mô tả</th>
+                    <th>Giá (VNĐ)</th>
+                    <th>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan="5" className="text-center py-4">
+                        <LoadingSpinner />
+                      </td>
+                    </tr>
+                  ) : error ? (
+                    <tr>
+                      <td colSpan="5" className="text-center text-danger py-4">
+                        {error}
+                        <br />
+                        <Button variant="primary" size="sm" className="mt-2" onClick={fetchLabTests}>
+                          Thử lại
+                        </Button>
+                      </td>
+                    </tr>
+                  ) : currentItems.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="text-center py-4">Không tìm thấy dữ liệu xét nghiệm.</td>
+                    </tr>
+                  ) : (
+                    currentItems.map((test) => (
+                      <tr key={test.labTestId}>
+                        <td>{test.labTestId}</td>
+                        <td>{test.labTestName}</td>
+                        <td>{test.labTestDescription}</td>
+                        <td>{test.labTestPrice.toLocaleString('vi-VN')}</td>
+                        <td>
+                          <Button
+                            variant="warning"
+                            size="sm"
+                            className="me-2"
+                            onClick={() => handleShowModal(test)}
+                          >
+                            <FaEdit /> Sửa
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => handleDelete(test.labTestId)}
+                          >
+                            <FaTrash /> Xóa
+                          </Button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </Table>
+              {!isLoading && !error && labTests.length > itemsPerPage && (
+                <div className="d-flex justify-content-center mt-4">
+                  <Pagination>
+                    {[...Array(totalPages)].map((_, index) => (
+                      <Pagination.Item
+                        key={index + 1}
+                        active={index + 1 === currentPage}
+                        onClick={() => setCurrentPage(index + 1)}
+                      >
+                        {index + 1}
+                      </Pagination.Item>
+                    ))}
+                  </Pagination>
+                </div>
+              )}
+            </Card.Body>
+          </Card>
         </Col>
       </Row>
 
-      <Card className="admin-card">
-        <Card.Header className="d-flex justify-content-between align-items-center">
-          <span>Available Lab Tests</span>
-          <Button variant="primary" onClick={() => handleShowModal()}><FaPlus className="me-2" /> Add Lab Test</Button>
-        </Card.Header>
-        <Card.Body>
-          <Table responsive hover className="admin-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Test Name</th>
-                <th>Price</th>
-                <th>Description</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentItems.length === 0 ? (
-                <tr>
-                  <td colSpan="5" className="text-center py-4">No lab tests found.</td>
-                </tr>
-              ) : (
-                currentItems.map((test, index) => (
-                  <tr key={test.id}>
-                    <td>{indexOfFirstItem + index + 1}</td>
-                    <td>{test.name}</td>
-                    <td>${test.price?.toFixed(2)}</td>
-                    <td>{test.description}</td>
-                    <td>
-                      <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleShowModal(test)}>
-                        <FaEdit />
-                      </Button>
-                      <Button variant="outline-danger" size="sm" onClick={() => handleDelete(test.id)}>
-                        <FaTrash />
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </Table>
-        </Card.Body>
-        {totalPages > 1 && (
-          <Card.Footer>
-            <Pagination className="justify-content-center mb-0">
-              {Array.from({ length: totalPages }, (_, i) => (
-                <Pagination.Item key={i + 1} active={i + 1 === currentPage} onClick={() => paginate(i + 1)}>
-                  {i + 1}
-                </Pagination.Item>
-              ))}
-            </Pagination>
-          </Card.Footer>
-        )}
-      </Card>
-
-      {/* Add/Edit Modal */}
-      <Modal show={showModal} onHide={handleCloseModal} centered>
+      <Modal show={showModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
-          <Modal.Title>{isEditing ? 'Edit Lab Test' : 'Add New Lab Test'}</Modal.Title>
+          <Modal.Title>{isEditing ? 'Cập nhật xét nghiệm' : 'Thêm xét nghiệm mới'}</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <Form>
+        <Form onSubmit={handleSubmit}>
+          <Modal.Body>
             <Form.Group className="mb-3">
-              <Form.Label>Test Name</Form.Label>
-              <Form.Control type="text" name="name" value={currentTest?.name || ''} onChange={handleChange} placeholder="e.g., Complete Blood Count (CBC)" />
+              <Form.Label>Tên xét nghiệm</Form.Label>
+              <Form.Control
+                type="text"
+                value={currentTest?.labTestName || ''}
+                onChange={(e) => setCurrentTest({ ...currentTest, labTestName: e.target.value })}
+                required
+              />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Price ($)</Form.Label>
-              <Form.Control type="number" name="price" value={currentTest?.price || 0} onChange={handleChange} min="0" step="0.01" />
+              <Form.Label>Mô tả</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={currentTest?.labTestDescription || ''}
+                onChange={(e) => setCurrentTest({ ...currentTest, labTestDescription: e.target.value })}
+                required
+              />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Description</Form.Label>
-              <Form.Control as="textarea" rows={3} name="description" value={currentTest?.description || ''} onChange={handleChange} placeholder="Enter a brief description of the test" />
+              <Form.Label>Giá (VNĐ)</Form.Label>
+              <Form.Control
+                type="number"
+                value={currentTest?.labTestPrice || 0}
+                onChange={(e) => setCurrentTest({ ...currentTest, labTestPrice: Number(e.target.value) })}
+                required
+                min="0"
+              />
             </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>Cancel</Button>
-          <Button variant="primary" onClick={handleSave}>
-            {isEditing ? 'Save Changes' : 'Add Test'}
-          </Button>
-        </Modal.Footer>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleCloseModal}>
+              Hủy
+            </Button>
+            <Button variant="primary" type="submit">
+              {isEditing ? 'Cập nhật' : 'Thêm mới'}
+            </Button>
+          </Modal.Footer>
+        </Form>
       </Modal>
     </Container>
   );
