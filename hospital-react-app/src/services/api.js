@@ -1,7 +1,9 @@
 import axios from 'axios';
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5247/api';
-export const MEDIA_BASE_URL = API_BASE_URL.replace('/api', ''); // Remove '/api' for media URLs
+export const MEDIA_BASE_URL = import.meta.env.VITE_API_URL 
+  ? import.meta.env.VITE_API_URL.replace('api.demoproject.software/api', 'api.demoproject.software')
+  : 'http://localhost:5247';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
