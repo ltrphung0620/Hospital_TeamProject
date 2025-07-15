@@ -16,32 +16,33 @@ function TestResultManagementPage() {
   const [currentResult, setCurrentResult] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
 
-  // Load test results and pending requests from API
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const [resultsRes, requestsRes] = await Promise.all([
-          axios.get(API_URL),
-          axios.get(REQUEST_API_URL)
-        ]);
-        setResults(resultsRes.data);
-        setPendingRequests(requestsRes.data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setResults([]);
-        setPendingRequests([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchData();
   }, []);
+
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const [resultsRes, requestsRes] = await Promise.all([
+        axios.get(API_URL),
+        axios.get(REQUEST_API_URL)
+      ]);
+      setResults(resultsRes.data);
+      setPendingRequests(requestsRes.data);
+    } catch (err) {
+      setError('Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại sau.');
+      console.error('Error fetching data:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleCloseModal = () => {
     setShowModal(false);
@@ -60,22 +61,18 @@ function TestResultManagementPage() {
     setShowModal(true);
   };
 
-  // Thêm hoặc sửa test result qua API
-  const handleSave = () => {
-    if (currentResult.id) {
-      // Update
-      axios.put(`${API_URL}/${currentResult.id}`, currentResult)
-        .then(res => {
-          setResults(results.map(r => (r.id === res.data.id ? res.data : r)));
-          handleCloseModal();
-        });
-    } else {
-      // Add new
-      axios.post(API_URL, currentResult)
-        .then(res => {
-          setResults([...results, res.data]);
-          handleCloseModal();
-        });
+  const handleSave = async () => {
+    try {
+      if (currentResult.id) {
+        await axios.put(`${API_URL}/${currentResult.id}`, currentResult);
+      } else {
+        await axios.post(API_URL, currentResult);
+      }
+      fetchData();
+      handleCloseModal();
+    } catch (error) {
+      console.error('Error saving test result:', error);
+      alert('Có lỗi xảy ra khi lưu kết quả xét nghiệm');
     }
   };
 
@@ -88,10 +85,8 @@ function TestResultManagementPage() {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = results.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(results.length / itemsPerPage);
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
 
-  // Helper: get patient & test info from request
   const getRequestInfo = (testRequestID) => {
     const req = pendingRequests.find(r => r.id === parseInt(testRequestID));
     if (!req) return { patientName: '', testName: '' };
@@ -102,90 +97,127 @@ function TestResultManagementPage() {
   };
 
   return (
-    <Container fluid className="p-4">
+    <Container fluid>
       <Row className="mb-4">
         <Col>
-          <h2 className="admin-page-title"><FaClipboardCheck className="me-2" /> Test Result Management</h2>
+          <Card>
+            <Card.Header className="d-flex justify-content-between align-items-center">
+              <h4 className="mb-0">Quản lý kết quả xét nghiệm</h4>
+              <Button variant="primary" onClick={() => handleShowModal(null, true)}>
+                <FaPlus className="me-2" /> Thêm kết quả mới
+              </Button>
+            </Card.Header>
+            <Card.Body>
+              <Table responsive striped bordered hover>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Bệnh nhân</th>
+                    <th>Tên xét nghiệm</th>
+                    <th>Ngày có kết quả</th>
+                    <th>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan="5" className="text-center py-4">
+                        <LoadingSpinner />
+                      </td>
+                    </tr>
+                  ) : error ? (
+                    <tr>
+                      <td colSpan="5" className="text-center text-danger py-4">
+                        {error}
+                        <br />
+                        <Button variant="primary" size="sm" className="mt-2" onClick={fetchData}>
+                          Thử lại
+                        </Button>
+                      </td>
+                    </tr>
+                  ) : currentItems.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="text-center py-4">Không tìm thấy kết quả xét nghiệm nào.</td>
+                    </tr>
+                  ) : (
+                    currentItems.map((result) => {
+                      const info = getRequestInfo(result.testRequestID);
+                      return (
+                        <tr key={result.id}>
+                          <td>{result.id}</td>
+                          <td>{info.patientName}</td>
+                          <td>{info.testName}</td>
+                          <td>{new Date(result.resultDate).toLocaleString('vi-VN')}</td>
+                          <td>
+                            <Button
+                              variant="info"
+                              size="sm"
+                              className="me-2"
+                              onClick={() => handleShowModal(result, false)}
+                            >
+                              <FaEye /> Xem
+                            </Button>
+                            <Button
+                              variant="warning"
+                              size="sm"
+                              onClick={() => handleShowModal(result, true)}
+                            >
+                              <FaEdit /> Sửa
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </Table>
+              {!isLoading && !error && results.length > itemsPerPage && (
+                <div className="d-flex justify-content-center mt-4">
+                  <Pagination>
+                    {[...Array(totalPages)].map((_, index) => (
+                      <Pagination.Item
+                        key={index + 1}
+                        active={index + 1 === currentPage}
+                        onClick={() => setCurrentPage(index + 1)}
+                      >
+                        {index + 1}
+                      </Pagination.Item>
+                    ))}
+                  </Pagination>
+                </div>
+              )}
+            </Card.Body>
+          </Card>
         </Col>
       </Row>
 
-      <Card className="admin-card">
-        <Card.Header className="d-flex justify-content-between align-items-center">
-          <span>Test Results List</span>
-          <Button variant="primary" onClick={() => handleShowModal(null, true)}>
-            <FaPlus className="me-2" /> Add Result
-          </Button>
-        </Card.Header>
-        <Card.Body>
-          <Table responsive hover className="admin-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Patient</th>
-                <th>Test Name</th>
-                <th>Result Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentItems.map((result, index) => {
-                const info = getRequestInfo(result.testRequestID);
-                return (
-                  <tr key={result.id}>
-                    <td>{result.id}</td>
-                    <td>{info.patientName}</td>
-                    <td>{info.testName}</td>
-                    <td>{new Date(result.resultDate).toLocaleString()}</td>
-                    <td>
-                      <Button variant="outline-info" size="sm" className="me-2" onClick={() => handleShowModal(result, false)}>
-                        <FaEye />
-                      </Button>
-                      <Button variant="outline-primary" size="sm" onClick={() => handleShowModal(result, true)}>
-                        <FaEdit />
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </Table>
-        </Card.Body>
-        {totalPages > 1 && (
-          <Card.Footer>
-            <Pagination className="justify-content-center mb-0">
-              {Array.from({ length: totalPages }, (_, i) => (
-                <Pagination.Item key={i + 1} active={i + 1 === currentPage} onClick={() => paginate(i + 1)}>{i + 1}</Pagination.Item>
-              ))}
-            </Pagination>
-          </Card.Footer>
-        )}
-      </Card>
-
-      {/* Add/Edit/View Modal */}
-      <Modal show={showModal} onHide={handleCloseModal} centered size="lg">
+      <Modal show={showModal} onHide={handleCloseModal} size="lg">
         <Modal.Header closeButton>
 
           <Modal.Title>
-            {isEditing ? (currentResult?.id ? 'Edit Test Result' : 'Add Test Result') : 'View Test Result'}
+            {isEditing ? (currentResult?.id ? 'Cập nhật kết quả xét nghiệm' : 'Thêm kết quả xét nghiệm mới') : 'Xem kết quả xét nghiệm'}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
             {currentResult?.id ? (
-              // Viewing or Editing existing result
               <>
                 <Row className="mb-3">
-                  <Col><p><strong>Patient:</strong> {getRequestInfo(currentResult.testRequestID).patientName}</p></Col>
-                  <Col><p><strong>Test:</strong> {getRequestInfo(currentResult.testRequestID).testName}</p></Col>
+                  <Col><p><strong>Bệnh nhân:</strong> {getRequestInfo(currentResult.testRequestID).patientName}</p></Col>
+                  <Col><p><strong>Xét nghiệm:</strong> {getRequestInfo(currentResult.testRequestID).testName}</p></Col>
                 </Row>
                 <hr />
               </>
             ) : (
-              // Adding a new result
               <Form.Group className="mb-3">
-                <Form.Label>Pending Test Request</Form.Label>
-                <Form.Select name="testRequestID" value={currentResult?.testRequestID || ''} onChange={handleChange}>
-                  <option value="" disabled>Select a pending test...</option>
+                <Form.Label>Yêu cầu xét nghiệm đang chờ</Form.Label>
+                <Form.Select 
+                  name="testRequestID" 
+                  value={currentResult?.testRequestID || ''} 
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Chọn yêu cầu xét nghiệm...</option>
                   {pendingRequests.map(req => (
                     <option key={req.id} value={req.id}>
                       {getRequestInfo(req.id).patientName} - {getRequestInfo(req.id).testName}
@@ -196,33 +228,41 @@ function TestResultManagementPage() {
             )}
 
             <Form.Group className="mb-3">
-              <Form.Label>Result</Form.Label>
+              <Form.Label>Kết quả</Form.Label>
               <Form.Control
                 as="textarea"
                 rows={5}
                 name="result"
                 value={currentResult?.result || ''}
                 onChange={handleChange}
-                placeholder="Enter test result details..."
+                placeholder="Nhập kết quả xét nghiệm chi tiết..."
                 readOnly={!isEditing}
+                required
               />
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Result Date</Form.Label>
+              <Form.Label>Ngày có kết quả</Form.Label>
               <Form.Control
                 type="datetime-local"
                 name="resultDate"
                 value={currentResult?.resultDate ? new Date(currentResult.resultDate).toISOString().slice(0, 16) : ''}
                 onChange={handleChange}
                 readOnly={!isEditing}
+                required
               />
             </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>Close</Button>
-          {isEditing && <Button variant="primary" onClick={handleSave}>Save Changes</Button>}
+          <Button variant="secondary" onClick={handleCloseModal}>
+            Đóng
+          </Button>
+          {isEditing && (
+            <Button variant="primary" onClick={handleSave}>
+              {currentResult?.id ? 'Cập nhật' : 'Thêm mới'}
+            </Button>
+          )}
         </Modal.Footer>
       </Modal>
     </Container>

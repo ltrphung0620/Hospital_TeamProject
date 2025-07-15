@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Http;
 
 namespace Hospital_API.DTOs
 {
@@ -17,8 +16,7 @@ namespace Hospital_API.DTOs
         public int AuthorId { get; set; }
         public string AuthorName { get; set; }
         public string? Excerpt { get; set; }
-        public string? Slug { get; set; }
-        public List<BlogImageDTO> Images { get; set; } = new List<BlogImageDTO>();
+        public string Slug { get; set; }
     }
 
     public class BlogImageDTO
@@ -28,27 +26,5 @@ namespace Hospital_API.DTOs
         public bool IsFeatured { get; set; }
         public string? Caption { get; set; }
         public int DisplayOrder { get; set; }
-    }
-
-    public class BlogCreateDTO
-    {
-        public string Title { get; set; }
-        public string Content { get; set; }
-        public string Category { get; set; }
-        public string? Excerpt { get; set; }
-        public List<IFormFile>? Images { get; set; }
-        public int? FeaturedImageIndex { get; set; }
-    }
-
-    public class BlogUpdateDTO
-    {
-        public string Title { get; set; }
-        public string Content { get; set; }
-        public string Category { get; set; }
-        public string Status { get; set; }
-        public string? Excerpt { get; set; }
-        public List<IFormFile>? NewImages { get; set; }
-        public List<int>? ImagesToDelete { get; set; }
-        public int? FeaturedImageIndex { get; set; }
     }
 } 

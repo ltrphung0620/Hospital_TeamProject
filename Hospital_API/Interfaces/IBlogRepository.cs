@@ -1,15 +1,13 @@
 using Hospital_API.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Hospital_API.Interfaces
 {
     public interface IBlogRepository
     {
-        Task<Blog> CreateBlog(Blog blog);
-        Task<Blog> UpdateBlog(Blog blog);
-        Task<Blog> GetBlogById(int id);
-        Task<IEnumerable<Blog>> GetAllBlogs();
-        Task<bool> DeleteBlog(int id);
+        Task<IEnumerable<Blog>> GetAllAsync();
+        Task<Blog?> GetByIdAsync(int id);
+        Task<Blog> CreateAsync(Blog blog);
+        Task<Blog?> UpdateAsync(Blog blog);
+        Task<bool> DeleteAsync(int id);
     }
 } 

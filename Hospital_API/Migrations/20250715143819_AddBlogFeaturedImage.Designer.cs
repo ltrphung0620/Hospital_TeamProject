@@ -4,6 +4,7 @@ using Hospital_API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Hospital_API.Migrations
 {
     [DbContext(typeof(HospitalDbContext))]
-    partial class HospitalDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250715143819_AddBlogFeaturedImage")]
+    partial class AddBlogFeaturedImage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -527,7 +530,6 @@ namespace Hospital_API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -538,7 +540,6 @@ namespace Hospital_API.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
 
                     b.Property<int>("SupplierId")
                         .HasColumnType("int");
@@ -1109,7 +1110,6 @@ namespace Hospital_API.Migrations
             modelBuilder.Entity("Hospital_API.Models.Medicines", b =>
                 {
                     b.HasOne("Hospital_API.Models.MedicineSupplier", "Supplier")
-
                         .WithMany()
                         .HasForeignKey("SupplierId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1285,7 +1285,6 @@ namespace Hospital_API.Migrations
 
                     b.Navigation("Payments");
                 });
-
 
             modelBuilder.Entity("Hospital_API.Models.Patient", b =>
                 {

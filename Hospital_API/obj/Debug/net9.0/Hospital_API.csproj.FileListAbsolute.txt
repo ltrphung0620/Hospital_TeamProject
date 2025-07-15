@@ -861,3 +861,6 @@ D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Hospital_API.xml
 D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\Newtonsoft.Json.dll
 D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\SendGrid.dll
 D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\StarkbankEcdsa.dll
+D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\AutoMapper.dll
+D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\AutoMapper.Collection.dll
+D:\Project\Hospital_Project\Hospital_API\bin\Debug\net9.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll

@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Editor } from '@tinymce/tinymce-react';
 import { Table, Button, Form, Modal } from 'react-bootstrap';
-import { getAllBlogsAdmin, createBlog, updateBlog, deleteBlog } from '../../services/api';
+import { getAllBlogsAdmin, createBlog, updateBlog, deleteBlog, MEDIA_BASE_URL } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import ImageUploader from '../../components/common/ImageUploader';
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
 import './BlogManagementPage.css';
 
+const DEFAULT_BLOG_IMAGE = '/images/default-blog.jpg';
+
 const BlogManagementPage = () => {
-  // Thêm danh sách category cứng
   const BLOG_CATEGORIES = [
     { value: 'tin-tuc', label: 'Tin tức' },
     { value: 'su-kien', label: 'Sự kiện' },
@@ -18,6 +22,8 @@ const BlogManagementPage = () => {
 
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editingBlog, setEditingBlog] = useState(null);
@@ -28,7 +34,8 @@ const BlogManagementPage = () => {
   const [category, setCategory] = useState('');
   const [featuredImage, setFeaturedImage] = useState('');
   const [excerpt, setExcerpt] = useState('');
-  const [status, setStatus] = useState(''); // Không set mặc định là Draft nữa
+  const [status, setStatus] = useState('Draft');
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     fetchBlogs();
@@ -38,27 +45,29 @@ const BlogManagementPage = () => {
     try {
       setLoading(true);
       const response = await getAllBlogsAdmin();
-      console.log('Fetched blogs:', response);
-      
       setBlogs(Array.isArray(response) ? response : []);
-      setLoading(false);
     } catch (err) {
       console.error('Error fetching blogs:', err);
       setError(err.message || 'Failed to fetch blogs');
+    } finally {
       setLoading(false);
     }
   };
 
+  const handleImageSelect = (file) => {
+    setSelectedImage(file);
+  };
+
   const handleShowModal = (blog = null) => {
     if (blog) {
-      console.log('Editing blog:', blog);
       setEditingBlog(blog);
       setTitle(blog.title || '');
       setContent(blog.content || '');
       setCategory(blog.category || '');
       setFeaturedImage(blog.featuredImage || '');
       setExcerpt(blog.excerpt || '');
-      setStatus(blog.status || '');
+      setStatus(blog.status || 'Draft');
+      setSelectedImage(null);
     } else {
       setEditingBlog(null);
       resetForm();
@@ -77,61 +86,82 @@ const BlogManagementPage = () => {
     setCategory('');
     setFeaturedImage('');
     setExcerpt('');
-    setStatus(''); // Không set mặc định là Draft nữa
+    setStatus('Draft');
     setEditingBlog(null);
     setError(null);
+    setSelectedImage(null);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, publishStatus) => {
     if (e) e.preventDefault();
     setError(null);
-    
-    if (!status) {
-      setError('Vui lòng chọn trạng thái bài viết');
-      return;
-    }
+    setSaving(true);
 
     try {
-      const blogData = {
-        title,
-        content,
-        category,
-        featuredImage: featuredImage || '',
-        excerpt: excerpt || '',
-        status
-      };
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('content', content);
+      formData.append('category', category);
+      formData.append('excerpt', excerpt || '');
+      
+      // Đảm bảo status được gửi đúng
+      const finalStatus = publishStatus || status;
+      formData.append('status', finalStatus);
+      
+      // Log để kiểm tra
+      console.log('Sending blog with status:', finalStatus);
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
 
-      console.log('Sending blog data:', blogData);
+      if (selectedImage) {
+        formData.append('featuredImage', selectedImage);
+      }
 
       let response;
       if (editingBlog) {
-        console.log('Updating blog with ID:', editingBlog.id);
-        response = await updateBlog(editingBlog.id, blogData);
-        console.log('Update response:', response);
+        response = await updateBlog(editingBlog.id, formData);
       } else {
-        response = await createBlog(blogData);
-        console.log('Create response:', response);
+        response = await createBlog(formData);
       }
 
-      // Nếu không có lỗi, đóng modal và refresh danh sách
+      console.log('API Response:', response);
       handleCloseModal();
       await fetchBlogs();
       
     } catch (err) {
       console.error('Error saving blog:', err);
       setError(err.response?.data?.message || 'Không thể lưu bài viết. Vui lòng thử lại.');
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this blog post?')) {
-      try {
-        await deleteBlog(id);
-        fetchBlogs();
-      } catch (err) {
-        setError('Failed to delete blog');
-      }
-    }
+    confirmAlert({
+      title: 'Xác nhận xóa',
+      message: 'Bạn có chắc chắn muốn xóa bài viết này không?',
+      buttons: [
+        {
+          label: 'Có',
+          onClick: async () => {
+            try {
+              setDeleting(true);
+              await deleteBlog(id);
+              await fetchBlogs();
+            } catch (err) {
+              setError('Failed to delete blog');
+            } finally {
+              setDeleting(false);
+            }
+          }
+        },
+        {
+          label: 'Không',
+          onClick: () => {}
+        }
+      ]
+    });
   };
 
   if (loading) return <LoadingSpinner />;
@@ -149,16 +179,27 @@ const BlogManagementPage = () => {
       <Table striped bordered hover responsive>
         <thead>
           <tr>
-            <th>Tiêu đề</th>
-            <th>Danh mục</th>
-            <th>Trạng thái</th>
-            <th>Ngày tạo</th>
-            <th>Thao tác</th>
+            <th style={{ width: '80px' }}>Hình ảnh</th>
+            <th style={{ width: '30%' }}>Tiêu đề</th>
+            <th style={{ width: '15%' }}>Danh mục</th>
+            <th style={{ width: '20%' }}>Trạng thái</th>
+            <th style={{ width: '15%' }}>Ngày tạo</th>
+            <th style={{ width: '15%' }}>Thao tác</th>
           </tr>
         </thead>
         <tbody>
           {blogs.map((blog) => (
             <tr key={blog.id}>
+              <td>
+                <img
+                  src={blog.featuredImage ? `${MEDIA_BASE_URL}${blog.featuredImage}` : 'https://placehold.co/600x400/e9ecef/495057?text=Blog+Image'}
+                  alt={blog.title}
+                  style={{ width: '60px', height: '60px', objectFit: 'cover' }}
+                  onError={(e) => {
+                    e.target.src = 'https://placehold.co/600x400/e9ecef/495057?text=Blog+Image';
+                  }}
+                />
+              </td>
               <td>
                 <div className="blog-title-cell">
                   <strong>{blog.title}</strong>
@@ -196,8 +237,18 @@ const BlogManagementPage = () => {
                   variant="outline-danger"
                   size="sm"
                   onClick={() => handleDelete(blog.id)}
+                  disabled={deleting}
                 >
-                  <i className="fas fa-trash-alt me-1"></i>Xóa
+                  {deleting ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                      Đang xóa...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-trash-alt me-1"></i>Xóa
+                    </>
+                  )}
                 </Button>
               </td>
             </tr>
@@ -214,55 +265,7 @@ const BlogManagementPage = () => {
         <Modal.Body>
           <div className="blog-editor-container">
             <div className="editor-main">
-              <Form onSubmit={handleSubmit}>
-                {/* Di chuyển phần chọn trạng thái lên đầu form */}
-                <Form.Group className="mb-4">
-                  <Form.Label className="required">Trạng thái bài viết</Form.Label>
-                  <div className="status-options">
-                    <Form.Check
-                      inline
-                      type="radio"
-                      id="status-published"
-                      name="status"
-                      label="Xuất bản"
-                      checked={status === 'Published'}
-                      onChange={() => setStatus('Published')}
-                      className="status-radio"
-                      required
-                    />
-                    <Form.Check
-                      inline
-                      type="radio"
-                      id="status-draft"
-                      name="status"
-                      label="Bản nháp"
-                      checked={status === 'Draft'}
-                      onChange={() => setStatus('Draft')}
-                      className="status-radio"
-                      required
-                    />
-                  </div>
-                  <div className="status-description mt-2">
-                    {!status && (
-                      <small className="text-danger">
-                        Vui lòng chọn trạng thái bài viết
-                      </small>
-                    )}
-                    {status === 'Published' && (
-                      <small className="text-success">
-                        <i className="fas fa-info-circle me-1"></i>
-                        Bài viết sẽ được hiển thị công khai sau khi xuất bản
-                      </small>
-                    )}
-                    {status === 'Draft' && (
-                      <small className="text-muted">
-                        <i className="fas fa-info-circle me-1"></i>
-                        Bài viết sẽ được lưu dưới dạng bản nháp và không hiển thị công khai
-                      </small>
-                    )}
-                  </div>
-                </Form.Group>
-
+              <div className="editor-content">
                 <Form.Group className="mb-4">
                   <Form.Label className="required">Tiêu đề bài viết</Form.Label>
                   <Form.Control
@@ -275,74 +278,21 @@ const BlogManagementPage = () => {
                   />
                 </Form.Group>
 
-                {error && (
-                  <div className="alert alert-danger mb-4">
-                    <i className="fas fa-exclamation-circle me-2"></i>
-                    {error}
-                  </div>
-                )}
-
-                <div className="modal-footer border-0 px-0">
-                  <Button variant="secondary" onClick={handleCloseModal}>
-                    Hủy
-                  </Button>
-                  <Button 
-                    variant="primary" 
-                    type="submit"
-                    disabled={!title || !content || !category || !status}
-                  >
-                    {editingBlog ? 'Cập nhật' : 'Tạo bài viết'}
-                  </Button>
-                </div>
-
-                <Form.Group className="mb-4">
-                  <Form.Label className="required">Danh mục</Form.Label>
-                  <Form.Select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    required
-                  >
-                    <option value="">Chọn danh mục</option>
-                    {BLOG_CATEGORIES.map((cat) => (
-                      <option key={cat.value} value={cat.value}>
-                        {cat.label}
-                      </option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-
-                <Form.Group className="mb-4">
-                  <Form.Control
-                    type="text"
-                    value={excerpt}
-                    onChange={(e) => setExcerpt(e.target.value)}
-                    placeholder="Tóm tắt bài viết"
-                  />
-                </Form.Group>
-
-                <Form.Group className="mb-4">
-                  <Form.Control
-                    type="text"
-                    value={featuredImage}
-                    onChange={(e) => setFeaturedImage(e.target.value)}
-                    placeholder="URL ảnh đại diện"
-                  />
-                </Form.Group>
-
-                <Form.Group className="mb-4">
+                <Form.Group className="mb-3">
+                  <Form.Label>Nội dung</Form.Label>
                   <Editor
                     apiKey={import.meta.env.VITE_TINYMCE_API_KEY}
                     init={{
-                      height: 600,
+                      height: 500,
                       menubar: true,
                       plugins: [
-                        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
-                        'preview', 'anchor', 'searchreplace', 'visualblocks', 'code',
-                        'fullscreen', 'insertdatetime', 'media', 'table', 'code',
-                        'help', 'wordcount', 'emoticons'
+                        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                        'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount',
+                        'emoticons'
                       ],
-                      toolbar: 'undo redo | formatselect | ' +
-                        'bold italic backcolor | alignleft aligncenter ' +
+                      toolbar: 'undo redo | blocks | ' +
+                        'bold italic forecolor | alignleft aligncenter ' +
                         'alignright alignjustify | bullist numlist outdent indent | ' +
                         'removeformat | image media link emoticons | help',
                       content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
@@ -383,96 +333,117 @@ const BlogManagementPage = () => {
                           console.error('Lỗi khi tải lên hình ảnh:', error);
                           throw new Error(`Lỗi tải lên: ${error.message}`);
                         }
-                      },
-                      images_reuse_filename: true,
-                      browser_spellcheck: true,
-                      contextmenu: false,
-                      custom_elements: 'quillbot-extension',
-                      extended_valid_elements: 'quillbot-extension[*]',
-                      valid_children: '+body[quillbot-extension]',
-                      content_security_policy: "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; img-src 'self' data: blob: http://localhost:5247",
-                      referrer_policy: 'origin'
+                      }
                     }}
                     value={content}
                     onEditorChange={(newContent) => setContent(newContent)}
                   />
                 </Form.Group>
-              </Form>
+              </div>
             </div>
 
             <div className="editor-sidebar">
               <div className="sidebar-section">
-                <h5>Xuất bản</h5>
-                <div className="d-grid gap-2">
-                  <Button 
-                    variant={status === 'Published' ? 'success' : 'primary'} 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setStatus('Published');
-                      handleSubmit();
-                    }}
-                    className="w-100"
-                    disabled={!title || !content || !category}
-                  >
-                    {editingBlog ? 'Cập nhật và xuất bản' : 'Xuất bản ngay'}
-                  </Button>
-                  <Button 
-                    variant="outline-secondary" 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setStatus('Draft');
-                      handleSubmit();
-                    }}
-                    className="w-100"
-                  >
-                    Lưu nháp
-                  </Button>
+                <div className="sidebar-section-header">
+                  <h5>Xuất bản</h5>
+                </div>
+                <div className="sidebar-section-content">
+                  <div className="status-radio-group mb-3">
+                    <label className={`status-radio-option ${status === 'Draft' ? 'selected' : ''}`}>
+                      <input
+                        type="radio"
+                        name="status"
+                        value="Draft"
+                        checked={status === 'Draft'}
+                        onChange={(e) => setStatus(e.target.value)}
+                      />
+                      Bản nháp
+                    </label>
+                    <label className={`status-radio-option ${status === 'Published' ? 'selected' : ''}`}>
+                      <input
+                        type="radio"
+                        name="status"
+                        value="Published"
+                        checked={status === 'Published'}
+                        onChange={(e) => setStatus(e.target.value)}
+                      />
+                      Xuất bản
+                    </label>
+                  </div>
+
+                  <div className="d-grid gap-2">
+                    <Button
+                      variant="primary"
+                      onClick={(e) => handleSubmit(e, status)}
+                      disabled={saving}
+                    >
+                      {saving ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                          Đang lưu...
+                        </>
+                      ) : (
+                        <>Lưu {status === 'Published' ? '& Xuất bản' : 'bản nháp'}</>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
 
               <div className="sidebar-section">
-                <h5>Danh mục</h5>
-                <Form.Select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  required
-                >
-                  <option value="">Chọn danh mục</option>
-                  {BLOG_CATEGORIES.map((cat) => (
-                    <option key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </option>
-                  ))}
-                </Form.Select>
-              </div>
-
-              <div className="sidebar-section">
-                <h5>Ảnh đại diện</h5>
-                <div className="featured-image-preview">
-                  {featuredImage && (
-                    <img src={featuredImage} alt="Preview" className="img-fluid mb-2" />
-                  )}
+                <div className="sidebar-section-header">
+                  <h5>Hình ảnh đại diện</h5>
                 </div>
-                <Form.Control
-                  type="text"
-                  value={featuredImage}
-                  onChange={(e) => setFeaturedImage(e.target.value)}
-                  placeholder="URL ảnh đại diện"
-                />
+                <div className="sidebar-section-content">
+                  <ImageUploader
+                    onImageSelect={handleImageSelect}
+                    defaultImage={editingBlog?.featuredImage ? `${MEDIA_BASE_URL}${editingBlog.featuredImage}` : null}
+                  />
+                </div>
               </div>
 
               <div className="sidebar-section">
-                <h5>Tóm tắt</h5>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  value={excerpt}
-                  onChange={(e) => setExcerpt(e.target.value)}
-                  placeholder="Nhập tóm tắt bài viết"
-                />
+                <div className="sidebar-section-header">
+                  <h5>Danh mục</h5>
+                </div>
+                <div className="sidebar-section-content">
+                  <Form.Select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    required
+                  >
+                    <option value="">Chọn danh mục</option>
+                    {BLOG_CATEGORIES.map((cat) => (
+                      <option key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </div>
+              </div>
+
+              <div className="sidebar-section">
+                <div className="sidebar-section-header">
+                  <h5>Tóm tắt</h5>
+                </div>
+                <div className="sidebar-section-content">
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    value={excerpt}
+                    onChange={(e) => setExcerpt(e.target.value)}
+                    placeholder="Nhập tóm tắt bài viết"
+                  />
+                </div>
               </div>
             </div>
           </div>
+
+          {error && (
+            <div className="alert alert-danger mt-3">
+              {error}
+            </div>
+          )}
         </Modal.Body>
       </Modal>
     </div>
