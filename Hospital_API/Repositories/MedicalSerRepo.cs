@@ -37,6 +37,7 @@ namespace Hospital_API.Repositories
             {
                 existingMedService.Name = medService.Name;
                 existingMedService.Price = medService.Price;
+                existingMedService.Type = medService.Type;
                 existingMedService.Description = medService.Description;
                 await _hospitalDbContext.SaveChangesAsync();
             }

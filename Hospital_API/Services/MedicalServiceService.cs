@@ -36,6 +36,7 @@ namespace Hospital_API.Services
             {
                 Name = medServicedb.Name,
                 Price = medServicedb.Price,
+                Type = medServicedb.Type,
                 Description = medServicedb.Description
             };
             var createdMedService = await _medServiceRepo.CreateMedService(medService);
@@ -48,6 +49,7 @@ namespace Hospital_API.Services
             {
                 Id = medServicedb.Id,
                 Name = medServicedb.Name,
+                Type = medServicedb.Type,
                 Price = medServicedb.Price,
                 Description = medServicedb.Description
             };
@@ -76,6 +78,7 @@ namespace Hospital_API.Services
             {
                 Id = medService.Id,
                 Name = medService.Name,
+                Type = medService.Type,
                 Price = medService.Price,
                 Description = medService.Description
             };

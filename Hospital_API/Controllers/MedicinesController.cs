@@ -1,81 +1,53 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Hospital_API.DTOs;
-using Hospital_API.Models;
-using Hospital_API.Data;
 using Hospital_API.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+
 namespace Hospital_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class MedicinesController : ControllerBase
     {
-        private readonly IMedicinesService _medicinesService;
+        private readonly IMedicinesService _service;
+
         public MedicinesController(IMedicinesService service)
         {
-            _medicinesService = service;
+            _service = service;
         }
-        [HttpPost]
-        public async Task<ActionResult<MedicinesDTO>> CreateMedicines([FromBody] MedicinesDTO medicinesDTO)
-        {
-            if (medicinesDTO == null)
-            {
-                return BadRequest("Medicines data is null");
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            var createdMedicines = await _medicinesService.AddMedicineAsync(medicinesDTO);
-            return CreatedAtAction("GetMedicines", new { id = createdMedicines.Id }, createdMedicines);
-        }
-        [HttpPut("{id}")]
-        public async Task<ActionResult<MedicinesDTO>> UpdateMedicines(int id, [FromBody] MedicinesDTO medicinesDTO)
-        {
-            if (id != medicinesDTO.Id)
-            {
-                return BadRequest("Medicines ID mismatch");
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            var updatedMedicines = await _medicinesService.UpdateMedicineAsync(medicinesDTO);
-            if (updatedMedicines == null)
-            {
-                return NotFound("Medicines not found");
-            }
-            return NoContent();
-        }
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MedicinesDTO>>> GetAllMedicines()
+        public async Task<ActionResult<IEnumerable<MedicinesDTO>>> GetAll()
         {
-            var medicines = await _medicinesService.GetAllMedicinesAsync();
-            if (medicines == null || !medicines.Any())
-            {
-                return NotFound("No medicines found");
-            }
-            return Ok(medicines);
+            var list = await _service.GetAllAsync();
+            return Ok(list);
         }
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<MedicinesDTO>> DeleteMedicines(int id)
-        {
-            var deletedMedicines = await _medicinesService.DeleteMedicineAsync(id);
-            if (deletedMedicines == null)
-            {
-                return NotFound("Medicines not found");
-            }
-            return Ok(deletedMedicines);
-        }
+
         [HttpGet("{id}")]
-        public async Task<ActionResult<MedicinesDTO>> GetMedicines(int id)
+        public async Task<ActionResult<MedicinesDTO>> GetById(int id)
         {
-            var medicines = await _medicinesService.GetMedicineByIdAsync(id);
-            if (medicines == null)
-            {
-                return NotFound("Medicines not found");
-            }
-            return Ok(medicines);
+            var item = await _service.GetByIdAsync(id);
+            return item == null ? NotFound() : Ok(item);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<MedicinesDTO>> Create(MedicinesCreateDTO dto)
+        {
+            var created = await _service.AddAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = created.Code }, created);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<MedicinesDTO>> Update(int id, MedicinesCreateDTO dto)
+        {
+            var updated = await _service.UpdateAsync(id, dto);
+            return updated == null ? NotFound() : Ok(updated);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var deleted = await _service.DeleteAsync(id);
+            return deleted ? NoContent() : NotFound();
         }
     }
 }

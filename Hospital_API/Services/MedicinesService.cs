@@ -1,96 +1,75 @@
-using Hospital_API.Interfaces;
 using Hospital_API.DTOs;
+using Hospital_API.Interfaces;
 using Hospital_API.Models;
 
 namespace Hospital_API.Services
 {
-    public class MedicinesService: IMedicinesService
+    public class MedicinesService : IMedicinesService
     {
-        private readonly IMedicinesRepository medicinesRepository;
-        public MedicinesService(IMedicinesRepository medicines)
+        private readonly IMedicinesRepository _repository;
+
+        public MedicinesService(IMedicinesRepository repository)
         {
-            medicinesRepository = medicines;
+            _repository = repository;
         }
-        //create medicine
-        public async Task<MedicinesDTO> AddMedicineAsync(MedicinesDTO medicinesDTO)
+
+        public async Task<IEnumerable<MedicinesDTO>> GetAllAsync()
         {
-            var existingMedicine = (await medicinesRepository.GetAllMedicinesAsync())
-        .FirstOrDefault(m => m.Name == medicinesDTO.Name && m.SupplierId == medicinesDTO.SupplierId);
-            if (existingMedicine != null)
-            {
-                existingMedicine.Quantity += medicinesDTO.Quantity;
-                var updatedMedicine = await medicinesRepository.UpdateMedicineAsync(existingMedicine);
-                return MapToDTO(updatedMedicine);
-            }
-            else
-            {
-                var medicines = new Medicines
-                {
-                    Name = medicinesDTO.Name,
-                    Quantity = medicinesDTO.Quantity,
-                    Unit = medicinesDTO.Unit,
-                    Price = medicinesDTO.Price,
-                    SupplierId = medicinesDTO.SupplierId 
-                };
-                var addedMedicines = await medicinesRepository.AddMedicineAsync(medicines);
-                return MapToDTO(addedMedicines);
-            }
+            var medicines = await _repository.GetAllAsync();
+            return medicines.Select(MapToDTO).ToList();
         }
-        //update medicine
-        public async Task<MedicinesDTO> UpdateMedicineAsync(MedicinesDTO medicinesDTO)
+
+        public async Task<MedicinesDTO?> GetByIdAsync(int id)
         {
-            var medicines = new Medicines
+            var med = await _repository.GetByIdAsync(id);
+            return med == null ? null : MapToDTO(med);
+        }
+
+        public async Task<MedicinesDTO> AddAsync(MedicinesCreateDTO dto)
+        {
+            var entity = new Medicines
             {
-                Id = medicinesDTO.Id,
-                Name = medicinesDTO.Name,
-                Quantity = medicinesDTO.Quantity,
-                Unit = medicinesDTO.Unit,
-                Price = medicinesDTO.Price,
-                SupplierId = medicinesDTO.SupplierId 
+                Code = dto.Code,
+                Name = dto.Name,
+                Type = dto.Type,
+                ExpiryDate = dto.ExpiryDate,
+                SupplierId = dto.SupplierId
             };
-            var updatedMedicines = await medicinesRepository.UpdateMedicineAsync(medicines);
-            if (updatedMedicines == null)
-            {
-                return null; // or throw an exception
-            }
-            return MapToDTO(updatedMedicines);
+
+            var result = await _repository.AddAsync(entity);
+            return MapToDTO(result);
         }
-        //get all medicines
-        public async Task<IEnumerable<MedicinesDTO>> GetAllMedicinesAsync()
+
+        public async Task<MedicinesDTO?> UpdateAsync(int id, MedicinesCreateDTO dto)
         {
-            var medicines = await medicinesRepository.GetAllMedicinesAsync();
-            return medicines.Select(m => MapToDTO(m)).ToList();
+            var existing = await _repository.GetByIdAsync(id);
+            if (existing == null) return null;
+
+            existing.Code = dto.Code;
+            existing.Name = dto.Name;
+            existing.Type = dto.Type;
+            existing.ExpiryDate = dto.ExpiryDate;
+            existing.SupplierId = dto.SupplierId;
+
+            var result = await _repository.UpdateAsync(existing);
+            return MapToDTO(result);
         }
-        //delete medicine
-        public async Task<MedicinesDTO> DeleteMedicineAsync(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
-            var deletedMedicines = await medicinesRepository.DeleteMedicineAsync(id);
-            if (deletedMedicines == null)
-            {
-                return null; 
-            }
-            return MapToDTO(deletedMedicines);
+            var deleted = await _repository.DeleteAsync(id);
+            return deleted != null;
         }
-        //get medicine by id
-        public async Task<MedicinesDTO> GetMedicineByIdAsync(int id)
-        {
-            var medicines = await medicinesRepository.GetMedicineByIdAsync(id);
-            if (medicines == null)
-            {
-                return null; 
-            }
-            return MapToDTO(medicines);
-        }
-        private MedicinesDTO MapToDTO(Medicines medicines)
+
+        private MedicinesDTO MapToDTO(Medicines m)
         {
             return new MedicinesDTO
             {
-                Id = medicines.Id,
-                Quantity = medicines.Quantity,
-                Name = medicines.Name,
-                Unit = medicines.Unit,
-                Price = medicines.Price,
-                SupplierId = medicines.SupplierId 
+                Id = m.Id,
+                Code = m.Code,
+                Name = m.Name,
+                Type = m.Type,
+                SupplierName = m.Supplier?.SupplierName ?? "Không rõ",
+                IsExpired = m.IsExpired
             };
         }
     }
