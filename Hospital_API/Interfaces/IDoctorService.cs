@@ -7,6 +7,8 @@ namespace Hospital_API.Interfaces
     Task<IEnumerable<DoctorDTO>> GetAllAsync();
     Task<DoctorDTO?> GetByIdAsync(int id);
     Task<DoctorDTO?> GetByUserIdAsync(int userId);
+    Task<List<DoctorDTO>> GetByBranchIdAsync(int branchId);
+
     Task<DoctorDTO> CreateAsync(DoctorCreateDTO dto);
     Task<DoctorDTO?> UpdateAsync(DoctorUpdateDTO dto);
     Task<bool> DeleteAsync(int id);

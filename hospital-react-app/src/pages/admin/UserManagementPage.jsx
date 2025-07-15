@@ -318,7 +318,7 @@ function UserManagementPage() {
           (role) =>
             // role.name !== "Doctor" &&
             // role.name !== "Patient" &&
-            role.name !== "Admin"
+            role.name !== "Admin" 
         );
         setRoles(filteredRoles);
       } catch (error) {

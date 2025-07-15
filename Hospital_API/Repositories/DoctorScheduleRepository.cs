@@ -27,6 +27,7 @@ namespace Hospital_API.Repositories
         {
             return await _context.DoctorSchedules
                 .Include(s => s.Doctor)
+                .ThenInclude(d => d.User)
                 .Include(s => s.Room)
                 .Where(s => s.DoctorId == doctorId)
                 .ToListAsync();

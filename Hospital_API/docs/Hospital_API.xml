@@ -215,5 +215,41 @@
         <member name="M:Hospital_API.Migrations.AddBlogImages.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
+        <member name="T:Hospital_API.Migrations.UpdateDoctorSchedule_AddDateAndStatus">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.UpdateDoctorSchedule_AddDateAndStatus.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.UpdateDoctorSchedule_AddDateAndStatus.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.UpdateDoctorSchedule_AddDateAndStatus.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Hospital_API.Migrations.UpdateDoctorSchedule">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.UpdateDoctorSchedule.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.UpdateDoctorSchedule.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.UpdateDoctorSchedule.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Hospital_API.Migrations.UpdateDoctorBranchRelation">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.UpdateDoctorBranchRelation.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.UpdateDoctorBranchRelation.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.UpdateDoctorBranchRelation.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
     </members>
 </doc>

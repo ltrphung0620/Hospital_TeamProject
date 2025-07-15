@@ -4,6 +4,7 @@ using Hospital_API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Hospital_API.Migrations
 {
     [DbContext(typeof(HospitalDbContext))]
-    partial class HospitalDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250714041643_UpdateDoctorSchedule_AddDateAndStatus")]
+    partial class UpdateDoctorSchedule_AddDateAndStatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -190,9 +193,6 @@ namespace Hospital_API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("BranchId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Degree")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -208,8 +208,6 @@ namespace Hospital_API.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("BranchId");
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -227,6 +225,9 @@ namespace Hospital_API.Migrations
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
 
                     b.Property<int>("DoctorId")
                         .HasColumnType("int");
@@ -999,19 +1000,11 @@ namespace Hospital_API.Migrations
 
             modelBuilder.Entity("Hospital_API.Models.Doctor", b =>
                 {
-                    b.HasOne("Hospital_API.Models.Branch", "Branch")
-                        .WithMany("Doctors")
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Hospital_API.Models.User", "User")
                         .WithOne("Doctor")
                         .HasForeignKey("Hospital_API.Models.Doctor", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Branch");
 
                     b.Navigation("User");
                 });
@@ -1274,8 +1267,6 @@ namespace Hospital_API.Migrations
             modelBuilder.Entity("Hospital_API.Models.Branch", b =>
                 {
                     b.Navigation("Appointments");
-
-                    b.Navigation("Doctors");
                 });
 
             modelBuilder.Entity("Hospital_API.Models.Doctor", b =>

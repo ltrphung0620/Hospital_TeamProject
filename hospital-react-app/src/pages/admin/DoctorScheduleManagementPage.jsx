@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState,useEffect  } from 'react';
 import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination, Badge } from 'react-bootstrap';
 import { FaPlus, FaEdit, FaTrash, FaCalendarAlt } from 'react-icons/fa';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
 import axios from 'axios';
-import { API_BASE_URL } from '../../services/api';
+import { API_BASE_URL } from '../../services/api'; // nếu bạn có sẵn BASE_URL
 
 // Mock data - In a real app, this would come from an API
 const initialDoctors = [
@@ -23,31 +23,69 @@ const initialSchedules = [
 
 function DoctorScheduleManagementPage() {
   const [schedules, setSchedules] = useState(initialSchedules);
-  const [doctors, setDoctors] = useState(initialDoctors);
+  const [doctors, setDoctors] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentSchedule, setCurrentSchedule] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Added loading state
+  const [rooms, setRooms] = useState([]);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  useEffect(() => {
-    const fetchSchedules = async () => {
-      try {
-        setIsLoading(true);
-        const response = await axios.get(`${API_BASE_URL}/DoctorSchedule`);
-        setSchedules(response.data);
-      } catch (error) {
-        console.error('Failed to fetch schedules:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
 
-    fetchSchedules();
-  }, []);
+  const generateTimeOptions = () => {
+    const times = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let min = 0; min < 60; min += 30) {
+        const h = hour.toString().padStart(2, '0');
+        const m = min.toString().padStart(2, '0');
+        times.push(`${h}:${m}`);
+      }
+    }
+    return times;
+  };
+  const timeOptions = generateTimeOptions();
+
+useEffect(() => {
+  const fetchDoctors = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await axios.get(`${API_BASE_URL}/Doctor`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setDoctors(response.data.map(d => ({ id: d.id, name: d.fullName })));
+    } catch (error) {
+      console.error("Failed to fetch doctors:", error);
+    }
+  };
+
+  const fetchRooms = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/Room`);
+      setRooms(response.data);
+    } catch (error) {
+      console.error("Error fetching rooms:", error);
+    }
+  };
+
+  fetchDoctors();
+  fetchRooms();
+  fetchSchedules();
+}, []);
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return '';
+  return dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
+};
+const formatTime = (timeStr) => {
+  if (!timeStr) return '';
+  const [hour, minute] = timeStr.split(':');
+  return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+};
+
 
   const handleCloseModal = () => {
     setShowModal(false);
@@ -57,7 +95,14 @@ function DoctorScheduleManagementPage() {
 
   const handleShowModal = (schedule = null) => {
     if (schedule) {
-      setCurrentSchedule({ ...schedule });
+      const formattedSchedule = {
+      ...schedule,
+      date: formatDate(schedule.date),
+      startTime: formatTime(schedule.startTime),
+      endTime: formatTime(schedule.endTime),
+    };
+      setCurrentSchedule(formattedSchedule);
+
       setIsEditing(true);
     } else {
       setCurrentSchedule({ doctorId: '', date: '', startTime: '', endTime: '', status: 'Available' });
@@ -66,18 +111,58 @@ function DoctorScheduleManagementPage() {
     setShowModal(true);
   };
 
-  const handleSave = () => {
+  const fetchSchedules = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/DoctorSchedule`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+      },
+    });
+    setSchedules(response.data);
+  } catch (error) {
+    console.error("Failed to fetch schedules:", error);
+  }
+};
+
+
+
+
+
+
+  const handleSave =async  () => {
+    const token = localStorage.getItem("authToken");
     const doctor = doctors.find(d => d.id === parseInt(currentSchedule.doctorId));
+    const room = rooms.find(r => r.id === parseInt(currentSchedule.roomId));
+
     const scheduleWithDoctorName = { ...currentSchedule, doctorName: doctor ? doctor.name : 'N/A' };
 
-    if (isEditing) {
-      setSchedules(schedules.map(s => (s.id === scheduleWithDoctorName.id ? scheduleWithDoctorName : s)));
-    } else {
-      const newSchedule = { ...scheduleWithDoctorName, id: Math.max(...schedules.map(s => s.id), 0) + 1 };
-      setSchedules([...schedules, newSchedule]);
-    }
-    handleCloseModal();
+    const payload = {
+    doctorId: parseInt(currentSchedule.doctorId),
+    roomId: parseInt(currentSchedule.roomId),
+    date: currentSchedule.date,
+    startTime: currentSchedule.startTime,
+    endTime: currentSchedule.endTime,
+    status: currentSchedule.status
   };
+
+  try {
+    if (isEditing) {
+      await axios.put(`${API_BASE_URL}/DoctorSchedule/${currentSchedule.id}`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } else {
+      await axios.post(`${API_BASE_URL}/DoctorSchedule`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    }
+      
+    await fetchSchedules();  // refresh danh sách
+    handleCloseModal();      // đóng modal
+  } catch (error) {
+    console.error("Save failed:", error);
+    alert("Error saving schedule. Please try again.");
+  }
+};
 
   const handleDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this schedule?')) {
@@ -137,6 +222,7 @@ function DoctorScheduleManagementPage() {
               <tr>
                 <th>#</th>
                 <th>Doctor</th>
+                <th>Room</th>
                 <th>Date</th>
                 <th>Time Slot</th>
                 <th>Status</th>
@@ -148,8 +234,11 @@ function DoctorScheduleManagementPage() {
                 <tr key={schedule.id}>
                   <td>{indexOfFirstItem + index + 1}</td>
                   <td>{schedule.doctorName}</td>
-                  <td>{schedule.date}</td>
-                  <td>{`${schedule.startTime} - ${schedule.endTime}`}</td>
+                  <td>
+                      <div className="fw-bold">{schedule.roomName}</div>
+                    </td>
+                  <td>{formatDate(schedule.date)}</td>
+                  <td>{`${formatTime(schedule.startTime)} - ${formatTime(schedule.endTime)}`}</td>
                   <td>{getStatusBadge(schedule.status)}</td>
                   <td>
                     <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleShowModal(schedule)}>
@@ -201,20 +290,52 @@ function DoctorScheduleManagementPage() {
             <Row>
               <Col>
                 <Form.Group className="mb-3">
-                  <Form.Label>Start Time</Form.Label>
-                  <Form.Control type="time" name="startTime" value={currentSchedule?.startTime || ''} onChange={handleChange} />
-                </Form.Group>
+  <Form.Label>Start Time</Form.Label>
+  <Form.Select name="startTime" value={currentSchedule?.startTime || ''} onChange={handleChange}>
+    <option value="" disabled>Select time</option>
+    {timeOptions.map(time => (
+      <option key={time} value={time}>{time}</option>
+    ))}
+  </Form.Select>
+</Form.Group>
               </Col>
               <Col>
                 <Form.Group className="mb-3">
-                  <Form.Label>End Time</Form.Label>
-                  <Form.Control type="time" name="endTime" value={currentSchedule?.endTime || ''} onChange={handleChange} />
-                </Form.Group>
+  <Form.Label>End Time</Form.Label>
+  <Form.Select name="endTime" value={currentSchedule?.endTime || ''} onChange={handleChange}>
+    <option value="" disabled>Select time</option>
+    {timeOptions.map(time => (
+      <option key={time} value={time}>{time}</option>
+    ))}
+  </Form.Select>
+</Form.Group>
               </Col>
             </Row>
+
+  <Form.Group className="mb-3">
+  <Form.Label>Room</Form.Label>
+  <Form.Select
+    name="roomId"
+    value={currentSchedule?.roomId || ''}
+    onChange={handleChange}
+    required
+  >
+    <option value="">Select Room</option>
+    {rooms.map((room) => (
+      <option key={room.id} value={room.id}>
+        {room.name}
+      </option>
+    ))}
+  </Form.Select>
+</Form.Group>
+
+
+
+
             <Form.Group className="mb-3">
               <Form.Label>Status</Form.Label>
-              <Form.Select name="status" value={currentSchedule?.status || 'Available'} onChange={handleChange}>
+              <Form.Select name="status" value={currentSchedule?.status || ''} onChange={handleChange}>
+                <option value="" disabled>Select a Status</option>
                 <option value="Available">Available</option>
                 <option value="Booked">Booked</option>
                 <option value="Unavailable">Unavailable</option>

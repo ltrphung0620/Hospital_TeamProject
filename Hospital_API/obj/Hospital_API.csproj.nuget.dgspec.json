@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Nghĩa\\Hospital_Project\\Hospital_Project\\Hospital_API\\Hospital_API.csproj": {}
+    "D:\\Project\\Hospital_Project\\Hospital_API\\Hospital_API.csproj": {}
   },
   "projects": {
-    "D:\\Nghĩa\\Hospital_Project\\Hospital_Project\\Hospital_API\\Hospital_API.csproj": {
+    "D:\\Project\\Hospital_Project\\Hospital_API\\Hospital_API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Nghĩa\\Hospital_Project\\Hospital_Project\\Hospital_API\\Hospital_API.csproj",
+        "projectUniqueName": "D:\\Project\\Hospital_Project\\Hospital_API\\Hospital_API.csproj",
         "projectName": "Hospital_API",
-        "projectPath": "D:\\Nghĩa\\Hospital_Project\\Hospital_Project\\Hospital_API\\Hospital_API.csproj",
+        "projectPath": "D:\\Project\\Hospital_Project\\Hospital_API\\Hospital_API.csproj",
         "packagesPath": "C:\\Users\\2212091\\.nuget\\packages\\",
-        "outputPath": "D:\\Nghĩa\\Hospital_Project\\Hospital_Project\\Hospital_API\\obj\\",
+        "outputPath": "D:\\Project\\Hospital_Project\\Hospital_API\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -26,7 +26,7 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "https://www.nuget.org/api/v2/": {}
+          "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net9.0": {
@@ -56,29 +56,29 @@
             },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
-              "version": "[9.0.5, )"
+              "version": "[9.0.0, )"
             },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
-              "version": "[9.0.3, )"
+              "version": "[9.0.0, )"
             },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
-              "version": "[9.0.4, )"
+              "version": "[9.0.0, )"
             },
             "Microsoft.EntityFrameworkCore.Design": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",
               "target": "Package",
-              "version": "[9.0.4, )"
+              "version": "[9.0.0, )"
             },
             "Microsoft.EntityFrameworkCore.SqlServer": {
               "target": "Package",
-              "version": "[9.0.4, )"
+              "version": "[9.0.0, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
-              "version": "[8.1.1, )"
+              "version": "[6.5.0, )"
             }
           },
           "imports": [

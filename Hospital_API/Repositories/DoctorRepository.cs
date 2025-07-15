@@ -27,9 +27,19 @@ namespace Hospital_API.Repositories
         public async Task<Doctor?> GetByUserIdAsync(int userId)
         {
             return await _context.Doctors
-     .Include(p => p.User)
-     .FirstOrDefaultAsync(p => p.UserId == userId);
+            .Include(p => p.User)
+            .FirstOrDefaultAsync(p => p.UserId == userId);
         }
+        public async Task<List<Doctor>> GetByBranchIdAsync(int branchId)
+            {
+                return await _context.Doctors
+                    .Include(d => d.User)
+                    .Include(d => d.Branch)
+                    .Where(d => d.BranchId == branchId)
+                    .ToListAsync();
+            }
+
+
 
         public async Task AddAsync(Doctor doctor)
         {
@@ -50,6 +60,8 @@ namespace Hospital_API.Repositories
         {
             return await _context.SaveChangesAsync() > 0;
         }
+
+       
     }
 
 }

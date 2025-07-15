@@ -48,7 +48,12 @@ namespace Hospital_API.Controllers
 
             return Ok(doctor);
         }
-
+        [HttpGet("branchId/{id}")]
+        public async Task<IActionResult> GetByBranchId(int id)
+        {
+            var result = await _service.GetByBranchIdAsync(id);
+            return Ok(result);
+        }
         // POST: api/Doctor
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] DoctorCreateDTO dto)

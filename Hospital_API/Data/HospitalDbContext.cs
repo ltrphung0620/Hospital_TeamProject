@@ -94,6 +94,12 @@ namespace Hospital_API.Data
                 .WithOne(u => u.Doctor)
                 .HasForeignKey<Doctor>(p => p.UserId);
 
+            modelBuilder.Entity<Doctor>()
+                    .HasOne(d => d.Branch)
+                    .WithMany(b => b.Doctors)
+                    .HasForeignKey(d => d.BranchId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Appointment>()
                 .HasOne(a => a.Patient)
                 .WithMany(p => p.Appointments)

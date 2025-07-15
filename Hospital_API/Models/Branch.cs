@@ -11,5 +11,7 @@ namespace Hospital_API.Models
         public string Phone { get; set; }
 
         public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+        public ICollection<Doctor> Doctors { get; set; } = new List<Doctor>();
+
     }
 }
