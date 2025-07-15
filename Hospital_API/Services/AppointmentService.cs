@@ -24,9 +24,14 @@ namespace Hospital_API.Services
             return appointments.Select(a => new AppointmentDTO
             {
                 Id = a.Id,
-                PatientName = a.Patient.User.FullName,
-                DoctorName = a.Doctor.User.FullName,
-                BranchName = a.Branch.Name,
+                PatientId = a.PatientId,
+                DoctorId = a.DoctorId,
+                BranchId = a.BranchId,
+                PatientName =  a.Patient?.User?.FullName ?? "Unknown",
+                DoctorName = a.Doctor?.User?.FullName ?? "Unknown",
+                BranchName = a.Branch?.Name ?? "Unknown",
+                Specialization = a.Doctor?.Specialization ?? "Unknown",
+
                 AppointmentDate = a.AppointmentDate,
                 StartTime = a.StartTime,
                 EndTime = a.EndTime,
@@ -34,6 +39,27 @@ namespace Hospital_API.Services
                 Note = a.Note
             });
         }
+        public async Task<List<AppointmentDTO>> GetAppointmentsByPatientIdAsync(int patientId)
+            {
+                var appointments = await _appointmentRepo.GetByPatientIdAsync(patientId);
+                return appointments.Select(a => new AppointmentDTO
+                {
+                    Id = a.Id,
+                    PatientId = a.PatientId,
+                    DoctorId = a.DoctorId,
+                    BranchId = a.BranchId,
+                    PatientName =  a.Patient?.User?.FullName ?? "Unknown",
+                    DoctorName = a.Doctor?.User?.FullName ?? "Unknown",
+                    BranchName = a.Branch?.Name ?? "Unknown",
+                    Specialization = a.Doctor?.Specialization ?? "Unknown",
+                    AppointmentDate = a.AppointmentDate,
+                    StartTime = a.StartTime,
+                    EndTime = a.EndTime,
+                    Status = a.Status,
+                    Note = a.Note
+                }).ToList();
+            }
+
 
         public async Task<AppointmentDTO?> GetByIdAsync(int id)
         {
@@ -43,6 +69,10 @@ namespace Hospital_API.Services
             return new AppointmentDTO
             {
                 Id = a.Id,
+                PatientId = a.PatientId,
+                DoctorId = a.DoctorId,
+                BranchId = a.BranchId,
+
                 PatientName = a.Patient?.User?.FullName ?? "",
                 DoctorName = a.Doctor?.User?.FullName ?? "",
                 BranchName = a.Branch?.Name ?? "",

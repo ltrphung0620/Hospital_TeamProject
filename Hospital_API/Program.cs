@@ -209,6 +209,7 @@ builder.Services.AddScoped<ILabTestRepo, LabTestRepo>();
 builder.Services.AddScoped<ILabTestService, LabTestService>();
 builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 builder.Services.AddScoped<IBranchService, BranchService>();
+
 builder.Services.AddScoped<ITestRequestRepository, TestRequestRepository>();
 builder.Services.AddScoped<ITestRequestService, TestRequestService>();
 builder.Services.AddScoped<ITestResultRepository, TestResultRepository>();
@@ -234,6 +235,9 @@ builder.Services.AddScoped<IRoomService, RoomService>();
 
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+builder.Services.AddScoped<IEmailService, EmailService>();
+
 
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination, Badge } from 'react-bootstrap';
 import { FaPlus, FaEdit, FaTrash, FaCalendarAlt } from 'react-icons/fa';
@@ -13,6 +14,7 @@ function DoctorScheduleManagementPage() {
   const [currentSchedule, setCurrentSchedule] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [rooms, setRooms] = useState([]);
+
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -28,6 +30,7 @@ function DoctorScheduleManagementPage() {
     }
     return times;
   };
+
 
   const timeOptions = generateTimeOptions();
 
@@ -53,6 +56,7 @@ function DoctorScheduleManagementPage() {
       console.error("Error fetching rooms:", error);
     }
   };
+
 
   const fetchSchedules = async () => {
     try {
@@ -100,6 +104,7 @@ function DoctorScheduleManagementPage() {
   const handleShowModal = (schedule = null) => {
     if (schedule) {
       const formattedSchedule = {
+
         ...schedule,
         date: formatDate(schedule.date),
         startTime: formatTime(schedule.startTime),
@@ -114,10 +119,12 @@ function DoctorScheduleManagementPage() {
     setShowModal(true);
   };
 
+
   const handleSave = async () => {
     const token = localStorage.getItem("authToken");
     const doctor = doctors.find(d => d.id === parseInt(currentSchedule.doctorId));
     const room = rooms.find(r => r.id === parseInt(currentSchedule.roomId));
+
 
     const payload = {
       doctorId: parseInt(currentSchedule.doctorId),
@@ -166,6 +173,7 @@ function DoctorScheduleManagementPage() {
     setCurrentSchedule(prev => ({ ...prev, [name]: value }));
   };
 
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = schedules.slice(indexOfFirstItem, indexOfLastItem);
@@ -176,6 +184,7 @@ function DoctorScheduleManagementPage() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Available':
+
         return <Badge bg="success">Còn trống</Badge>;
       case 'Booked':
         return <Badge bg="warning">Đã đặt</Badge>;
@@ -191,6 +200,7 @@ function DoctorScheduleManagementPage() {
       <Row className="mb-4">
         <Col>
           <h2 className="admin-page-title">
+
             <FaCalendarAlt className="me-2" /> Quản Lý Lịch Khám
           </h2>
         </Col>
@@ -203,6 +213,7 @@ function DoctorScheduleManagementPage() {
 
       <Card className="admin-card">
         <Card.Header className="d-flex justify-content-between align-items-center">
+
           <h5 className="mb-0">Danh Sách Lịch Khám</h5>
         </Card.Header>
         <Card.Body>
@@ -283,6 +294,7 @@ function DoctorScheduleManagementPage() {
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
+
               <Form.Label>Bác Sĩ</Form.Label>
               <Form.Select name="doctorId" value={currentSchedule?.doctorId || ''} onChange={handleChange}>
                 <option value="">Chọn Bác Sĩ</option>
@@ -292,6 +304,7 @@ function DoctorScheduleManagementPage() {
               </Form.Select>
             </Form.Group>
             <Form.Group className="mb-3">
+
               <Form.Label>Phòng</Form.Label>
               <Form.Select name="roomId" value={currentSchedule?.roomId || ''} onChange={handleChange}>
                 <option value="">Chọn Phòng</option>
@@ -338,6 +351,7 @@ function DoctorScheduleManagementPage() {
           </Form>
         </Modal.Body>
         <Modal.Footer>
+
           <Button variant="secondary" onClick={handleCloseModal}>Hủy</Button>
           <Button variant="primary" onClick={handleSave}>
             {isEditing ? 'Cập Nhật' : 'Thêm Mới'}

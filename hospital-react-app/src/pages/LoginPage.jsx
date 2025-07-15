@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import axios from "axios";
 import { API_BASE_URL } from '../services/api';
+
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const LoginPage = () => {
@@ -15,6 +16,7 @@ const LoginPage = () => {
     username: '',
     password: ''
   });
+
   const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (event) => {
@@ -28,6 +30,7 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+
       setIsLoading(true);
       const response = await axios.post(`${API_BASE_URL}/Auth/login`, formData);
       
@@ -54,12 +57,14 @@ const LoginPage = () => {
         'danger'
       );
     } finally {
+
       setIsLoading(false);
     }
   };
 
   return (
     <>
+
       {isLoading && <div className="loading-spinner-overlay"><LoadingSpinner /></div>}
       <section id="intro" style={{ backgroundColor: "#E8F0F1" }}>
         <div className="container">
@@ -94,6 +99,7 @@ const LoginPage = () => {
                         <input
                           type="text"
                           name="username"
+
                           placeholder="Tên đăng nhập *"
                           value={formData.username}
                           onChange={handleInputChange}
@@ -107,6 +113,7 @@ const LoginPage = () => {
                         <input
                           type="password"
                           name="password"
+
                           placeholder="Mật khẩu *"
                           value={formData.password}
                           className="form-control"
@@ -121,12 +128,14 @@ const LoginPage = () => {
                         className="btn btn-primary btn-pill btn-lg mt-3"
                         type="submit"
                       >
+
                         Đăng nhập
                       </button>
                     </div>
                   </form>
                   <div className="text-center mt-3">
                     <p>
+
                       Chưa có tài khoản?{" "}
                       <Link to="/register">Đăng ký tại đây</Link>
                     </p>

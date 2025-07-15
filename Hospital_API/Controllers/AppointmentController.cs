@@ -37,6 +37,12 @@ namespace Hospital_API.Controllers
 
             return Ok(appointment);
         }
+        [HttpGet("by-patient/{patientId}")]
+        public async Task<IActionResult> GetByPatientId(int patientId)
+        {
+            var result = await _service.GetAppointmentsByPatientIdAsync(patientId);
+            return Ok(result);
+        }
 
         /// <summary>
         /// Create a new appointment
@@ -44,8 +50,10 @@ namespace Hospital_API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] AppointmentCreateDTO dto)
         {
+           
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return BadRequest(new { message = "Account Admin không thể book lịch khám." });
+       
 
             try
             {
@@ -78,7 +86,8 @@ namespace Hospital_API.Controllers
         /// <summary>
         /// Cancel an appointment
         /// </summary>
-        [HttpPut("{id}/cancel")]
+        [HttpPut("cancel/{id}")]
+
         public async Task<IActionResult> Cancel(int id)
         {
             var success = await _service.CancelAsync(id);

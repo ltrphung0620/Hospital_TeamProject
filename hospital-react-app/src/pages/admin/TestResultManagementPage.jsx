@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination } from 'react-bootstrap';
 import { FaClipboardCheck, FaEdit, FaEye, FaPlus } from 'react-icons/fa';
@@ -19,6 +20,7 @@ function TestResultManagementPage() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
 
   useEffect(() => {
     fetchData();
@@ -49,6 +51,7 @@ function TestResultManagementPage() {
   };
 
   const handleShowModal = (result = null, editMode = false) => {
+
     if (result) {
       setCurrentResult({ ...result });
     } else {
@@ -82,6 +85,7 @@ function TestResultManagementPage() {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = results.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(results.length / itemsPerPage);
+
 
   const getRequestInfo = (testRequestID) => {
     const req = pendingRequests.find(r => r.id === parseInt(testRequestID));
@@ -189,6 +193,7 @@ function TestResultManagementPage() {
 
       <Modal show={showModal} onHide={handleCloseModal} size="lg">
         <Modal.Header closeButton>
+
           <Modal.Title>
             {isEditing ? (currentResult?.id ? 'Cập nhật kết quả xét nghiệm' : 'Thêm kết quả xét nghiệm mới') : 'Xem kết quả xét nghiệm'}
           </Modal.Title>
@@ -263,5 +268,6 @@ function TestResultManagementPage() {
     </Container>
   );
 }
+
 
 export default TestResultManagementPage;

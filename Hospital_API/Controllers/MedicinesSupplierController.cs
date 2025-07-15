@@ -1,3 +1,4 @@
+
 using Hospital_API.DTOs;
 using Hospital_API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,7 @@ namespace Hospital_API.Controllers
     {
         private readonly IMedicineSupplierService _service;
 
+
         public MedicineSupplierController(IMedicineSupplierService service)
         {
             _service = service;
@@ -18,6 +20,7 @@ namespace Hospital_API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MedicineSupplierDTO>>> GetAll()
         {
+
             var list = await _service.GetAllAsync();
             return Ok(list);
         }

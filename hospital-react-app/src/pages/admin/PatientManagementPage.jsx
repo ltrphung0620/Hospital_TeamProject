@@ -508,6 +508,7 @@ function PatientManagementPage() {
 
       <Card className="admin-card">
         <Card.Header className="d-flex justify-content-between align-items-center">
+
           <h5 className="mb-0">Danh Sách Bệnh Nhân</h5>
           <Button variant="primary" onClick={() => handleShowModal()}>
             <FaPlus className="me-2" /> Thêm thông tin bệnh nhân
@@ -515,6 +516,7 @@ function PatientManagementPage() {
         </Card.Header>
         <Card.Body>
           {isLoading ? (
+
             <div className="text-center">
               <LoadingSpinner />
             </div>

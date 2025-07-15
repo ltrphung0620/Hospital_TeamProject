@@ -311,6 +311,7 @@ function UserManagementPage() {
     const fetchRoles = async () => {
       try {
         const response = await axios.get(
+
           `${API_BASE_URL}/Roles`
         );
         // Lọc bỏ role Doctor và Patient
@@ -343,6 +344,7 @@ function UserManagementPage() {
       };
 
       await axios.post(
+
         `${API_BASE_URL}/UserRole/assign`,
         payload,
         {

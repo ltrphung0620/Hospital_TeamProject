@@ -13,6 +13,8 @@ namespace Hospital_API.DTOs
         public string DoctorName { get; set; } = null!;
         public string BranchName { get; set; } = null!;
 
+        public string? Specialization { get; set; }
+
         public DateTime AppointmentDate { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }

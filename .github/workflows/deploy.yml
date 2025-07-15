@@ -116,6 +116,12 @@ jobs:
               -e LC_ALL=en_US.UTF-8 \
               -e TZ=Asia/Ho_Chi_Minh \
               -e "ConnectionStrings__DefaultConnection=${{ secrets.ASPNETCORE_CONNECTIONSTRING }}" \
+<<<<<<< HEAD
+              -e "SendGrid__ApiKey=${{ secrets.SENDGRID_API_KEY }}" \
+              -e "SendGrid__SenderEmail=${{ secrets.SENDGRID_SENDER_EMAIL }}" \
+              -e "SendGrid__SenderName=${{ secrets.SENDGRID_SENDER_NAME }}" \
+=======
+>>>>>>> origin/main
               $IMAGE_PULL_TAG
             
             # Verify container is running

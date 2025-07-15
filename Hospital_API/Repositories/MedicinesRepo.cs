@@ -1,3 +1,4 @@
+
 using Hospital_API.Data;
 using Hospital_API.Interfaces;
 using Hospital_API.Models;
@@ -7,6 +8,7 @@ namespace Hospital_API.Repositories
 {
     public class MedicinesRepository : IMedicinesRepository
     {
+
         private readonly HospitalDbContext _context;
 
         public MedicinesRepository(HospitalDbContext context)

@@ -1,3 +1,4 @@
+
 using Hospital_API.Data;
 using Hospital_API.Interfaces;
 using Hospital_API.Models;
@@ -13,6 +14,7 @@ namespace Hospital_API.Repositories
         {
             _context = context;
         }
+
 
         public async Task<IEnumerable<MedicineSupplier>> GetAllAsync()
         {

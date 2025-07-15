@@ -1,6 +1,9 @@
-using Hospital_API.DTOs;
-using Hospital_API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Hospital_API.DTOs;
+using Hospital_API.Models;
+using Hospital_API.Data;
+using Hospital_API.Interfaces;
 
 namespace Hospital_API.Controllers
 {

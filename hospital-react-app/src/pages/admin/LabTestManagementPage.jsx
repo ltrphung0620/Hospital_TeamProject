@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination } from 'react-bootstrap';
 import { FaPlus, FaEdit, FaTrash, FaFlask } from 'react-icons/fa';
@@ -17,6 +18,7 @@ function LabTestManagementPage() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
 
   useEffect(() => {
     fetchLabTests();

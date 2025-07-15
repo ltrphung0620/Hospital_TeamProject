@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Container, Row, Col, Card, Button,
@@ -52,6 +53,7 @@ function TestRequestManagementPage() {
   };
 
   const handleShowModal = (request = null, editMode = false) => {
+
     if (request) {
       setCurrentRequest({ ...request });
     } else {
@@ -124,6 +126,7 @@ function TestRequestManagementPage() {
     <Container fluid className="p-4">
       <Row className="mb-4">
         <Col>
+
           <h2 className="admin-page-title">
             <FaVial className="me-2" /> Lab Test Request Management
           </h2>
@@ -133,6 +136,7 @@ function TestRequestManagementPage() {
       <Card className="admin-card">
         <Card.Header className="d-flex justify-content-between align-items-center">
           <span>Test Requests List</span>
+
           <Button variant="primary" onClick={() => handleShowModal(null, false)}>
             <FaPlus className="me-2" /> New Request
           </Button>
@@ -142,6 +146,7 @@ function TestRequestManagementPage() {
             <thead>
               <tr>
                 <th>#</th>
+
                 <th>Lab Test</th>
                 <th>Requested At</th>
                 <th>Status</th>
@@ -186,6 +191,7 @@ function TestRequestManagementPage() {
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
+
               <Form.Label>Lab Test</Form.Label>
               <Form.Select
                 name="labTestId"

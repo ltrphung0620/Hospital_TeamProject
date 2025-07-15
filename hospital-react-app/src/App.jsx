@@ -10,6 +10,7 @@ import DepartmentsPage from './pages/DepartmentsPage';
 import BookingPage from './pages/BookingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import BlogPage from './pages/BlogPage';
 import BlogDetailPage from './pages/BlogDetailPage';
@@ -107,6 +108,7 @@ function App() {
         {/* Auth routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         {/* 404 route */}

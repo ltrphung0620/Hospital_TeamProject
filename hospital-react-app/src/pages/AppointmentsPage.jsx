@@ -5,6 +5,9 @@ import { FaCalendarAlt, FaSearch, FaFilter, FaTimes } from 'react-icons/fa';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import './AppointmentsPage.css';
 import { Link } from 'react-router-dom';
+import { API_BASE_URL } from '../services/api';
+import axios from 'axios';
+
 
 const AppointmentsPage = () => {
   const [appointments, setAppointments] = useState([]);
@@ -18,40 +21,54 @@ const AppointmentsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
 
-  // Mock data for demonstration
-  const mockAppointments = Array.from({ length: 15 }, (_, index) => ({
-    id: index + 1,
-    patientName: ["John Doe", "Jane Smith", "Robert Wilson", "Alice Johnson", "Tom Brown"][index % 5],
-    doctorName: ["Dr. Sarah Johnson", "Dr. Michael Brown", "Dr. Emily Davis", "Dr. James Wilson", "Dr. Lisa Anderson"][index % 5],
-    date: new Date(2024, 2, 20 + index).toISOString().split('T')[0],
-    time: ["09:00 AM", "10:30 AM", "02:00 PM", "03:30 PM", "11:00 AM"][index % 5],
-    status: ["scheduled", "completed", "scheduled", "cancelled", "scheduled"][index % 5],
-    department: ["Cardiology", "Neurology", "Dermatology", "Pediatrics", "Orthopedics"][index % 5],
-    reason: ["Regular checkup", "Headache consultation", "Skin examination", "Fever", "Back pain"][index % 5]
-  }));
 
-  useEffect(() => {
-    setTimeout(() => {
-      setAppointments(mockAppointments);
+useEffect(() => {
+  const fetchPatientAndAppointments = async () => {
+    try {
+      const authData = JSON.parse(localStorage.getItem("authData"));
+      const userId = authData?.userId;
+
+      if (!userId) return;
+
+      const patientRes = await axios.get(`${API_BASE_URL}/Patient/user/${userId}`);
+      const patientId = patientRes.data.id;
+
+      const appointmentsRes = await axios.get(`${API_BASE_URL}/Appointment/by-patient/${patientId}`);
+      setAppointments(appointmentsRes.data);
+    } catch (error) {
+      console.error("Error fetching patient or appointments:", error);
+      toast.error("Failed to load appointments");
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, []);
+    }
+  };
+
+  fetchPatientAndAppointments();
+}, []);
+
+
+
+
 
   const handleCancelAppointment = async () => {
     if (!selectedAppointment) return;
 
     try {
       setLoading(true);
-      const updatedAppointments = appointments.map(appointment => 
-        appointment.id === selectedAppointment.id 
-          ? { ...appointment, status: 'cancelled' }
-          : appointment
-      );
-      
-      setAppointments(updatedAppointments);
-      toast.success('Appointment cancelled successfully');
-      setShowCancelModal(false);
-      setSelectedAppointment(null);
+    const cancelUrl = `${API_BASE_URL}/Appointment/cancel/${selectedAppointment.id}`;
+    await axios.put(cancelUrl); // gọi API để hủy
+
+    const updatedAppointments = appointments.map(appointment =>
+      appointment.id === selectedAppointment.id
+        ? { ...appointment, status: 'Cancelled' }
+        : appointment
+    );
+
+    setAppointments(updatedAppointments);
+    toast.success('Appointment cancelled successfully');
+    setShowCancelModal(false);
+    setSelectedAppointment(null);
+
     } catch (error) {
       toast.error('Failed to cancel appointment. Please try again.');
       console.error('Cancel appointment error:', error);
@@ -61,7 +78,8 @@ const AppointmentsPage = () => {
   };
 
   const openCancelModal = (appointment) => {
-    if (appointment.status === 'cancelled') {
+    if (appointment.status === 'Cancelled') {
+
       toast.warning('This appointment is already cancelled');
       return;
     }
@@ -69,6 +87,8 @@ const AppointmentsPage = () => {
       toast.warning('Cannot cancel a completed appointment');
       return;
     }
+  
+
 
     const appointmentDate = new Date(`${appointment.date} ${appointment.time}`);
     if (appointmentDate < new Date()) {
@@ -106,8 +126,11 @@ const AppointmentsPage = () => {
         return 'primary';
       case 'completed':
         return 'success';
-      case 'cancelled':
+      case 'Cancelled':
         return 'danger';
+      case 'Pending':
+        return 'warning';
+
       default:
         return 'secondary';
     }
@@ -147,7 +170,11 @@ const AppointmentsPage = () => {
                     Completed: {appointments.filter(a => a.status === 'completed').length}
                   </Badge>
                   <Badge bg="danger" className="stats-badge">
-                    Cancelled: {appointments.filter(a => a.status === 'cancelled').length}
+                    Cancelled: {appointments.filter(a => a.status === 'Cancelled').length}
+                  </Badge>
+                  <Badge bg="warning" className="stats-badge">
+                    Pending: {appointments.filter(a => a.status === 'Pending').length}
+
                   </Badge>
                 </div>
               </div>
@@ -184,8 +211,11 @@ const AppointmentsPage = () => {
                     >
                       <option value="all">All Status</option>
                       <option value="scheduled">Scheduled</option>
+
+                      <option value="Pending">Pending</option>
                       <option value="completed">Completed</option>
-                      <option value="cancelled">Cancelled</option>
+                      <option value="Cancelled">Cancelled</option>
+
                     </Form.Select>
                   </div>
                 </Col>
@@ -197,7 +227,8 @@ const AppointmentsPage = () => {
                     <tr>
                       <th>Patient Name</th>
                       <th>Doctor</th>
-                      <th>Department</th>
+
+                      <th>Specialization</th>
                       <th>Date</th>
                       <th>Time</th>
                       <th>Reason</th>
@@ -210,10 +241,20 @@ const AppointmentsPage = () => {
                       <tr key={appointment.id}>
                         <td>{appointment.patientName}</td>
                         <td>{appointment.doctorName}</td>
-                        <td>{appointment.department}</td>
-                        <td>{appointment.date}</td>
-                        <td>{appointment.time}</td>
-                        <td>{appointment.reason}</td>
+
+                        <td>{appointment.specialization}</td>
+                        <td>
+                          {(() => {
+                            const date = new Date(appointment.appointmentDate);
+                            const day = String(date.getDate()).padStart(2, '0');
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const year = date.getFullYear();
+                            return `${day}/${month}/${year}`;
+                          })()}
+                        </td>
+                        <td>{appointment.startTime?.substring(0, 5)} - {appointment.endTime?.substring(0, 5)}</td>
+                        <td>{appointment.note}</td>
+
                         <td>
                           <Badge 
                             bg={getStatusBadgeVariant(appointment.status)}
@@ -223,7 +264,9 @@ const AppointmentsPage = () => {
                           </Badge>
                         </td>
                         <td>
-                          {appointment.status === 'scheduled' && (
+
+                          {appointment.status === 'scheduled' || appointment.status === 'Pending' && (
+
                             <Button
                               variant="outline-danger"
                               size="sm"
@@ -302,15 +345,16 @@ const AppointmentsPage = () => {
               </div>
               <div className="detail-item">
                 <span className="label">Date:</span>
-                <span className="value">{selectedAppointment.date}</span>
+                <span className="value">{new Date(selectedAppointment.appointmentDate).toLocaleDateString('en-GB')}</span>
               </div>
               <div className="detail-item">
                 <span className="label">Time:</span>
-                <span className="value">{selectedAppointment.time}</span>
+                <span className="value">{selectedAppointment.startTime?.substring(0, 5)} - {selectedAppointment.endTime?.substring(0, 5)}</span>
               </div>
               <div className="detail-item">
                 <span className="label">Department:</span>
-                <span className="value">{selectedAppointment.department}</span>
+                <span className="value">{selectedAppointment.specialization}</span>
+
               </div>
               <div className="mt-3">
                 <p className="text-danger mb-0">

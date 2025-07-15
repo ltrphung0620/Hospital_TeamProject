@@ -1,3 +1,4 @@
+
 using System.ComponentModel.DataAnnotations;
 
 namespace Hospital_API.Models
@@ -6,6 +7,7 @@ namespace Hospital_API.Models
     {
         [Key]
         public int SupplierId { get; set; }
+
 
         [Required]
         public string SupplierName { get; set; }
