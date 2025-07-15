@@ -17,6 +17,7 @@ export const getCurrentUserRole = () => {
     return null;
   }
 };
+
 export const isTokenExpired = () => {
   const token = localStorage.getItem("authToken");
   if (!token) return true;
@@ -30,12 +31,13 @@ export const isTokenExpired = () => {
     return true;
   }
 };
+
 export const checkTokenAndProceed = async (callback) => {
   if (isTokenExpired()) {
-    alert("Your session has expired. Please log in again.");
-    localStorage.removeItem("authToken");
+    // Không xóa token, chỉ thông báo và chuyển hướng
+    alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
     window.location.href = "/login";
   } else {
-    await callback(); // ⬅ THÊM await
+    await callback();
   }
 };

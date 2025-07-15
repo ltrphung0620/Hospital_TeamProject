@@ -147,6 +147,19 @@ namespace Hospital_API.Services
             return blogDTOs;
         }
 
+        public async Task<IEnumerable<BlogDTO>> GetPublishedBlogs()
+        {
+            var blogs = await _blogRepository.GetAllBlogs();
+            var blogDTOs = new List<BlogDTO>();
+
+            foreach (var blog in blogs.Where(b => b.Status == "Published"))
+            {
+                blogDTOs.Add(await MapBlogToDTO(blog));
+            }
+
+            return blogDTOs;
+        }
+
         public async Task<bool> DeleteBlog(int id)
         {
             return await _blogRepository.DeleteBlog(id);

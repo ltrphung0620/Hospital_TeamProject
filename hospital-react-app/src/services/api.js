@@ -81,12 +81,12 @@ export const deleteMedicalRecord = (id) => api.delete(`/medicalrecords/${id}`);
 
 // Blog APIs
 export const getAllBlogs = async () => {
-  const response = await api.get('/blog');
+  const response = await api.get('/blog');  // This endpoint now returns only published blogs
   return response.data;
 };
 
 export const getAllBlogsAdmin = async () => {
-  const response = await api.get('/blog');  // Removed /admin since we don't have that endpoint
+  const response = await api.get('/blog/admin');  // New admin endpoint that returns all blogs
   return response.data;
 };
 

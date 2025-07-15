@@ -1,3 +1,4 @@
+
 import React, { useState,useEffect  } from 'react';
 import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination, Badge } from 'react-bootstrap';
 import { FaPlus, FaEdit, FaTrash, FaCalendarAlt } from 'react-icons/fa';
@@ -31,6 +32,7 @@ function DoctorScheduleManagementPage() {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
 
   const generateTimeOptions = () => {
     const times = [];
@@ -83,6 +85,7 @@ const formatTime = (timeStr) => {
   const [hour, minute] = timeStr.split(':');
   return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
 };
+
 
   const handleCloseModal = () => {
     setShowModal(false);
@@ -211,7 +214,10 @@ const formatTime = (timeStr) => {
           </Button>
         </Card.Header>
         <Card.Body>
-          <Table responsive hover className="admin-table">
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <Table responsive hover className="admin-table">
             <thead>
               <tr>
                 <th>#</th>
@@ -246,6 +252,7 @@ const formatTime = (timeStr) => {
               ))}
             </tbody>
           </Table>
+        )}
         </Card.Body>
         {totalPages > 1 && (
             <Card.Footer>

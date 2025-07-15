@@ -20,6 +20,8 @@ import {
   FaMoneyBillWave,
 } from "react-icons/fa";
 import Avatar from "../../components/common/Avatar";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import axios from "axios";
 import { API_BASE_URL } from '../../services/api';
 import axios from "axios"; 
 
@@ -122,6 +124,7 @@ function PatientManagementPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedInvoiceType, setSelectedInvoiceType] = useState("all");
   const [paymentMethod, setPaymentMethod] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -135,10 +138,13 @@ function PatientManagementPage() {
 
   const loadUsers = async () => {
     try {
+      setIsLoading(true);
       const data = await fetchUsers();
       setPatients(data);
     } catch (error) {
       console.error("Failed to fetch users:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
   useEffect(() => {
@@ -509,7 +515,10 @@ function PatientManagementPage() {
           </Button>
         </Card.Header>
         <Card.Body>
-          <Table responsive hover className="admin-table">
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <Table responsive hover className="admin-table">
             <thead>
               <tr>
                 <th>#</th>
@@ -564,6 +573,7 @@ function PatientManagementPage() {
               ))}
             </tbody>
           </Table>
+          )}
         </Card.Body>
         {totalPages > 1 && (
           <Card.Footer>
