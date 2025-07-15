@@ -53,6 +53,8 @@ namespace Hospital_API.Controllers
            
             if (!ModelState.IsValid)
                 return BadRequest(new { message = "Account Admin không thể book lịch khám." });
+       
+
             try
             {
                 var result = await _service.CreateAsync(dto);
@@ -85,6 +87,7 @@ namespace Hospital_API.Controllers
         /// Cancel an appointment
         /// </summary>
         [HttpPut("cancel/{id}")]
+
         public async Task<IActionResult> Cancel(int id)
         {
             var success = await _service.CancelAsync(id);

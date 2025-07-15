@@ -9,6 +9,7 @@ namespace Hospital_API.Services.Interfaces
         Task<AppointmentDTO> CreateAsync(AppointmentCreateDTO dto);
     Task<List<AppointmentDTO>> GetAppointmentsByPatientIdAsync(int patientId);
 
+
         Task<bool> CancelAsync(int id);
         Task<bool> ConfirmAsync(int id);
         Task<IEnumerable<AppointmentDTO>> GetByDoctorAndDateAsync(int doctorId, DateTime date);

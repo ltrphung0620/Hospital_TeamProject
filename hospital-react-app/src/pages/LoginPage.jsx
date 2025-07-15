@@ -4,8 +4,10 @@ import { useApp } from '../contexts/AppContext';
 import axios from "axios";
 import { API_BASE_URL } from '../services/api';
 
+import LoadingSpinner from '../components/common/LoadingSpinner';
+
 const LoginPage = () => {
-  const { setLoading, showNotification } = useApp();
+  const { showNotification } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/';
@@ -14,6 +16,8 @@ const LoginPage = () => {
     username: '',
     password: ''
   });
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -26,7 +30,8 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      setLoading(true);
+
+      setIsLoading(true);
       const response = await axios.post(`${API_BASE_URL}/Auth/login`, formData);
       
       // Lưu thông tin auth vào localStorage
@@ -52,23 +57,26 @@ const LoginPage = () => {
         'danger'
       );
     } finally {
-      setLoading(false);
+
+      setIsLoading(false);
     }
   };
 
   return (
     <>
+
+      {isLoading && <div className="loading-spinner-overlay"><LoadingSpinner /></div>}
       <section id="intro" style={{ backgroundColor: "#E8F0F1" }}>
         <div className="container">
           <div className="banner-content padding-large">
-            <h1 className="display-3 fw-bold text-dark">Login</h1>
+            <h1 className="display-3 fw-bold text-dark">Đăng nhập</h1>
             <span className="item">
               <Link to="/" className="">
-                Home
+                Trang chủ
               </Link>
             </span>{" "}
             &nbsp; <span className="">/</span> &nbsp;
-            <span className="item">Login</span>
+            <span className="item">Đăng nhập</span>
           </div>
         </div>
       </section>
@@ -91,7 +99,8 @@ const LoginPage = () => {
                         <input
                           type="text"
                           name="username"
-                          placeholder="Your Username *"
+
+                          placeholder="Tên đăng nhập *"
                           value={formData.username}
                           onChange={handleInputChange}
                           className="form-control"
@@ -104,7 +113,8 @@ const LoginPage = () => {
                         <input
                           type="password"
                           name="password"
-                          placeholder="Your Password *"
+
+                          placeholder="Mật khẩu *"
                           value={formData.password}
                           className="form-control"
                           onChange={handleInputChange}
@@ -118,14 +128,19 @@ const LoginPage = () => {
                         className="btn btn-primary btn-pill btn-lg mt-3"
                         type="submit"
                       >
-                        Login
+
+                        Đăng nhập
                       </button>
                     </div>
                   </form>
                   <div className="text-center mt-3">
                     <p>
-                      Don't have an account?{" "}
-                      <Link to="/register">Register here</Link>
+
+                      Chưa có tài khoản?{" "}
+                      <Link to="/register">Đăng ký tại đây</Link>
+                    </p>
+                    <p>
+                      <Link to="/forgot-password">Quên mật khẩu?</Link>
                     </p>
                   </div>
                 </div>

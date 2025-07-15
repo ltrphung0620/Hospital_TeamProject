@@ -20,6 +20,7 @@ namespace Hospital_API.Repositories
             return await _context.Appointments
                 .Include(a => a.Patient).ThenInclude(p => p.User)
                 .Include(a => a.Doctor).ThenInclude(d => d.User)
+
                 .Include(a => a.Branch)
                 .ToListAsync();
         }
@@ -45,12 +46,14 @@ namespace Hospital_API.Repositories
 
         public async Task<IEnumerable<Appointment>> GetByPatientIdAsync(int patientId)
         {
+
               return await _context.Appointments
                 .Include(a => a.Doctor)
                     .ThenInclude(d => d.User) 
                 .Include(a => a.Patient)
                     .ThenInclude(p => p.User) 
                 .Include(a => a.Branch) 
+
                 .Where(a => a.PatientId == patientId)
                 .ToListAsync();
         }

@@ -22,11 +22,6 @@ const AppointmentsPage = () => {
   const [itemsPerPage] = useState(5);
 
 
-
-  
- 
-
-
 useEffect(() => {
   const fetchPatientAndAppointments = async () => {
     try {
@@ -54,6 +49,7 @@ useEffect(() => {
 
 
 
+
   const handleCancelAppointment = async () => {
     if (!selectedAppointment) return;
 
@@ -72,6 +68,7 @@ useEffect(() => {
     toast.success('Appointment cancelled successfully');
     setShowCancelModal(false);
     setSelectedAppointment(null);
+
     } catch (error) {
       toast.error('Failed to cancel appointment. Please try again.');
       console.error('Cancel appointment error:', error);
@@ -82,6 +79,7 @@ useEffect(() => {
 
   const openCancelModal = (appointment) => {
     if (appointment.status === 'Cancelled') {
+
       toast.warning('This appointment is already cancelled');
       return;
     }
@@ -90,6 +88,7 @@ useEffect(() => {
       return;
     }
   
+
 
     const appointmentDate = new Date(`${appointment.date} ${appointment.time}`);
     if (appointmentDate < new Date()) {
@@ -131,6 +130,7 @@ useEffect(() => {
         return 'danger';
       case 'Pending':
         return 'warning';
+
       default:
         return 'secondary';
     }
@@ -174,6 +174,7 @@ useEffect(() => {
                   </Badge>
                   <Badge bg="warning" className="stats-badge">
                     Pending: {appointments.filter(a => a.status === 'Pending').length}
+
                   </Badge>
                 </div>
               </div>
@@ -210,9 +211,11 @@ useEffect(() => {
                     >
                       <option value="all">All Status</option>
                       <option value="scheduled">Scheduled</option>
+
                       <option value="Pending">Pending</option>
                       <option value="completed">Completed</option>
                       <option value="Cancelled">Cancelled</option>
+
                     </Form.Select>
                   </div>
                 </Col>
@@ -224,6 +227,7 @@ useEffect(() => {
                     <tr>
                       <th>Patient Name</th>
                       <th>Doctor</th>
+
                       <th>Specialization</th>
                       <th>Date</th>
                       <th>Time</th>
@@ -237,6 +241,7 @@ useEffect(() => {
                       <tr key={appointment.id}>
                         <td>{appointment.patientName}</td>
                         <td>{appointment.doctorName}</td>
+
                         <td>{appointment.specialization}</td>
                         <td>
                           {(() => {
@@ -249,6 +254,7 @@ useEffect(() => {
                         </td>
                         <td>{appointment.startTime?.substring(0, 5)} - {appointment.endTime?.substring(0, 5)}</td>
                         <td>{appointment.note}</td>
+
                         <td>
                           <Badge 
                             bg={getStatusBadgeVariant(appointment.status)}
@@ -258,7 +264,9 @@ useEffect(() => {
                           </Badge>
                         </td>
                         <td>
+
                           {appointment.status === 'scheduled' || appointment.status === 'Pending' && (
+
                             <Button
                               variant="outline-danger"
                               size="sm"
@@ -346,6 +354,7 @@ useEffect(() => {
               <div className="detail-item">
                 <span className="label">Department:</span>
                 <span className="value">{selectedAppointment.specialization}</span>
+
               </div>
               <div className="mt-3">
                 <p className="text-danger mb-0">

@@ -205,6 +205,11 @@ builder.Services.AddScoped<ILabTestService, LabTestService>();
 builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 builder.Services.AddScoped<IBranchService, BranchService>();
 
+builder.Services.AddScoped<ITestRequestRepository, TestRequestRepository>();
+builder.Services.AddScoped<ITestRequestService, TestRequestService>();
+builder.Services.AddScoped<ITestResultRepository, TestResultRepository>();
+builder.Services.AddScoped<ITestResultService, TestResultService>();
+
 
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IPatientService, PatientService>();
@@ -227,6 +232,7 @@ builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddScoped<IEmailService, EmailService>();
+
 
 
 var app = builder.Build();

@@ -532,20 +532,23 @@ namespace Hospital_API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
 
                     b.Property<int>("SupplierId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Unit")
+                    b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1111,7 +1114,8 @@ namespace Hospital_API.Migrations
             modelBuilder.Entity("Hospital_API.Models.Medicines", b =>
                 {
                     b.HasOne("Hospital_API.Models.MedicineSupplier", "Supplier")
-                        .WithMany("Medicines")
+
+                        .WithMany()
                         .HasForeignKey("SupplierId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1292,10 +1296,6 @@ namespace Hospital_API.Migrations
                     b.Navigation("Payments");
                 });
 
-            modelBuilder.Entity("Hospital_API.Models.MedicineSupplier", b =>
-                {
-                    b.Navigation("Medicines");
-                });
 
             modelBuilder.Entity("Hospital_API.Models.Patient", b =>
                 {

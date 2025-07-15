@@ -1,79 +1,73 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
 using Hospital_API.DTOs;
-using Hospital_API.Models;
 using Hospital_API.Interfaces;
+using Hospital_API.Models;
+
 namespace Hospital_API.Services
 {
-public class MedicineSupplierService : IMedicineSupplierService
-{
-    private readonly IMedicineSupplierRepository _repository;
-    public MedicineSupplierService(IMedicineSupplierRepository repository)
+    public class MedicineSupplierService : IMedicineSupplierService
     {
-        _repository = repository;
-    }
-    public async Task<IEnumerable<MedicineSupplierDTO>> GetAllAsync()
-    {
-        var suppliers = await _repository.GetAllAsync();
-        return suppliers.Select(s => MapToDTO(s)).ToList();
-    }
+        private readonly IMedicineSupplierRepository _repository;
 
-    public async Task<MedicineSupplierDTO> GetByIdAsync(int id)
-    {
-        var supplier = await _repository.GetByIdAsync(id);
-        return supplier == null ? null : MapToDTO(supplier);
-    }
-
-    public async Task<MedicineSupplierDTO> AddAsync(MedicineSupplierCreateDTO dto)
-    {
-        var supplier = new MedicineSupplier
+        public MedicineSupplierService(IMedicineSupplierRepository repository)
         {
-            SupplierName = dto.SupplierName,
-            Phone = dto.Phone,
-            Address = dto.Address
-        };
-        var result = await _repository.AddAsync(supplier);
-        return MapToDTO(result);
-    }
+            _repository = repository;
+        }
 
-    public async Task<MedicineSupplierDTO> UpdateAsync(MedicineSupplierDTO dto)
-    {
-        var supplier = new MedicineSupplier
+        public async Task<IEnumerable<MedicineSupplierDTO>> GetAllAsync()
         {
-            SupplierId = dto.SupplierId,
-            SupplierName = dto.SupplierName,
-            Phone = dto.Phone,
-            Address = dto.Address
-        };
-        var result = await _repository.UpdateAsync(supplier);
-        return MapToDTO(result);
-    }
+            var list = await _repository.GetAllAsync();
+            return list.Select(MapToDTO).ToList();
+        }
 
-    public async Task<MedicineSupplierDTO> DeleteAsync(int id)
-    {
-        var result = await _repository.DeleteAsync(id);
-        return result == null ? null : MapToDTO(result);
-    }
-
-    private MedicineSupplierDTO MapToDTO(MedicineSupplier supplier)
-    {
-        return new MedicineSupplierDTO
+        public async Task<MedicineSupplierDTO?> GetByIdAsync(int id)
         {
-            SupplierId = supplier.SupplierId,
-            SupplierName = supplier.SupplierName,
-            Phone = supplier.Phone,
-            Address = supplier.Address,
-            Medicines = supplier.Medicines?.Select(m => new MedicinesDTO
+            var supplier = await _repository.GetByIdAsync(id);
+            return supplier == null ? null : MapToDTO(supplier);
+        }
+
+        public async Task<MedicineSupplierDTO> AddAsync(MedicineSupplierCreateDTO dto)
+        {
+            var entity = new MedicineSupplier
             {
-                Id = m.Id,
-                Name = m.Name,
-                Quantity = m.Quantity,
-                Unit = m.Unit,
-                Price = m.Price,
-                SupplierId = m.SupplierId
-            }).ToList()
-        };
+                SupplierName = dto.SupplierName,
+                Phone = dto.Phone,
+                Address = dto.Address
+            };
+
+            var created = await _repository.AddAsync(entity);
+            return MapToDTO(created);
+        }
+
+        public async Task<MedicineSupplierDTO?> UpdateAsync(int id, MedicineSupplierCreateDTO dto)
+        {
+            var entity = new MedicineSupplier
+            {
+                SupplierId = id,
+                SupplierName = dto.SupplierName,
+                Phone = dto.Phone,
+                Address = dto.Address
+            };
+
+            var updated = await _repository.UpdateAsync(entity);
+            return updated == null ? null : MapToDTO(updated);
+        }
+
+        public async Task<MedicineSupplierDTO?> DeleteAsync(int id)
+        {
+            var deleted = await _repository.DeleteAsync(id);
+            return deleted == null ? null : MapToDTO(deleted);
+        }
+
+        private MedicineSupplierDTO MapToDTO(MedicineSupplier supplier)
+        {
+            return new MedicineSupplierDTO
+            {
+                SupplierId = supplier.SupplierId,
+                SupplierName = supplier.SupplierName,
+                Phone = supplier.Phone,
+                Address = supplier.Address
+            };
+        }
     }
-}
 }

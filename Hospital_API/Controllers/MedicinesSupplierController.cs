@@ -1,8 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using Hospital_API.Services;
+
 using Hospital_API.DTOs;
 using Hospital_API.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+
 namespace Hospital_API.Controllers
 {
     [ApiController]
@@ -10,6 +10,8 @@ namespace Hospital_API.Controllers
     public class MedicineSupplierController : ControllerBase
     {
         private readonly IMedicineSupplierService _service;
+
+
         public MedicineSupplierController(IMedicineSupplierService service)
         {
             _service = service;
@@ -18,39 +20,37 @@ namespace Hospital_API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MedicineSupplierDTO>>> GetAll()
         {
-            var suppliers = await _service.GetAllAsync();
-            return Ok(suppliers);
+
+            var list = await _service.GetAllAsync();
+            return Ok(list);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<MedicineSupplierDTO>> GetById(int id)
         {
-            var supplier = await _service.GetByIdAsync(id);
-            if (supplier == null) return NotFound();
-            return Ok(supplier);
+            var item = await _service.GetByIdAsync(id);
+            return item == null ? NotFound() : Ok(item);
         }
 
         [HttpPost]
-        public async Task<ActionResult<MedicineSupplierDTO>> Create([FromBody] MedicineSupplierCreateDTO dto)
+        public async Task<ActionResult<MedicineSupplierDTO>> Create(MedicineSupplierCreateDTO dto)
         {
             var created = await _service.AddAsync(dto);
-            return Ok(created);
+            return CreatedAtAction(nameof(GetById), new { id = created.SupplierId }, created);
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<MedicineSupplierDTO>> Update(int id, [FromBody] MedicineSupplierDTO dto)
+        public async Task<ActionResult<MedicineSupplierDTO>> Update(int id, MedicineSupplierCreateDTO dto)
         {
-            dto.SupplierId = id;
-            var updated = await _service.UpdateAsync(dto);
-            return Ok(updated);
+            var updated = await _service.UpdateAsync(id, dto);
+            return updated == null ? NotFound() : Ok(updated);
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult<MedicineSupplierDTO>> Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var deleted = await _service.DeleteAsync(id);
-            if (deleted == null) return NotFound();
-            return Ok(deleted);
+            var result = await _service.DeleteAsync(id);
+            return result == null ? NotFound() : NoContent();
         }
     }
 }

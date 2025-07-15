@@ -17,6 +17,8 @@ import axios from "axios";
 import { API_BASE_URL } from '../../services/api';
 import { getCurrentUserRole, isTokenExpired, checkTokenAndProceed } from '../../utils/auth';
 
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+
 function DoctorManagementPage() {
   const [doctors, setDoctors] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -197,90 +199,93 @@ function DoctorManagementPage() {
 
       <Card className="admin-card">
         <Card.Header className="d-flex justify-content-between align-items-center">
-          <span>Danh sách Bác Sĩ</span>
+
+          <h5 className="mb-0">Danh Sách Bác Sĩ</h5>
         </Card.Header>
         <Card.Body>
           {isLoading ? (
-            <div className="text-center py-5">
-              <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">Đang tải...</span>
-              </div>
+            <div className="text-center">
+              <LoadingSpinner />
             </div>
           ) : (
-            <Table responsive hover className="admin-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Họ và tên</th>
-                  <th>Chuyên khoa</th>
-                  <th>Bằng cấp</th>
-                  <th>Kinh nghiệm</th>
-                  <th>Số điện thoại</th>
-                  <th>Email</th>
-                  <th>Trạng thái</th>
-                  <th>Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentItems.map((doctor, index) => (
-                  <tr key={doctor.id}>
-                    <td>{indexOfFirstItem + index + 1}</td>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        <Avatar 
-                          src={doctor.avatarUrl} 
-                          name={doctor.fullName} 
-                          size={40}
-                        />
-                        <span className="ms-2">{doctor.fullName}</span>
-                      </div>
-                    </td>
-                    <td>{doctor.specialization}</td>
-                    <td>{doctor.degree}</td>
-                    <td>{doctor.yearOfExperience} năm</td>
-                    <td>{doctor.phone}</td>
-                    <td>{doctor.email}</td>
-                    <td>{getStatusBadge(doctor.status)}</td>
-                    <td>
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        className="me-2"
-                        onClick={() => handleShowModal(doctor)}
-                        disabled={isLoading}
-                      >
-                        <FaEdit />
-                      </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => handleDelete(doctor.id)}
-                        disabled={isLoading}
-                      >
-                        <FaTrash />
-                      </Button>
-                    </td>
+            <>
+              <Table responsive striped bordered hover className="admin-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Họ và tên</th>
+                    <th>Chuyên khoa</th>
+                    <th>Bằng cấp</th>
+                    <th>Kinh nghiệm</th>
+                    <th>Số điện thoại</th>
+                    <th>Email</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
                   </tr>
-                ))}
-              </tbody>
-            </Table>
+                </thead>
+                <tbody>
+                  {currentItems.map((doctor, index) => (
+                    <tr key={doctor.id}>
+                      <td>{indexOfFirstItem + index + 1}</td>
+                      <td>
+                        <div className="d-flex align-items-center">
+                          <Avatar 
+                            src={doctor.avatarUrl} 
+                            name={doctor.fullName} 
+                            size={40}
+                          />
+                          <span className="ms-2">{doctor.fullName}</span>
+                        </div>
+                      </td>
+                      <td>{doctor.specialization}</td>
+                      <td>{doctor.degree}</td>
+                      <td>{doctor.yearOfExperience} năm</td>
+                      <td>{doctor.phone}</td>
+                      <td>{doctor.email}</td>
+                      <td>{getStatusBadge(doctor.status)}</td>
+                      <td>
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          className="me-2"
+                          onClick={() => handleShowModal(doctor)}
+                          disabled={isLoading}
+                        >
+                          <FaEdit />
+                        </Button>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => handleDelete(doctor.id)}
+                          disabled={isLoading}
+                        >
+                          <FaTrash />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+              <div className="d-flex justify-content-center mt-4">
+                <Pagination>
+                  <Pagination.First onClick={() => paginate(1)} disabled={currentPage === 1} />
+                  <Pagination.Prev onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} />
+                  {[...Array(totalPages)].map((_, index) => (
+                    <Pagination.Item
+                      key={index + 1}
+                      active={index + 1 === currentPage}
+                      onClick={() => paginate(index + 1)}
+                    >
+                      {index + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} />
+                  <Pagination.Last onClick={() => paginate(totalPages)} disabled={currentPage === totalPages} />
+                </Pagination>
+              </div>
+            </>
           )}
         </Card.Body>
-        {totalPages > 1 && (
-          <Card.Footer>
-            <Pagination className="justify-content-center mb-0">
-              {Array.from({ length: totalPages }, (_, i) => (
-                <Pagination.Item
-                  key={i + 1}
-                  active={i + 1 === currentPage}
-                  onClick={() => paginate(i + 1)}
-                >
-                  {i + 1}
-                </Pagination.Item>
-              ))}
-            </Pagination>
-          </Card.Footer>
-        )}
       </Card>
 
       <Modal 

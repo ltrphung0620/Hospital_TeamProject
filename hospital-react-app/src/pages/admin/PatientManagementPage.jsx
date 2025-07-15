@@ -508,87 +508,101 @@ function PatientManagementPage() {
 
       <Card className="admin-card">
         <Card.Header className="d-flex justify-content-between align-items-center">
-          <span>Danh sách bệnh nhân</span>
+
+          <h5 className="mb-0">Danh Sách Bệnh Nhân</h5>
           <Button variant="primary" onClick={() => handleShowModal()}>
             <FaPlus className="me-2" /> Thêm thông tin bệnh nhân
           </Button>
         </Card.Header>
         <Card.Body>
           {isLoading ? (
-            <LoadingSpinner />
+
+            <div className="text-center">
+              <LoadingSpinner />
+            </div>
           ) : (
-            <Table responsive hover className="admin-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Họ và tên</th>
-                <th>Phone</th>
-                <th>Email</th>
-                <th>Mã Bảo Hiểm</th>
-                <th>Trạng thái</th>
-                <th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentItems.map((patient, index) => (
-                <tr key={patient.id}>
-                  <td>{indexOfFirstItem + index + 1}</td>
-                  <td>
-                    <div className="d-flex align-items-center">
-                      <Avatar name={patient.fullName} />
-                      <span className="ms-2">{patient.fullName}</span>
-                    </div>
-                  </td>
-                  <td>{patient.phone}</td>
-                  <td>{patient.email}</td>
-                  <td>{patient.insuranceCode}</td>
-                  <td>{getStatusBadge(patient.status)}</td>
-                  <td>
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      className="me-2"
-                      onClick={() => handleShowModal(patient)}
+            <>
+              <Table responsive striped bordered hover className="admin-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Họ và tên</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Mã Bảo Hiểm</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentItems.map((patient, index) => (
+                    <tr key={patient.id}>
+                      <td>{indexOfFirstItem + index + 1}</td>
+                      <td>
+                        <div className="d-flex align-items-center">
+                          <Avatar name={patient.fullName} />
+                          <span className="ms-2">{patient.fullName}</span>
+                        </div>
+                      </td>
+                      <td>{patient.phone}</td>
+                      <td>{patient.email}</td>
+                      <td>{patient.insuranceCode}</td>
+                      <td>{getStatusBadge(patient.status)}</td>
+                      <td>
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          className="me-2"
+                          onClick={() => handleShowModal(patient)}
+                        >
+                          <FaEdit />
+                        </Button>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          className="me-2"
+                          onClick={() => handleDelete(patient.id, patient.userId)}
+                        >
+                          <FaTrash />
+                        </Button>
+                        <Button
+                          variant="outline-success"
+                          size="sm"
+                          onClick={() => handleShowInvoiceModal(patient)}
+                        >
+                          <FaMoneyBillWave />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+              <div className="d-flex justify-content-center mt-4">
+                <Pagination>
+                  <Pagination.First onClick={() => paginate(1)} disabled={currentPage === 1} />
+                  <Pagination.Prev onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} />
+                  {[...Array(Math.ceil(patients.length / itemsPerPage))].map((_, index) => (
+                    <Pagination.Item
+                      key={index + 1}
+                      active={index + 1 === currentPage}
+                      onClick={() => paginate(index + 1)}
                     >
-                      <FaEdit />
-                    </Button>
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      className="me-2"
-                      onClick={() => handleDelete(patient.id, patient.userId)}
-                    >
-                      <FaTrash />
-                    </Button>
-                    <Button
-                      variant="outline-success"
-                      size="sm"
-                      onClick={() => handleShowInvoiceModal(patient)}
-                    >
-                      <FaMoneyBillWave />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
+                      {index + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next 
+                    onClick={() => paginate(currentPage + 1)} 
+                    disabled={currentPage === Math.ceil(patients.length / itemsPerPage)} 
+                  />
+                  <Pagination.Last 
+                    onClick={() => paginate(Math.ceil(patients.length / itemsPerPage))} 
+                    disabled={currentPage === Math.ceil(patients.length / itemsPerPage)} 
+                  />
+                </Pagination>
+              </div>
+            </>
           )}
         </Card.Body>
-        {totalPages > 1 && (
-          <Card.Footer>
-            <Pagination className="justify-content-center mb-0">
-              {Array.from({ length: totalPages }, (_, i) => (
-                <Pagination.Item
-                  key={i + 1}
-                  active={i + 1 === currentPage}
-                  onClick={() => paginate(i + 1)}
-                >
-                  {i + 1}
-                </Pagination.Item>
-              ))}
-            </Pagination>
-          </Card.Footer>
-        )}
       </Card>
 
       {/* Patient Add/Edit Modal */}

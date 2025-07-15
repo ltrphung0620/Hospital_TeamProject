@@ -1,16 +1,36 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination } from 'react-bootstrap';
 import { FaPlus, FaEdit, FaTrash, FaFlask } from 'react-icons/fa';
-import { mockLabTests } from '../../data/mockServiceData';
+import axios from 'axios';
+
+const API_URL = 'http://localhost:5247/api/LabTest';
 
 function LabTestManagementPage() {
-  const [labTests, setLabTests] = useState(mockLabTests);
+  const [labTests, setLabTests] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentTest, setCurrentTest] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+
+  // Lấy danh sách lab test từ API khi load trang
+  useEffect(() => {
+  axios.get(API_URL)
+    .then(res => {
+      const mapped = res.data.map(item => ({
+        id: item.labTestId,
+        name: item.labTestName,
+        description: item.labTestDescription,
+        price: item.labTestPrice,
+      }));
+      setLabTests(mapped);
+    })
+    .catch(() => setLabTests([]));
+}, []);
+
 
   const handleCloseModal = () => {
     setShowModal(false);
@@ -29,19 +49,28 @@ function LabTestManagementPage() {
     setShowModal(true);
   };
 
+  // Thêm hoặc sửa lab test qua API
   const handleSave = () => {
     if (isEditing) {
-      setLabTests(labTests.map(t => (t.id === currentTest.id ? currentTest : t)));
+      axios.put(`${API_URL}/${currentTest.id}`, currentTest)
+        .then(res => {
+          setLabTests(labTests.map(t => (t.id === res.data.id ? res.data : t)));
+          handleCloseModal();
+        });
     } else {
-      const newTest = { ...currentTest, id: Math.max(...labTests.map(t => t.id), 0) + 1 };
-      setLabTests([...labTests, newTest]);
+      axios.post(API_URL, currentTest)
+        .then(res => {
+          setLabTests([...labTests, res.data]);
+          handleCloseModal();
+        });
     }
-    handleCloseModal();
   };
 
+  // Xóa lab test qua API
   const handleDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this lab test?')) {
-      setLabTests(labTests.filter(t => t.id !== id));
+      axios.delete(`${API_URL}/${id}`)
+        .then(() => setLabTests(labTests.filter(t => t.id !== id)));
     }
   };
 
@@ -86,7 +115,7 @@ function LabTestManagementPage() {
                 <tr key={test.id}>
                   <td>{indexOfFirstItem + index + 1}</td>
                   <td>{test.name}</td>
-                  <td>${test.price.toFixed(2)}</td>
+                  <td>${test.price?.toFixed(2)}</td>
                   <td>{test.description}</td>
                   <td>
                     <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleShowModal(test)}>
@@ -146,4 +175,4 @@ function LabTestManagementPage() {
   );
 }
 
-export default LabTestManagementPage; 
+export default LabTestManagementPage;

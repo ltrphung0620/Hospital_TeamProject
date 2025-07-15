@@ -31,6 +31,7 @@ namespace Hospital_API.Services
                 DoctorName = a.Doctor?.User?.FullName ?? "Unknown",
                 BranchName = a.Branch?.Name ?? "Unknown",
                 Specialization = a.Doctor?.Specialization ?? "Unknown",
+
                 AppointmentDate = a.AppointmentDate,
                 StartTime = a.StartTime,
                 EndTime = a.EndTime,
@@ -58,6 +59,8 @@ namespace Hospital_API.Services
                     Note = a.Note
                 }).ToList();
             }
+
+
         public async Task<AppointmentDTO?> GetByIdAsync(int id)
         {
             var a = await _appointmentRepo.GetByIdAsync(id);
@@ -69,6 +72,7 @@ namespace Hospital_API.Services
                 PatientId = a.PatientId,
                 DoctorId = a.DoctorId,
                 BranchId = a.BranchId,
+
                 PatientName = a.Patient?.User?.FullName ?? "",
                 DoctorName = a.Doctor?.User?.FullName ?? "",
                 BranchName = a.Branch?.Name ?? "",
