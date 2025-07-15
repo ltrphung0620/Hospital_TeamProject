@@ -34,8 +34,16 @@
   font-size: 0.875rem;
 }
 
+/* Search input and icon styles */
+.search-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .search-input {
   border-right: none;
+  padding-right: 40px; /* Make room for the icon */
 }
 
 .search-input:focus {
@@ -44,8 +52,14 @@
 }
 
 .search-icon {
-  background-color: white;
-  border-left: none;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #6c757d;
+  pointer-events: none;
 }
 
 .category-select {
