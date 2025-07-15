@@ -23,7 +23,6 @@ import Avatar from "../../components/common/Avatar";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import axios from "axios";
 import { API_BASE_URL } from '../../services/api';
-import axios from "axios"; 
 
 // Mock data reflecting the joined User + Patient model
 const initialPatients = [
