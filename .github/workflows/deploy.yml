@@ -116,26 +116,23 @@ jobs:
               -e LC_ALL=en_US.UTF-8 \
               -e TZ=Asia/Ho_Chi_Minh \
               -e "ConnectionStrings__DefaultConnection=${{ secrets.ASPNETCORE_CONNECTIONSTRING }}" \
-<<<<<<< HEAD
               -e "SendGrid__ApiKey=${{ secrets.SENDGRID_API_KEY }}" \
               -e "SendGrid__SenderEmail=${{ secrets.SENDGRID_SENDER_EMAIL }}" \
               -e "SendGrid__SenderName=${{ secrets.SENDGRID_SENDER_NAME }}" \
-=======
->>>>>>> origin/main
               $IMAGE_PULL_TAG
-            
+
             # Verify container is running
             if docker ps | grep -q "$CONTAINER_NAME"; then
               echo "Container successfully started"
-              
+
               # Wait for container to initialize
               echo "Waiting for container to initialize..."
               sleep 15
-              
+
               # Check container logs
               echo "Container logs:"
               docker logs $CONTAINER_NAME
-              
+
               # Check if container is still running
               if ! docker ps | grep -q "$CONTAINER_NAME"; then
                 echo "Container stopped after startup. Checking logs..."
@@ -147,9 +144,9 @@ jobs:
               docker logs $CONTAINER_NAME
               exit 1
             fi
-            
+
             # Cleanup
             echo "Cleaning up old images..."
             docker image prune -af
-            
+
             echo "Deployment completed successfully!"
