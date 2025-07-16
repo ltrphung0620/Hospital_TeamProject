@@ -6,11 +6,11 @@ namespace Hospital_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class MedicalService : ControllerBase
+    public class MedicalController : ControllerBase
     {
         private readonly IMedServiceService _medicinesService;
 
-        public MedicalService(IMedServiceService medicinesService)
+        public MedicalController(IMedServiceService medicinesService)
         {
             _medicinesService = medicinesService;
         }
