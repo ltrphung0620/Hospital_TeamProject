@@ -17,6 +17,8 @@ import LoadingSpinner from "../../components/common/LoadingSpinner";
 import axios from "axios";
 import { API_BASE_URL } from '../../services/api';
 import { getCurrentUserRole, isTokenExpired, checkTokenAndProceed } from '../../utils/auth';
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Sửa các URL constants
 const API_URL = `${API_BASE_URL}/User/create`;
@@ -58,36 +60,7 @@ const deleteUser = async (id) => {
 };
 
 // Mock data for non-doctor users
-const initialUsers = [
-  {
-    id: 1,
-    name: "Admin User",
-    email: "admin@hospital.com",
-    role: "Admin",
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "Alice Johnson",
-    email: "alice.j@hospital.com",
-    role: "Receptionist",
-    status: "Active",
-  },
-  {
-    id: 3,
-    name: "Bob Williams",
-    email: "bob.w@hospital.com",
-    role: "Accountant",
-    status: "Inactive",
-  },
-  {
-    id: 4,
-    name: "Charlie Brown",
-    email: "charlie.b@hospital.com",
-    role: "Receptionist",
-    status: "Active",
-  },
-];
+
 
 const modalStyles = `
   .user-edit-modal .modal-content {
@@ -244,6 +217,7 @@ function UserManagementPage() {
           username: user.username || "",
           fullName: user.fullName || user.name || "",
           email: user.email || "",
+          address: user.address || "",
           phone: user.phone || "",
           dateOfBirth: formatDate(user.dateOfBirth) || "",
           gender: user.gender || "Male",
@@ -258,6 +232,7 @@ function UserManagementPage() {
           username: "",
           fullName: "",
           email: "",
+          address:"",
           password: "",
           phone: "",
           dateOfBirth: "",
@@ -306,6 +281,7 @@ function UserManagementPage() {
       setIsLoading(false);
     }
   };
+
   useEffect(() => {
     //call API get Roles
     const fetchRoles = async () => {
@@ -372,6 +348,7 @@ function UserManagementPage() {
             username: currentUser.username,
             fullname: currentUser.fullName,
             email: currentUser.email,
+            address: currentUser.address,
             phone: currentUser.phone,
             dateOfBirth: currentUser.dateOfBirth,
             roleId: currentUser.role,
@@ -384,12 +361,15 @@ function UserManagementPage() {
           const updated = await updateUser(currentUser.id, userToUpdate);
           setUsers(users.map((u) => (u.id === currentUser.id ? updated : u)));
           loadUsers();
+          toast.success("Sửa thông tin người dùng thành công.");
+
         } else {
           const userToCreate = {
             username: currentUser.username,
             fullname: currentUser.fullName,
             password: currentUser.password,
             email: currentUser.email,
+            address: currentUser.address,
             phone: currentUser.phone,
             dateOfBirth: currentUser.dateOfBirth,
             roleId: currentUser.role,
@@ -401,12 +381,13 @@ function UserManagementPage() {
           const createdUser = await createUser(userToCreate);
           setUsers([...users, createdUser]);
           loadUsers();
+          toast.success("Đăng ký người dùng thành công.");
         }
 
         handleCloseModal();
       } catch (error) {
         console.error("Error saving user:", error);
-        alert("Failed to save user. Please check the input and try again.");
+         toast.success("Lưu thất bại. Vui lòng kiểm tra lại thông tin.");
       }
     });
   };
@@ -414,7 +395,7 @@ function UserManagementPage() {
   const handleDelete = async (id) => {
     await checkTokenAndProceedWithRedirect(async () => {
       const confirmDelete = window.confirm(
-        "Are you sure you want to delete this user?"
+         toast.success("Bạn có chắc chắn xóa tài khoản này.")
       );
       if (!confirmDelete) return;
 
@@ -423,7 +404,7 @@ function UserManagementPage() {
         await loadUsers(); // ← tải lại danh sách từ server
       } catch (error) {
         console.error("Failed to delete user:", error);
-        alert("Failed to delete user. Please try again.");
+         toast.success("Xóa tài khoản thất bại. Vui lòng kiểm tra lại");
       }
     });
   };
@@ -685,12 +666,16 @@ function UserManagementPage() {
                   <Form.Label>Role</Form.Label>
                   <Form.Select
                     name="role"
-                    value={currentUser?.role || "User"}
+                    value={currentUser?.role || ""}
                     onChange={handleChange}
+                    disabled={isEditing}
                   >
-                    <option value="Admin">Admin</option>
-                    <option value="Doctor">Doctor</option>
-                    <option value="User">User</option>
+                     <option value="">-- Select Role --</option>
+                      {roles.map((role) => (
+                        <option key={role.id} value={role.id}>
+                          {role.name}
+                        </option>
+                      ))}
                   </Form.Select>
                 </Form.Group>
 

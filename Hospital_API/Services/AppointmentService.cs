@@ -31,7 +31,7 @@ namespace Hospital_API.Services
                 DoctorName = a.Doctor?.User?.FullName ?? "Unknown",
                 BranchName = a.Branch?.Name ?? "Unknown",
                 Specialization = a.Doctor?.Specialization ?? "Unknown",
-
+                AppointmentNo = a.AppointmentNo,
                 AppointmentDate = a.AppointmentDate,
                 StartTime = a.StartTime,
                 EndTime = a.EndTime,
@@ -48,6 +48,7 @@ namespace Hospital_API.Services
                     PatientId = a.PatientId,
                     DoctorId = a.DoctorId,
                     BranchId = a.BranchId,
+                    AppointmentNo = a.AppointmentNo,
                     PatientName =  a.Patient?.User?.FullName ?? "Unknown",
                     DoctorName = a.Doctor?.User?.FullName ?? "Unknown",
                     BranchName = a.Branch?.Name ?? "Unknown",
@@ -72,7 +73,7 @@ namespace Hospital_API.Services
                 PatientId = a.PatientId,
                 DoctorId = a.DoctorId,
                 BranchId = a.BranchId,
-
+                AppointmentNo = a.AppointmentNo,
                 PatientName = a.Patient?.User?.FullName ?? "",
                 DoctorName = a.Doctor?.User?.FullName ?? "",
                 BranchName = a.Branch?.Name ?? "",
@@ -110,10 +111,11 @@ namespace Hospital_API.Services
                 PatientId = dto.PatientId,
                 DoctorId = dto.DoctorId,
                 BranchId = dto.BranchId,
+                AppointmentNo = await GenerateAppointmentNoAsync(),
                 AppointmentDate = dto.AppointmentDate.Date,
                 StartTime = dto.StartTime,
                 EndTime = dto.EndTime,
-                Status = "Pending",
+                Status = "Scheduled",
                 Note = dto.Note
             };
 
@@ -122,6 +124,11 @@ namespace Hospital_API.Services
             return await GetByIdAsync(appointment.Id) ?? throw new Exception("Tạo lịch hẹn thất bại.");
         }
 
+        public async Task<string> GenerateAppointmentNoAsync()
+        {
+            var count = await _context.Appointments.CountAsync();
+            return $"APP{DateTime.Now:yyyyMMdd}{(count + 1).ToString("D4")}";
+        }
 
         public async Task<bool> CancelAsync(int id)
         {
@@ -155,6 +162,7 @@ namespace Hospital_API.Services
                 PatientId = a.PatientId,
                 DoctorId = a.DoctorId,
                 BranchId = a.BranchId,
+                AppointmentNo = a.AppointmentNo,
                 AppointmentDate = a.AppointmentDate,
                 StartTime = a.StartTime,
                 EndTime = a.EndTime,
