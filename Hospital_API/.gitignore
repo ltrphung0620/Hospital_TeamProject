@@ -31,6 +31,6 @@ project.assets.json
 
 #appsetting
 # appsettings.Development.json
-# appsettings.json
+appsettings.json
 
 # Migrations/
