@@ -15,6 +15,7 @@ const RegisterPage = () => {
     phone: "",
     gender: "Other",
     dateOfBirth: "",
+    status: "Active",
   });
 
   const handleInputChange = (event) => {
