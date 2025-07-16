@@ -90,19 +90,19 @@ namespace Hospital_API.Services
             if (dto.StartTime >= dto.EndTime)
                 throw new InvalidOperationException("Giờ bắt đầu phải nhỏ hơn giờ kết thúc.");
 
-            // 2. Kiểm tra trùng giờ
-            var conflict = await _appointmentRepo.FindAsync(a =>
-                a.DoctorId == dto.DoctorId &&
-                a.AppointmentDate == dto.AppointmentDate.Date &&
-                a.Status != "Cancelled" && (
-                    (dto.StartTime >= a.StartTime && dto.StartTime < a.EndTime) ||
-                    (dto.EndTime > a.StartTime && dto.EndTime <= a.EndTime) ||
-                    (dto.StartTime <= a.StartTime && dto.EndTime >= a.EndTime)
-                )
-            );
+            // // 2. Kiểm tra trùng giờ
+            // var conflict = await _appointmentRepo.FindAsync(a =>
+            //     a.DoctorId == dto.DoctorId &&
+            //     a.AppointmentDate == dto.AppointmentDate.Date &&
+            //     a.Status != "Cancelled" && (
+            //         (dto.StartTime >= a.StartTime && dto.StartTime < a.EndTime) ||
+            //         (dto.EndTime > a.StartTime && dto.EndTime <= a.EndTime) ||
+            //         (dto.StartTime <= a.StartTime && dto.EndTime >= a.EndTime)
+            //     )
+            // );
 
-            if (conflict.Any())
-                throw new InvalidOperationException("Thời gian đã bị trùng với lịch hẹn khác của bác sĩ.");
+            // if (conflict.Any())
+            //     throw new InvalidOperationException("Thời gian đã bị trùng với lịch hẹn khác của bác sĩ.");
 
             // 3. Tạo entity
             var appointment = new Appointment
