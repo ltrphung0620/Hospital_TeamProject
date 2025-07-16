@@ -392,22 +392,22 @@ function UserManagementPage() {
     });
   };
 
-  const handleDelete = async (id) => {
-    await checkTokenAndProceedWithRedirect(async () => {
-      const confirmDelete = window.confirm(
-         toast.success("Bạn có chắc chắn xóa tài khoản này.")
-      );
-      if (!confirmDelete) return;
+ const handleDelete = async (id) => {
+  await checkTokenAndProceedWithRedirect(async () => {
+    const confirmDelete = window.confirm("Bạn có chắc chắn muốn xóa tài khoản này?");
+    if (!confirmDelete) return;
 
-      try {
-        await deleteUser(id); // ← gọi API xóa
-        await loadUsers(); // ← tải lại danh sách từ server
-      } catch (error) {
-        console.error("Failed to delete user:", error);
-         toast.success("Xóa tài khoản thất bại. Vui lòng kiểm tra lại");
-      }
-    });
-  };
+    try {
+      await deleteUser(id);
+      await loadUsers();
+      toast.success("Xóa tài khoản thành công.");
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+      toast.error("Xóa tài khoản thất bại. Vui lòng kiểm tra lại.");
+    }
+  });
+};
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
