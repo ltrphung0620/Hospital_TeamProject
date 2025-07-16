@@ -122,14 +122,13 @@ useEffect(() => {
 
   const getStatusBadgeVariant = (status) => {
     switch (status) {
-      case 'scheduled':
+      case 'Scheduled':
         return 'primary';
       case 'completed':
         return 'success';
       case 'Cancelled':
         return 'danger';
-      case 'Pending':
-        return 'warning';
+      
 
       default:
         return 'secondary';
@@ -164,7 +163,7 @@ useEffect(() => {
                 </h2>
                 <div className="appointment-stats d-flex gap-3">
                   <Badge bg="primary" className="stats-badge">
-                    Scheduled: {appointments.filter(a => a.status === 'scheduled').length}
+                    Scheduled: {appointments.filter(a => a.status === 'Scheduled').length}
                   </Badge>
                   <Badge bg="success" className="stats-badge">
                     Completed: {appointments.filter(a => a.status === 'completed').length}
@@ -172,10 +171,7 @@ useEffect(() => {
                   <Badge bg="danger" className="stats-badge">
                     Cancelled: {appointments.filter(a => a.status === 'Cancelled').length}
                   </Badge>
-                  <Badge bg="warning" className="stats-badge">
-                    Pending: {appointments.filter(a => a.status === 'Pending').length}
-
-                  </Badge>
+                 
                 </div>
               </div>
               
@@ -210,9 +206,8 @@ useEffect(() => {
                       className="filter-select"
                     >
                       <option value="all">All Status</option>
-                      <option value="scheduled">Scheduled</option>
+                      <option value="Scheduled">Scheduled</option>
 
-                      <option value="Pending">Pending</option>
                       <option value="completed">Completed</option>
                       <option value="Cancelled">Cancelled</option>
 
@@ -265,7 +260,7 @@ useEffect(() => {
                         </td>
                         <td>
 
-                          {appointment.status === 'scheduled' || appointment.status === 'Pending' && (
+                          {appointment.status === 'Scheduled' && (
 
                             <Button
                               variant="outline-danger"

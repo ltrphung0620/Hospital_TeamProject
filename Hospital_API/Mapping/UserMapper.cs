@@ -12,6 +12,7 @@ namespace Hospital_API.Mapping{
             Username = user.Username,
             FullName = user.FullName,
             Email = user.Email,
+            Address =user.Address,
             Phone = user.Phone,
             Gender = user.Gender,
             DateOfBirth = user.DateOfBirth,
@@ -30,6 +31,8 @@ namespace Hospital_API.Mapping{
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             FullName = dto.FullName,
             Email = dto.Email,
+            Address =dto.Address,
+
             Phone = dto.Phone,
             Gender = dto.Gender,
             Status = dto.Status,
@@ -43,6 +46,7 @@ namespace Hospital_API.Mapping{
     {
         user.FullName = dto.FullName;
         user.Email = dto.Email;
+        user.Address = dto.Address;
         user.Phone = dto.Phone;
         user.Gender = dto.Gender;
         user.Status= dto.Status;

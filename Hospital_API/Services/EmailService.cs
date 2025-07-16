@@ -27,7 +27,7 @@ namespace Hospital_API.Services
             var from = new EmailAddress(_senderEmail, _senderName);
             var to = new EmailAddress(emailDto.To);
             var msg = MailHelper.CreateSingleEmail(from, to, emailDto.Subject, emailDto.Body, emailDto.Body);
-            
+            msg.ReplyTo = new EmailAddress("noreply@demoproject.software", "No Reply");
             var response = await client.SendEmailAsync(msg);
             return response.IsSuccessStatusCode;
         }

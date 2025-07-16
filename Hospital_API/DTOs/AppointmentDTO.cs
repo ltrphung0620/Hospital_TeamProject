@@ -8,6 +8,7 @@ namespace Hospital_API.DTOs
         public int DoctorId { get; set; }
         public int BranchId { get; set; }
 
+        public string AppointmentNo { get; set; }
 
         public string PatientName { get; set; } = null!;
         public string DoctorName { get; set; } = null!;

@@ -36,6 +36,8 @@ const RegisterPage = () => {
         password: formData.password,
         fullName: formData.fullName,
         email: formData.email,
+        address: formData.address || "",
+
         phone: formData.phone,
         gender: formData.gender,
         dateOfBirth: formData.dateOfBirth,
@@ -182,7 +184,8 @@ const RegisterPage = () => {
                           onChange={handleInputChange}
                           required
                         >
-                          <option value="¸">Male</option>
+                          <option value="">-- Select Gender --</option>
+                          <option value="Male">Male</option>
                           <option value="Female">Female</option>
                           <option value="Other">Other</option>
                         </select>

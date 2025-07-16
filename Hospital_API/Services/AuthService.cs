@@ -5,6 +5,7 @@ using Hospital_API.DTOs;
 using Hospital_API.Interfaces;
 using Hospital_API.Models;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Hospital_API.Services
 {
@@ -12,14 +13,19 @@ namespace Hospital_API.Services
     {
         private readonly IAuthRepository _authRepository;
         private readonly IRoleRepository _roleRepository;
+        private readonly IWebHostEnvironment _env;
+        private readonly IEmailService _emailService;
 
         private readonly IConfiguration _configuration;
 
-        public AuthService(IAuthRepository authRepository, IConfiguration configuration, IRoleRepository roleRepository)
+        public AuthService(IAuthRepository authRepository, IConfiguration configuration, IRoleRepository roleRepository, IWebHostEnvironment env, IEmailService emailService)
         {
             _authRepository = authRepository;
             _configuration = configuration;
             _roleRepository = roleRepository;
+            _env = env;
+            _emailService = emailService;
+
         }
 
         public async Task<AuthResponseDTO> LoginAsync(LoginDto request)
@@ -71,6 +77,7 @@ namespace Hospital_API.Services
                 PasswordHash = passwordHash,
                 FullName = dto.FullName,
                 Email = dto.Email,
+                Address = dto.Address,
                 Phone = dto.Phone,
                 Gender = dto.Gender,
                 DateOfBirth = dto.DateOfBirth,
@@ -85,6 +92,7 @@ namespace Hospital_API.Services
             user.UserRoles.Add(new UserRole
             {
                 RoleId = patientRole.Id,
+                Role = patientRole,
                 User = user
             });
 
@@ -96,7 +104,22 @@ namespace Hospital_API.Services
                 EmergencyContact = ""
             };
 
+            var templatePath = Path.Combine(_env.ContentRootPath, "Templates", "RegisterNoti.html");
+            var html = await File.ReadAllTextAsync(templatePath);
+           
+            html = html.Replace("{{FullName}}", user.FullName)
+               .Replace("{{Username}}", user.Username)
+               .Replace("{{Email}}", user.Email)
+               .Replace("{{Phone}}", user.Phone)
+               .Replace("{{CreatedDate}}", DateTime.Now.ToString("dd/MM/yyyy"));
 
+            var emailDto = new EmailDTO
+            {
+                To = user.Email,
+                Subject = "Đăng ký tài khoản - Medical Care Support",
+                Body = html
+            };
+            await _emailService.SendEmailAsync(emailDto);
 
 
             await _authRepository.CreateUserAsync(user);

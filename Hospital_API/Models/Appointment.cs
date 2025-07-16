@@ -7,6 +7,7 @@ namespace Hospital_API.Models
         public int PatientId { get; set; }
         public int DoctorId { get; set; }
         public int BranchId { get; set; }
+        public string AppointmentNo { get; set; } = string.Empty;
 
         public DateTime AppointmentDate { get; set; }
         public TimeSpan StartTime { get; set; }

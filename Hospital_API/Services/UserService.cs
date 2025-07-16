@@ -56,6 +56,7 @@ namespace Hospital_API.Services
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 FullName = dto.FullName,
                 Email = dto.Email,
+                Address =  dto.Address,
                 Phone = dto.Phone,
                 Gender = dto.Gender,
                 DateOfBirth = dto.DateOfBirth,
@@ -106,7 +107,7 @@ namespace Hospital_API.Services
             user.Email = dto.Email;
             user.Phone = dto.Phone;
             user.Gender = dto.Gender;
-
+            user.Address = dto.Address;
             user.DateOfBirth = dto.DateOfBirth;
             user.AvatarUrl = dto.AvatarUrl;
             user.Status = dto.Status;
