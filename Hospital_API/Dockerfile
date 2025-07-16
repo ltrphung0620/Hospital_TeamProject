@@ -34,6 +34,7 @@ ENV ASPNETCORE_URLS=http://+:8080
 
 # Copy the published files and configuration
 COPY --from=build /app/publish .
+COPY Templates/ Templates/
 COPY ["appsettings.json", "appsettings.Development.json", "./"]
 
 EXPOSE 8080
