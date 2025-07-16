@@ -37,7 +37,7 @@ const RegisterPage = () => {
         fullName: formData.fullName,
         email: formData.email,
         address: formData.address || "",
-
+        status: formData.status || "Active",
         phone: formData.phone,
         gender: formData.gender,
         dateOfBirth: formData.dateOfBirth,

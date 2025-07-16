@@ -80,6 +80,7 @@ namespace Hospital_API.Services
                 Address = dto.Address,
                 Phone = dto.Phone,
                 Gender = dto.Gender,
+                Status = dto.Status,
                 DateOfBirth = dto.DateOfBirth,
                 CreatedAt = DateTime.UtcNow,
                 UserRoles = new List<UserRole>()
