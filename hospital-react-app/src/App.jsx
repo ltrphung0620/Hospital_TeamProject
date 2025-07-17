@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { initTokenExpirationCheck } from './utils/auth';
 import Layout from './components/layout/Layout';
 import Home from './pages/HomePage';
 import About from './pages/AboutPage';
@@ -44,6 +45,17 @@ import AdminRoute from './components/auth/AdminRoute';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
+  useEffect(() => {
+    // Khởi tạo kiểm tra token expiration định kỳ
+    const interval = initTokenExpirationCheck();
+    
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, []);
+
   return (
     <AppProvider>
       <ToastContainer

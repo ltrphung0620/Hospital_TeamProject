@@ -81,6 +81,10 @@ jobs:
             docker stop $CONTAINER_NAME || true
             docker rm $CONTAINER_NAME || true
             
+            # Create wwwroot volume if it doesn't exist
+            echo "Creating persistent volume for wwwroot..."
+            docker volume create hospital-wwwroot-data || true
+            
             # Pull new image
             echo "Pulling latest Docker image: $IMAGE_PULL_TAG"
             docker pull $IMAGE_PULL_TAG
@@ -100,12 +104,13 @@ jobs:
               exit 1
             fi
             
-            # Run new container with proper environment variables
-            echo "Starting new container..."
+            # Run new container with proper environment variables and wwwroot volume
+            echo "Starting new container with persistent wwwroot..."
             docker run -d \
               --name $CONTAINER_NAME \
               --restart always \
               -p 8080:8080 \
+              -v hospital-wwwroot-data:/app/wwwroot \
               -e ASPNETCORE_URLS=http://+:8080 \
               -e DOTNET_EnableDiagnostics=0 \
               -e DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \

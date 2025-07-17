@@ -1,3 +1,34 @@
+/* Main booking container styles */
+.booking-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+.booking-container {
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Enhanced responsive container */
+@media (min-width: 1200px) {
+  .booking-page {
+    max-width: 1400px;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  .booking-page {
+    max-width: 1140px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .booking-page {
+    max-width: 720px;
+  }
+}
+
 .calendar-container {
   margin-bottom: 2rem;
 }
@@ -85,8 +116,121 @@
   min-height: 200px;
 }
 
+/* Doctor info card styles */
+.doctor-info {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+/* Service package card styles */
+.service-package-card {
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.service-package-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.service-package-card.selected {
+  border-color: #0d6efd;
+  box-shadow: 0 4px 15px rgba(13,110,253,0.2);
+}
+
+.service-package-card.recommended {
+  border-color: #0d6efd;
+}
+
+.service-package-card.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.service-package-card.disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Enhanced service package responsive grid */
+.service-packages-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 1200px) {
+  .service-packages-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  .service-packages-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .service-packages-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Invoice preview styles */
+.invoice-preview {
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.invoice-preview .table {
+  margin-bottom: 0;
+}
+
+.invoice-preview .table th {
+  background-color: #f8f9fa;
+  border-top: none;
+  font-weight: 600;
+}
+
+/* Enhanced responsive table for invoice */
+.invoice-table-responsive {
+  overflow-x: auto;
+}
+
+.invoice-table-responsive table {
+  min-width: 600px;
+}
+
+/* Enhanced doctor selection grid */
+.doctors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 1200px) {
+  .doctors-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  .doctors-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  .booking-page {
+    padding: 0 10px;
+  }
+
   .react-calendar {
     font-size: 14px;
   }
@@ -95,4 +239,81 @@
     padding: 0.5em;
     height: 40px;
   }
+
+  .doctor-info {
+    margin-top: 1rem;
+  }
+
+  .service-package-card {
+    margin-bottom: 1rem;
+  }
+
+  .service-packages-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .doctors-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .invoice-table-responsive {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 576px) {
+  .booking-page {
+    padding: 0 8px;
+  }
+
+  .service-package-card .card-body {
+    padding: 1rem 0.75rem;
+  }
+
+  .doctor-card .card-body {
+    padding: 1rem 0.75rem;
+  }
+
+  .react-calendar__tile {
+    height: 35px;
+    padding: 0.25em;
+    font-size: 12px;
+  }
+
+  .time-slots-grid {
+    max-height: 250px;
+  }
+}
+
+/* Additional spacing for better layout */
+.booking-section {
+  margin-bottom: 2rem;
+}
+
+.booking-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Enhanced form controls */
+.form-control, .form-select {
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25);
+}
+
+/* Button enhancements */
+.btn {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
 } 
