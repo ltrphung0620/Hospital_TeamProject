@@ -8,7 +8,6 @@ import {
   Alert,
   Card,
 } from "react-bootstrap";
-import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
@@ -20,7 +19,7 @@ import { generateTimeSlots } from "../data/mockData";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import ServicePackageSelector from "../components/common/ServicePackageSelector";
 import InvoicePreview from "../components/common/InvoicePreview";
-import { API_BASE_URL } from '../services/api';
+import api, { API_BASE_URL } from '../services/api';
 
 const BookingPage = () => {
   const [selectedDoctor, setSelectedDoctor] = useState("");
@@ -52,6 +51,9 @@ const BookingPage = () => {
       try {
         const authData = JSON.parse(localStorage.getItem("authData"));
         const userId = authData?.userId;
+        
+        console.log("🔍 Debug - AuthData:", authData);
+        console.log("🔍 Debug - UserID:", userId);
 
         if (!userId) {
           toast.warning("Vui lòng đăng nhập để đặt lịch khám.");
@@ -59,40 +61,84 @@ const BookingPage = () => {
           return;
         }
 
-        const patientRes = await axios.get(`${API_BASE_URL}/Patient/user/${userId}`);
-        setPatientId(patientRes.data.id);
+        console.log("🚀 Fetching patient data for user:", userId);
         
-        // Fetch full patient info
-        const userRes = await axios.get(`${API_BASE_URL}/User/${userId}`);
-        setPatientInfo({
-          fullName: userRes.data.fullName,
-          email: userRes.data.email,
-          phone: userRes.data.phone,
-          username: userRes.data.username
-        });
+        // Thử fetch patient data trước
+        try {
+          const patientRes = await api.get(`/Patient/user/${userId}`);
+          setPatientId(patientRes.data.id);
+        } catch (patientError) {
+          console.log("⚠️ Patient API error:", patientError.response?.status, patientError.response?.data);
+          
+          // Nếu không tìm thấy patient record, tạo mới hoặc handle khác
+          if (patientError.response?.status === 404) {
+            console.log("📝 Patient record not found, user might not be a patient");
+            toast.warning("Tài khoản của bạn chưa được thiết lập làm bệnh nhân. Vui lòng liên hệ admin.");
+            return;
+          }
+          
+          // Chỉ redirect khi thực sự là auth error
+          if (patientError.response?.status === 401 || patientError.response?.status === 403) {
+            localStorage.removeItem("authData");
+            localStorage.removeItem("authToken");
+            toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+            navigate("/login", { state: { from: location.pathname } });
+            return;
+          }
+          
+          throw patientError; // Re-throw để catch bên ngoài handle
+        }
+        
+        // Fetch user info
+        try {
+          const userRes = await api.get(`/User/${userId}`);
+          console.log("✅ User data:", userRes.data);
+          setPatientInfo({
+            fullName: userRes.data.fullName,
+            email: userRes.data.email,
+            phone: userRes.data.phone,
+            username: userRes.data.username
+          });
+        } catch (userError) {
+          console.log("⚠️ User API error:", userError.response?.status, userError.response?.data);
+          
+          // Auth error cho User API
+          if (userError.response?.status === 401 || userError.response?.status === 403) {
+            localStorage.removeItem("authData");
+            localStorage.removeItem("authToken");
+            toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+            navigate("/login", { state: { from: location.pathname } });
+            return;
+          }
+          
+          // User không tồn tại hoặc lỗi khác
+          console.warn("User data fetch failed:", userError.message);
+        }
+        
       } catch (error) {
-        console.error("Error fetching patient data:", error);
+        console.error("💥 General error in fetchPatientData:", error);
         
-        // Chỉ redirect khi thực sự là lỗi authentication, không phải lỗi khác
+        // Chỉ handle những lỗi chưa được handle ở trên
         if (error.response?.status === 401 || error.response?.status === 403) {
-          localStorage.removeItem("authData"); // Clear invalid token
+          localStorage.removeItem("authData");
+          localStorage.removeItem("authToken");
           toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
           navigate("/login", { state: { from: location.pathname } });
         } else {
-          // Các lỗi khác không redirect, chỉ log
-          console.warn("Patient data fetch failed but not auth issue:", error.message);
+          console.warn("Non-auth error:", error.message);
+          toast.error("Có lỗi khi tải thông tin. Vui lòng thử lại.");
         }
       }
     };
 
     fetchPatientData();
-  }, []);
+  }, [navigate, location.pathname]);
 
   useEffect(() => {
     if (!selectedDoctor) return;
 
-    axios
-      .get(`${API_BASE_URL}/DoctorSchedule/doctor/${selectedDoctor}`)
+    api
+      .get(`/DoctorSchedule/doctor/${selectedDoctor}`)
       .then((res) => setDoctorSchedules(res.data))
       .catch((err) => console.error("Failed to load schedule", err));
   }, [selectedDoctor]);
@@ -107,7 +153,7 @@ const BookingPage = () => {
   useEffect(() => {
     const fetchBranches = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/Branch`);
+        const response = await api.get(`/Branch`);
         setBranchList(response.data);
       } catch (error) {
         console.error("Failed to fetch branches:", error);
@@ -126,13 +172,13 @@ const BookingPage = () => {
     const fetchBranchData = async () => {
       try {
         // Fetch doctors for the branch
-        const doctorsResponse = await axios.get(
-          `${API_BASE_URL}/Doctor/branchId/${selectedBranch}`
+        const doctorsResponse = await api.get(
+          `/Doctor/branchId/${selectedBranch}`
         );
         setDoctorList(doctorsResponse.data);
         
         // Fetch branch details
-        const branchResponse = await axios.get(`${API_BASE_URL}/Branch/${selectedBranch}`);
+        const branchResponse = await api.get(`/Branch/${selectedBranch}`);
         setBranchDetails(branchResponse.data);
       } catch (error) {
         console.error("Failed to fetch branch data:", error);
@@ -213,7 +259,7 @@ const BookingPage = () => {
 
       console.log("Payload gửi đi:", payload);
       // Gửi payload tới API
-      await axios.post(`${API_BASE_URL}/Appointment`, payload);
+      await api.post(`/Appointment`, payload);
 
       toast.success("Đặt lịch khám thành công!");
       setTimeout(() => {
@@ -224,7 +270,8 @@ const BookingPage = () => {
       
       // Handle authentication errors một cách cẩn thận
       if (err.response?.status === 401 || err.response?.status === 403) {
-        localStorage.removeItem("authData"); // Clear invalid token
+        localStorage.removeItem("authData");
+        localStorage.removeItem("authToken");
         toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
         navigate("/login", { state: { from: location.pathname } });
       } else {

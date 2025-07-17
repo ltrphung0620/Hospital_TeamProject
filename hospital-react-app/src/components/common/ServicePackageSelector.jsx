@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Button, Badge, Collapse } from 'react-bootstrap';
 import { FaCheck, FaChevronDown, FaChevronUp, FaStethoscope } from 'react-icons/fa';
-import axios from 'axios';
-import { API_BASE_URL } from '../../services/api';
+import api, { API_BASE_URL } from '../../services/api';
 import LoadingSpinner from './LoadingSpinner';
 
 // Định nghĩa các service packages
@@ -75,7 +74,7 @@ const ServicePackageSelector = ({ selectedPackage, onSelectPackage, disabled = f
   const fetchMedicalServices = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/MedicalService`);
+      const response = await api.get(`/MedicalService`);
       setMedicalServices(response.data);
     } catch (error) {
       console.error('Error fetching medical services:', error);
