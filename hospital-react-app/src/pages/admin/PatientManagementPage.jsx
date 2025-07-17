@@ -175,7 +175,6 @@ function PatientManagementPage() {
         phone: "",
         gender: "Male",
         dateOfBirth: "",
-        address: "",
         insuranceCode: "",
         emergencyContact: "",
         status: "Active",
@@ -273,7 +272,6 @@ function PatientManagementPage() {
             emergencyContact: currentPatient.emergencyContact,
             fullName: currentPatient.fullName,
             email: currentPatient.email,
-            address: currentPatient.address,
             phone: currentPatient.phone,
             gender: currentPatient.gender,
             avatarUrl: currentPatient.avatarUrl || null,
@@ -328,7 +326,6 @@ function PatientManagementPage() {
 
               fullName: currentPatient.fullName,
               email: currentPatient.email,
-              address: currentPatient.address,
               phone: currentPatient.phone,
               gender: currentPatient.gender,
               avatarUrl: currentPatient.avatarUrl || null,
