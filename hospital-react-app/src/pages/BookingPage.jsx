@@ -20,7 +20,7 @@ import { generateTimeSlots } from "../data/mockData";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import ServicePackageSelector from "../components/common/ServicePackageSelector";
 import InvoicePreview from "../components/common/InvoicePreview";
-import { API_BASE_URL } from '../services/api'; 
+import { API_BASE_URL } from '../services/api';
 
 const BookingPage = () => {
   const [selectedDoctor, setSelectedDoctor] = useState("");
@@ -47,12 +47,26 @@ const BookingPage = () => {
   const selectedService = searchParams.get("service");
   const servicePrice = searchParams.get("price");
 
+  // Check authentication ngay từ đầu
+  useEffect(() => {
+    const authData = JSON.parse(localStorage.getItem("authData"));
+    if (!authData?.userId) {
+      toast.warning("Vui lòng đăng nhập để đặt lịch khám.");
+      navigate("/login", { state: { from: location.pathname } });
+      return;
+    }
+  }, [navigate, location.pathname]);
+
   useEffect(() => {
     const fetchPatientData = async () => {
       const authData = JSON.parse(localStorage.getItem("authData"));
       const userId = authData?.userId;
 
-      if (!userId) return;
+      if (!userId) {
+        toast.warning("Vui lòng đăng nhập để đặt lịch khám.");
+        navigate("/login", { state: { from: location.pathname } });
+        return;
+      }
 
       try {
         const patientRes = await axios.get(`${API_BASE_URL}/Patient/user/${userId}`);
@@ -68,11 +82,15 @@ const BookingPage = () => {
         });
       } catch (error) {
         console.error("Error fetching patient data:", error);
+        if (error.response?.status === 401) {
+          toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+          navigate("/login", { state: { from: location.pathname } });
+        }
       }
     };
 
     fetchPatientData();
-  }, []);
+  }, [navigate, location.pathname]);
 
   useEffect(() => {
     if (!selectedDoctor) return;
@@ -169,6 +187,15 @@ const BookingPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check authentication trước khi submit
+    const authData = JSON.parse(localStorage.getItem("authData"));
+    if (!authData?.userId || !patientId) {
+      toast.warning("Vui lòng đăng nhập để đặt lịch khám.");
+      navigate("/login", { state: { from: location.pathname } });
+      return;
+    }
+    
     if (!selectedDoctor || !selectedDate || !selectedSlot || !selectedBranch || !selectedPackage) {
       toast.warning("Vui lòng điền đầy đủ thông tin bao gồm gói dịch vụ");
       return;
@@ -198,7 +225,15 @@ const BookingPage = () => {
         navigate("/appointments");
       }, 2000);
     } catch (err) {
-      toast.error("Đặt lịch thất bại. Vui lòng thử lại.");
+      console.error("Booking error:", err);
+      
+      // Handle authentication errors
+      if (err.response?.status === 401) {
+        toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        navigate("/login", { state: { from: location.pathname } });
+      } else {
+        toast.error("Đặt lịch thất bại. Vui lòng thử lại.");
+      }
     } finally {
       setLoading(false);
     }

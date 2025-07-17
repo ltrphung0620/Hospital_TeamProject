@@ -169,13 +169,47 @@
 
 @media (min-width: 992px) and (max-width: 1199px) {
   .service-packages-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
   }
 }
 
 @media (min-width: 768px) and (max-width: 991px) {
   .service-packages-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}
+
+/* Mobile-first approach for better UX */
+@media (min-width: 480px) and (max-width: 767px) {
+  .service-packages-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .service-package-card .card-body {
+    padding: 1rem 0.75rem;
+  }
+  
+  .service-package-card h6 {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .service-package-card h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .service-package-card .service-list p {
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .service-package-card .btn {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
   }
 }
 
@@ -284,6 +318,89 @@
 
   .time-slots-grid {
     max-height: 250px;
+  }
+  
+  /* Compact service package layout for very small screens */
+  .service-packages-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .service-package-card {
+    margin-bottom: 0.5rem;
+  }
+  
+  .service-package-card .card-body {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .service-package-card h6 {
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .service-package-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .service-package-card .service-list {
+    margin-bottom: 0.5rem;
+  }
+  
+  .service-package-card .service-list p {
+    font-size: 0.75rem;
+    margin-bottom: 0.15rem;
+  }
+  
+  .service-package-card .btn {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .service-package-card .btn-link {
+    font-size: 0.75rem;
+  }
+  
+  /* Horizontal scroll for service packages on tiny screens */
+  .service-packages-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  
+  .service-packages-container::-webkit-scrollbar {
+    height: 4px;
+  }
+  
+  .service-packages-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  
+  .service-packages-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+  }
+}
+
+/* Alternative horizontal layout for very small screens */
+@media (max-width: 360px) {
+  .service-packages-grid {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.5rem;
+  }
+  
+  .service-package-card {
+    flex: 0 0 85%;
+    max-width: 280px;
+    scroll-snap-align: start;
+    margin-bottom: 0;
   }
 }
 
