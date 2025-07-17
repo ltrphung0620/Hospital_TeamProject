@@ -18,29 +18,28 @@ import "./BookingPage.css";
 import { generateTimeSlots } from "../data/mockData";
 
 import LoadingSpinner from "../components/common/LoadingSpinner";
+import ServicePackageSelector from "../components/common/ServicePackageSelector";
+import InvoicePreview from "../components/common/InvoicePreview";
 import { API_BASE_URL } from '../services/api'; 
-
-
 
 const BookingPage = () => {
   const [selectedDoctor, setSelectedDoctor] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [availableSlots, setAvailableSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [selectedPackage, setSelectedPackage] = useState(null);
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const [selectedBranch, setSelectedBranch] = useState("");
   const [doctorDetails, setDoctorDetails] = useState(null);
+  const [branchDetails, setBranchDetails] = useState(null);
 
-const [branchList, setBranchList] = useState([]);
-const [doctorList, setDoctorList] = useState([]);
-const [doctorSchedules, setDoctorSchedules] = useState([]);
-const [patientId, setPatientId] = useState(null);
-
-
-
-
+  const [branchList, setBranchList] = useState([]);
+  const [doctorList, setDoctorList] = useState([]);
+  const [doctorSchedules, setDoctorSchedules] = useState([]);
+  const [patientId, setPatientId] = useState(null);
+  const [patientInfo, setPatientInfo] = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -48,37 +47,41 @@ const [patientId, setPatientId] = useState(null);
   const selectedService = searchParams.get("service");
   const servicePrice = searchParams.get("price");
 
+  useEffect(() => {
+    const fetchPatientData = async () => {
+      const authData = JSON.parse(localStorage.getItem("authData"));
+      const userId = authData?.userId;
 
-  
-useEffect(() => {
-  const fetchPatientId = async () => {
-    const authData = JSON.parse(localStorage.getItem("authData"));
-    const userId = authData?.userId;
+      if (!userId) return;
 
-    if (!userId) return;
+      try {
+        const patientRes = await axios.get(`${API_BASE_URL}/Patient/user/${userId}`);
+        setPatientId(patientRes.data.id);
+        
+        // Fetch full patient info
+        const userRes = await axios.get(`${API_BASE_URL}/User/${userId}`);
+        setPatientInfo({
+          fullName: userRes.data.fullName,
+          email: userRes.data.email,
+          phone: userRes.data.phone,
+          username: userRes.data.username
+        });
+      } catch (error) {
+        console.error("Error fetching patient data:", error);
+      }
+    };
 
-    try {
-      const res = await axios.get(`${API_BASE_URL}/Patient/user/${userId}`);
-      setPatientId(res.data.id); 
-    } catch (error) {
-      console.error("Error fetching patientId:", error);
-    }
-  };
+    fetchPatientData();
+  }, []);
 
-  fetchPatientId();
-}, []);
+  useEffect(() => {
+    if (!selectedDoctor) return;
 
-  
-useEffect(() => {
-  if (!selectedDoctor) return;
-
-  axios
-    .get(`${API_BASE_URL}/DoctorSchedule/doctor/${selectedDoctor}`)
-    .then((res) => setDoctorSchedules(res.data))
-    .catch((err) => console.error("Failed to load schedule", err));
-}, [selectedDoctor]);
-
-
+    axios
+      .get(`${API_BASE_URL}/DoctorSchedule/doctor/${selectedDoctor}`)
+      .then((res) => setDoctorSchedules(res.data))
+      .catch((err) => console.error("Failed to load schedule", err));
+  }, [selectedDoctor]);
 
   // Simulate initial loading
   useEffect(() => {
@@ -87,73 +90,72 @@ useEffect(() => {
     }, 1500);
   }, []);
 
-useEffect(() => {
-  const fetchBranches = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/Branch`);
-      setBranchList(response.data);
-    } catch (error) {
-      console.error("Failed to fetch branches:", error);
-    }
-  };
-  fetchBranches();
-}, []);
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/Branch`);
+        setBranchList(response.data);
+      } catch (error) {
+        console.error("Failed to fetch branches:", error);
+      }
+    };
+    fetchBranches();
+  }, []);
 
-
-useEffect(() => {
-  if (!selectedBranch) {
-    setDoctorList([]);
-    return;
-  }
-
-  const fetchDoctors = async () => {
-    try {
-      const response = await axios.get(
-        `${API_BASE_URL}/Doctor/branchId/${selectedBranch}`
-      );
-      setDoctorList(response.data);
-    } catch (error) {
-      console.error("Failed to fetch doctors:", error);
+  useEffect(() => {
+    if (!selectedBranch) {
       setDoctorList([]);
+      setBranchDetails(null);
+      return;
     }
-  };
 
-  fetchDoctors();
-}, [selectedBranch]);
+    const fetchBranchData = async () => {
+      try {
+        // Fetch doctors for the branch
+        const doctorsResponse = await axios.get(
+          `${API_BASE_URL}/Doctor/branchId/${selectedBranch}`
+        );
+        setDoctorList(doctorsResponse.data);
+        
+        // Fetch branch details
+        const branchResponse = await axios.get(`${API_BASE_URL}/Branch/${selectedBranch}`);
+        setBranchDetails(branchResponse.data);
+      } catch (error) {
+        console.error("Failed to fetch branch data:", error);
+        setDoctorList([]);
+        setBranchDetails(null);
+      }
+    };
 
+    fetchBranchData();
+  }, [selectedBranch]);
 
+  useEffect(() => {
+    if (!selectedDoctor || !selectedDate) {
+      setAvailableSlots([]);
+      return;
+    }
 
+    setLoading(true);
 
-useEffect(() => {
-  if (!selectedDoctor || !selectedDate) {
-    setAvailableSlots([]);
-    return;
-  }
+    const selectedDateString = selectedDate.toLocaleDateString("en-CA");
+    const filtered = doctorSchedules.filter((s) => {
+      const scheduleDate = s.date.split("T")[0];
+      return scheduleDate === selectedDateString && s.status?.toLowerCase() === "available";
+    });
 
-  setLoading(true);
+    // Chuyển sang Date object để render giờ
+    const slots = filtered.map((s) => {
+      return {
+        id: s.id,
+        startTime: new Date(`${s.date.split("T")[0]}T${s.startTime}`),
+        endTime: new Date(`${s.date.split("T")[0]}T${s.endTime}`),
+      };
+    });
 
- const selectedDateString = selectedDate.toLocaleDateString("en-CA");
-  const filtered = doctorSchedules.filter((s) => {
-    const scheduleDate = s.date.split("T")[0];
-     return scheduleDate === selectedDateString && s.status?.toLowerCase() === "available";
-  });
-
-  // Chuyển sang Date object để render giờ
-const slots = filtered.map((s) => {
-  return {
-    id: s.id,
-    startTime: new Date(`${s.date.split("T")[0]}T${s.startTime}`),
-    endTime: new Date(`${s.date.split("T")[0]}T${s.endTime}`),
-  };
-});
-
-  setAvailableSlots(slots);
-  setLoading(false);
-}, [selectedDate, doctorSchedules]);
-
-
-
-
+    setAvailableSlots(slots);
+    setLoading(false);
+  }, [selectedDate, doctorSchedules]);
 
   // Set doctor details when doctor is selected
   useEffect(() => {
@@ -165,42 +167,42 @@ const slots = filtered.map((s) => {
     }
   }, [selectedDoctor]);
 
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedDoctor || !selectedDate || !selectedSlot || !selectedBranch) {
-      toast.warning("Please fill in all required fields");
+    if (!selectedDoctor || !selectedDate || !selectedSlot || !selectedBranch || !selectedPackage) {
+      toast.warning("Vui lòng điền đầy đủ thông tin bao gồm gói dịch vụ");
       return;
     }
 
     try {
-    setLoading(true);
+      setLoading(true);
 
-    const payload = {
-      doctorId: parseInt(selectedDoctor),
-      branchId: parseInt(selectedBranch),
-      patientId: patientId,
-      appointmentDate: selectedDate.toISOString().split("T")[0],
-      startTime: selectedSlot.startTime.toTimeString().substring(0, 5), // "HH:mm"
-      endTime: selectedSlot.endTime.toTimeString().substring(0, 5),
-      note: note || ""
-    };
+      const payload = {
+        doctorId: parseInt(selectedDoctor),
+        branchId: parseInt(selectedBranch),
+        patientId: patientId,
+        appointmentDate: selectedDate.toISOString().split("T")[0],
+        startTime: selectedSlot.startTime.toTimeString().substring(0, 5), // "HH:mm"
+        endTime: selectedSlot.endTime.toTimeString().substring(0, 5),
+        note: note || "",
+        servicePackage: selectedPackage?.name || "",
+        packagePrice: selectedPackage?.price || 0
+      };
 
-    console.log("Payload gửi đi:", payload);
-    // Gửi payload tới API
-    await axios.post(`${API_BASE_URL}/Appointment`, payload);
+      console.log("Payload gửi đi:", payload);
+      // Gửi payload tới API
+      await axios.post(`${API_BASE_URL}/Appointment`, payload);
 
-    toast.success("Appointment booked successfully!");
-    setTimeout(() => {
-      navigate("/appointments");
-    }, 2000);
-  } catch (err) {
-    toast.error("Failed to book appointment. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
+      toast.success("Đặt lịch khám thành công!");
+      setTimeout(() => {
+        navigate("/appointments");
+      }, 2000);
+    } catch (err) {
+      toast.error("Đặt lịch thất bại. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (pageLoading) {
     return <LoadingSpinner fullScreen />;
@@ -211,55 +213,56 @@ const slots = filtered.map((s) => {
       <section id="intro" style={{ backgroundColor: "#E8F0F1" }}>
         <div className="container">
           <div className="banner-content padding-large">
-            <h1 className="display-3 fw-bold text-dark">Booking</h1>
+            <h1 className="display-3 fw-bold text-dark">Đặt lịch khám</h1>
             <span className="item">
               <Link to="/" className="">
-                Home
+                Trang chủ
               </Link>
             </span>{" "}
             &nbsp; <span className="">/</span> &nbsp;{" "}
-            <span className="item">Booking</span>
+            <span className="item">Đặt lịch khám</span>
           </div>
         </div>
       </section>
 
-      <Container className="py-5">
+      <Container className="py-5 booking-page">
         <Row className="justify-content-center">
-          <Col md={10}>
+          <Col xs={12} lg={11} xl={12}>
             <Card>
               <Card.Body>
                 <Form onSubmit={handleSubmit}>
                   {selectedService && (
                     <Card className="mb-4">
                       <Card.Body>
-                        <h5 className="mb-3">Selected Service Package</h5>
+                        <h5 className="mb-3">Gói dịch vụ đã chọn từ trang giá</h5>
                         <div className="d-flex justify-content-between align-items-center">
                           <div>
                             <h6 className="text-capitalize mb-2">
-                              {selectedService} Package
+                              Gói {selectedService}
                             </h6>
                             <p className="text-muted mb-0">
-                              Package Price: ${servicePrice}
+                              Giá gói: {servicePrice} VNĐ
                             </p>
                           </div>
                           <Link
                             to="/pricing"
                             className="btn btn-outline-primary"
                           >
-                            Change Package
+                            Thay đổi gói
                           </Link>
                         </div>
                       </Card.Body>
                     </Card>
                   )}
 
-                  <Row>
-                    <Col md={6} className="mb-4">
-                      <Card className="h-100">
-                        <Card.Body>
-                          <h5 className="mb-3">Select Location & Doctor</h5>
+                  <div className="booking-section">
+                    <Row>
+                      <Col md={6} className="mb-4">
+                        <Card className="h-100">
+                          <Card.Body>
+                            <h5 className="mb-3">Chọn chi nhánh & Bác sĩ</h5>
                           <Form.Group className="mb-3">
-                            <Form.Label>Branch Location</Form.Label>
+                            <Form.Label>Chi nhánh</Form.Label>
                             <Form.Select
                               value={selectedBranch}
                               onChange={(e) =>
@@ -267,7 +270,7 @@ const slots = filtered.map((s) => {
                               }
                               disabled={loading}
                             >
-                              <option value="">Select a branch</option>
+                              <option value="">Chọn chi nhánh</option>
                               {branchList.map((branch) => (
                                 <option key={branch.id} value={branch.id}>
                                   {branch.name}
@@ -277,7 +280,7 @@ const slots = filtered.map((s) => {
                           </Form.Group>
 
                           <Form.Group className="mb-3">
-                            <Form.Label>Doctor</Form.Label>
+                            <Form.Label>Bác sĩ</Form.Label>
                             <Form.Select
                               value={selectedDoctor}
                               onChange={(e) =>
@@ -285,7 +288,7 @@ const slots = filtered.map((s) => {
                               }
                               disabled={!selectedBranch || loading}
                             >
-                              <option value="">Select a doctor</option>
+                              <option value="">Chọn bác sĩ</option>
                               {doctorList.map((doctor) => (
                                 <option key={doctor.id} value={doctor.id}>
                                   Dr. {doctor.fullName} - {doctor.specialization}
@@ -295,16 +298,13 @@ const slots = filtered.map((s) => {
                           </Form.Group>
 
                           {doctorDetails && (
-                            <div className="doctor-info mt-3">
-                              <h6>Doctor Information</h6>
+                            <div className="doctor-info mt-3 p-3 bg-light rounded">
+                              <h6>Thông tin bác sĩ</h6>
                               <p className="mb-1">
-                                Specialty: {doctorDetails.specialization}
+                                <strong>Chuyên khoa:</strong> {doctorDetails.specialization}
                               </p>
                               <p className="mb-1">
-                                Experience: {doctorDetails.yearOfExperience} years
-                              </p>
-                              <p className="mb-0">
-                                 Languages: {doctorDetails.languages ? doctorDetails.languages.join(", ") : "N/A"}
+                                <strong>Kinh nghiệm:</strong> {doctorDetails.experience || 'N/A'} năm
                               </p>
                             </div>
                           )}
@@ -315,7 +315,7 @@ const slots = filtered.map((s) => {
                     <Col md={6} className="mb-4">
                       <Card className="h-100">
                         <Card.Body>
-                          <h5 className="mb-3">Select Date & Time</h5>
+                          <h5 className="mb-3">Chọn ngày & Giờ khám</h5>
 
                           <div className="calendar-container mb-4">
                             <Calendar
@@ -330,41 +330,41 @@ const slots = filtered.map((s) => {
                           </div>
 
                           <Form.Group>
-                            <Form.Label>Available Time Slots</Form.Label>
+                            <Form.Label>Khung giờ có sẵn</Form.Label>
                             <div className="time-slots-grid">
                               {loading ? (
                                 <div className="text-center py-4">
                                   <LoadingSpinner />
                                 </div>
                               ) : availableSlots.length > 0 ? (
-                                  <div className="d-grid gap-2">
-    {availableSlots.map((slot, index) => (
-      <Button
-        key={index}
-        variant={
-          selectedSlot === slot ? "primary" : "outline-primary"
-        }
-        onClick={() => setSelectedSlot(slot)}
-        className="text-start"
-      >
-        {slot.startTime.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false, 
-        })}{" "}
-        -{" "}
-        {slot.endTime.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false, 
-        })}
-      </Button>
-    ))}
-  </div>
-) : (
-  <Alert variant="info">
-    No available slots for the selected date.
-  </Alert>
+                                <div className="d-grid gap-2">
+                                  {availableSlots.map((slot, index) => (
+                                    <Button
+                                      key={index}
+                                      variant={
+                                        selectedSlot === slot ? "primary" : "outline-primary"
+                                      }
+                                      onClick={() => setSelectedSlot(slot)}
+                                      className="text-start"
+                                    >
+                                      {slot.startTime.toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                        hour12: false, 
+                                      })}{" "}
+                                      -{" "}
+                                      {slot.endTime.toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                        hour12: false, 
+                                      })}
+                                    </Button>
+                                  ))}
+                                </div>
+                              ) : (
+                                <Alert variant="info">
+                                  Không có khung giờ trống cho ngày đã chọn.
+                                </Alert>
                               )}
                             </div>
                           </Form.Group>
@@ -372,23 +372,49 @@ const slots = filtered.map((s) => {
                       </Card>
                     </Col>
                   </Row>
+                  </div>
 
-                  <Card className="mb-4">
-                    <Card.Body>
-                      <h5 className="mb-3">Additional Information</h5>
-                      <Form.Group>
-                        <Form.Label>Notes for the Doctor (Optional)</Form.Label>
-                        <Form.Control
-                          as="textarea"
-                          rows={3}
-                          value={note}
-                          onChange={(e) => setNote(e.target.value)}
-                          placeholder="Describe your symptoms or any specific concerns..."
-                          disabled={loading}
-                        />
-                      </Form.Group>
-                    </Card.Body>
-                  </Card>
+                  {/* Service Package Selection */}
+                  <div className="booking-section">
+                    <ServicePackageSelector
+                      selectedPackage={selectedPackage}
+                      onSelectPackage={setSelectedPackage}
+                      disabled={loading}
+                    />
+                  </div>
+
+                  {/* Invoice Preview - only show when all main info is selected */}
+                  {selectedPackage && selectedDoctor && selectedDate && selectedSlot && (
+                    <div className="booking-section">
+                      <InvoicePreview
+                        selectedPackage={selectedPackage}
+                        doctorDetails={doctorDetails}
+                        branchDetails={branchDetails}
+                        selectedDate={selectedDate}
+                        selectedSlot={selectedSlot}
+                        patientInfo={patientInfo}
+                      />
+                    </div>
+                  )}
+
+                  <div className="booking-section">
+                    <Card className="mb-4">
+                      <Card.Body>
+                        <h5 className="mb-3">Thông tin bổ sung</h5>
+                        <Form.Group>
+                          <Form.Label>Ghi chú cho bác sĩ (Tùy chọn)</Form.Label>
+                          <Form.Control
+                            as="textarea"
+                            rows={3}
+                            value={note}
+                            onChange={(e) => setNote(e.target.value)}
+                            placeholder="Mô tả triệu chứng hoặc mối quan tâm cụ thể..."
+                            disabled={loading}
+                          />
+                        </Form.Group>
+                      </Card.Body>
+                    </Card>
+                  </div>
 
                   <div className="text-center">
                     <Button
@@ -399,10 +425,11 @@ const slots = filtered.map((s) => {
                         !selectedDoctor ||
                         !selectedDate ||
                         !selectedSlot ||
-                        !selectedBranch
+                        !selectedBranch ||
+                        !selectedPackage
                       }
                     >
-                      {loading ? "Booking..." : "Book Appointment"}
+                      {loading ? "Đang đặt lịch..." : "Đặt lịch khám"}
                     </Button>
                   </div>
                 </Form>

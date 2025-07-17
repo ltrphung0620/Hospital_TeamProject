@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import axios from "axios";
 import { API_BASE_URL } from '../services/api';
+import { setTokenExpiration } from '../utils/auth';
 
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
@@ -45,6 +46,9 @@ const LoginPage = () => {
       
       localStorage.setItem('authData', JSON.stringify(authData));
       localStorage.setItem('authToken', authData.token); // Giữ lại cho các API calls
+      
+      // Lưu thời gian hết hạn token (3 tiếng)
+      setTokenExpiration();
 
       showNotification('Đăng nhập thành công');
 
