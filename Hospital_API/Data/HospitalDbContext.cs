@@ -52,6 +52,10 @@ namespace Hospital_API.Data
         public DbSet<Blog> Blogs { get; set; }
         public DbSet<BlogImage> BlogImages { get; set; }
         public DbSet<Image> Images { get; set; }
+        public DbSet<MedicalPackageDb> MedicalPackages { get; set; }
+        public DbSet<MedicalPackageItemDb> MedicalPackageItems { get; set; }
+
+
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -160,6 +164,15 @@ namespace Hospital_API.Data
                 .WithMany()
                 .HasForeignKey(b => b.AuthorId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MedicalPackageItemDb>()
+        .HasOne(x => x.MedicalPackage)
+        .WithMany(x => x.Items)
+        .HasForeignKey(x => x.PackageId)
+        .OnDelete(DeleteBehavior.Cascade);
+            
+             modelBuilder.Entity<MedicalPackageItemDb>()
+            .HasKey(x => x.Id);
         }
 
     }
