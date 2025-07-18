@@ -247,6 +247,9 @@ builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 
 builder.Services.AddScoped<IWaitingListRepository, WaitingListRepository>();
 builder.Services.AddScoped<IWaitingListService, WaitingListService>();
+builder.Services.AddScoped<IMedicalPackageService, MedicalPackageService>();
+builder.Services.AddScoped<IMedicalPackageRepository, MedicalPackageRepository>();
+
 
 var app = builder.Build();
 

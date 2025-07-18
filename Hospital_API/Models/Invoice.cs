@@ -4,7 +4,7 @@ namespace Hospital_API.Models
     {
 
         public int Id { get; set; }
-
+                                        
         public int AppointmentId { get; set; }
         public int PatientId { get; set; }
         public DateTime IssuedDate { get; set; }

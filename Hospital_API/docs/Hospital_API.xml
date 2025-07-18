@@ -299,5 +299,17 @@
         <member name="M:Hospital_API.Migrations.AddAddressToUser.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
+        <member name="T:Hospital_API.Migrations.AddMedicalPackageTables">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.AddMedicalPackageTables.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.AddMedicalPackageTables.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.AddMedicalPackageTables.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
     </members>
 </doc>
