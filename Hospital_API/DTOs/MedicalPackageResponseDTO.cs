@@ -6,6 +6,6 @@ namespace Hospital_API.DTOs
         public string Name { get; set; }
         public decimal Price { get; set; }
         public bool IsRecommended { get; set; }
+        
     }
-
 }
