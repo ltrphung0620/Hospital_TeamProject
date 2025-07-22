@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from "react";
 import { Card, Table, Badge } from 'react-bootstrap';
 import { FaFileInvoice, FaCalendarAlt, FaClock, FaUserMd, FaMapMarkerAlt, FaStethoscope } from 'react-icons/fa';
 
@@ -10,6 +10,13 @@ const InvoicePreview = ({
   selectedSlot,
   patientInfo 
 }) => {
+
+useEffect(() => {
+  console.log("📋 InvoicePreview nhận selectedPackage:", selectedPackage);
+  console.log("📋 InvoicePreview services:", selectedPackage?.services);
+}, [selectedPackage]);
+
+
   const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN').format(price) + ' VNĐ';
   };
@@ -52,7 +59,7 @@ const InvoicePreview = ({
         {/* Thông tin bệnh viện */}
         <div className="text-center mb-4">
           <h4 className="text-primary fw-bold">BỆNH VIỆN ĐA KHOA</h4>
-          <p className="mb-0">123 Arling, Miola, NY</p>
+          <p className="mb-0">123 Arling, Miola, NY</p> 
           <p className="mb-0">Điện thoại: (+487) 384 9452</p>
         </div>
 
@@ -106,11 +113,11 @@ const InvoicePreview = ({
                 </tr>
               </thead>
               <tbody>
-                {selectedPackage.services.map((service, index) => (
+                {selectedPackage.items.map((item, index) => (
                   <tr key={index}>
-                    <td>{service.name}</td>
+                    <td>{item.itemName}</td>
                     <td className="text-center">1</td>
-                    <td className="text-end">{formatPrice(service.price)}</td>
+                    <td className="text-end">{formatPrice(item.itemPrice)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -133,12 +140,12 @@ const InvoicePreview = ({
               <div className="text-end">
                 <div className="d-flex justify-content-between mb-2">
                   <span>Tạm tính:</span>
-                  <span>{formatPrice(selectedPackage.services.reduce((sum, service) => sum + service.price, 0))}</span>
+                  <span>{formatPrice(selectedPackage.items.reduce((sum, item) => sum + item.itemPrice, 0))}</span>
                 </div>
                 <div className="d-flex justify-content-between mb-2">
                   <span>Giảm giá gói:</span>
                   <span className="text-success">
-                    -{formatPrice(selectedPackage.services.reduce((sum, service) => sum + service.price, 0) - selectedPackage.price)}
+                    -{formatPrice(selectedPackage.items.reduce((sum, item) => sum + item.itemPrice  , 0) - selectedPackage.price)}
                   </span>
                 </div>
                 <hr />

@@ -1,3 +1,4 @@
+using Hospital_API.DTOs;
 using Hospital_API.Models;
 
 namespace Hospital_API.Interfaces
@@ -10,6 +11,9 @@ namespace Hospital_API.Interfaces
         Task AddAsync(Invoice invoice);
         Task UpdateAsync(Invoice invoice);
         Task DeleteAsync(Invoice invoice);
+
+        Task<int> CreateWithDetailsAsync(InvoiceCreateDTO dto);
+
     }
 
 }

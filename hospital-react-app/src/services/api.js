@@ -85,6 +85,10 @@ export const createMedicalRecord = (data) => api.post('/medicalrecords', data);
 export const updateMedicalRecord = (id, data) => api.put(`/medicalrecords/${id}`, data);
 export const deleteMedicalRecord = (id) => api.delete(`/medicalrecords/${id}`);
 
+// Invoice
+export const createInvoiced = (data) => api.post('/Invoice/createddetails', data);
+
+
 // Blog APIs
 export const getAllBlogs = async () => {
   const response = await api.get('/blog');  // This endpoint now returns only published blogs

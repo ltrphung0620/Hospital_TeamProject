@@ -12,7 +12,7 @@ namespace Hospital_API.Services
         private readonly HospitalDbContext _context;
 
 
-        public InvoiceService(IInvoiceRepository repo,HospitalDbContext context)
+        public InvoiceService(IInvoiceRepository repo, HospitalDbContext context)
         {
             _repo = repo;
             _context = context;
@@ -51,7 +51,7 @@ namespace Hospital_API.Services
             var invoice = new Invoice
             {
                 AppointmentId = dto.AppointmentId,
-                PatientId = appointment.PatientId, 
+                PatientId = appointment.PatientId,
                 TotalAmount = dto.TotalAmount,
                 Status = string.IsNullOrEmpty(dto.Status) ? "Unpaid" : dto.Status,
                 Note = dto.Note,
@@ -97,6 +97,10 @@ namespace Hospital_API.Services
                 CreatedAt = entity.CreatedAt
             };
         }
+         public async Task<int> CreateWithDetailsAsync(InvoiceCreateDTO dto)
+            {
+                return await _repo.CreateWithDetailsAsync(dto);
+            }
     }
 
 }

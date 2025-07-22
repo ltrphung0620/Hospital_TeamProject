@@ -1,6 +1,7 @@
 using Hospital_API.DTOs;
 using Hospital_API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Hospital_API.Controllers
 {
@@ -104,5 +105,28 @@ namespace Hospital_API.Controllers
 
             return NoContent();
         }
-    }
+
+         [HttpPost("createdetails")]
+        public async Task<IActionResult> CreateWithDetails([FromBody] InvoiceCreateDTO dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var invoiceId = await _service.CreateWithDetailsAsync(dto);
+                return Ok(new { invoiceId });
+            }
+            catch (DbUpdateException dbEx)
+            {
+                return StatusCode(500, new { message = "Lỗi database khi tạo hóa đơn.", detail = dbEx.InnerException?.Message ?? dbEx.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi trong quá trình tạo hóa đơn.", detail = ex.Message });
+            }
+                }
+            }
 }

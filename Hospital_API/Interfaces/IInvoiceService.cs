@@ -10,6 +10,8 @@ namespace Hospital_API.Interfaces
         Task<InvoiceDTO> CreateAsync(InvoiceCreateDTO dto);
         Task<InvoiceDTO?> UpdateAsync(InvoiceUpdateDTO dto);
         Task<bool> DeleteAsync(int id);
+        Task<int> CreateWithDetailsAsync(InvoiceCreateDTO dto);
+
     }
 
 }
