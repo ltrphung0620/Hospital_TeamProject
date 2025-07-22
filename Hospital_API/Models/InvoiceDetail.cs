@@ -7,7 +7,7 @@ namespace Hospital_API.Models
     public int InvoiceId { get; set; }
     public Invoice Invoice { get; set; } = null!;
 
-   public string ItemType { get; set; } = string.Empty; // "Medicine" hoặc "Service"
+    public string ItemType { get; set; } = string.Empty; // "Medicine" hoặc "Service"
     public int ItemId { get; set; }
     public string Description { get; set; } = string.Empty;
 

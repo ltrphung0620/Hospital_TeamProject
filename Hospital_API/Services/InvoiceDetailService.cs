@@ -40,7 +40,7 @@ namespace Hospital_API.Services
     {
         var entity = new InvoiceDetail
         {
-            InvoiceId = dto.InvoiceId,
+           
             ItemType = dto.ItemType,
             ItemId = dto.ItemId,
             Description = dto.Description,
@@ -50,7 +50,7 @@ namespace Hospital_API.Services
         };
 
         await _repo.AddAsync(entity);
-        await UpdateInvoiceTotal(dto.InvoiceId);
+        await UpdateInvoiceTotal(dto.ItemId);
 
         return ToDTO(entity);
     }

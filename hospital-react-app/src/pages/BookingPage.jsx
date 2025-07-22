@@ -59,7 +59,7 @@ const BookingPage = () => {
           toast.warning("Vui lòng đăng nhập để đặt lịch khám.");
           navigate("/login", { state: { from: location.pathname } });
           return;
-        }
+        } 
 
         console.log("🚀 Fetching patient data for user:", userId);
         
@@ -257,9 +257,38 @@ const BookingPage = () => {
         packagePrice: selectedPackage?.price || 0
       };
 
-      console.log("Payload gửi đi:", payload);
-      // Gửi payload tới API
-      await api.post(`/Appointment`, payload);
+      const appointmentRes = await api.post("/Appointment", payload);
+      const appointmentId = appointmentRes.data?.id;
+
+    if (!appointmentId) throw new Error("Không thể lấy appointmentId");
+    const invoiceDetails = selectedPackage.items.map((item) => ({
+          itemType: item.itemType,
+          itemId: item.itemId,
+          description: item.itemName,
+          quantity: 1,
+          unitPrice: item.itemPrice,
+          totalPrice: item.itemPrice * 1,
+        }));
+
+   
+    console.log("Payload gửi đi:", selectedPackage);
+
+    const totalAmount = invoiceDetails.reduce(
+      (sum, item) => sum + item.unitPrice * item.quantity,
+      0
+    );
+    await api.post("/Invoices/createdetails", {
+      appointmentId,
+      patientId,
+      totalAmount,
+      status: "Unpaid",
+      note: `Hóa đơn cho lịch khám ngày ${payload.appointmentDate}`,
+      invoiceDetails,
+    });
+
+
+      // console.log("Payload gửi đi:", payload);
+      // await api.post(`/Appointment`, payload);
 
       toast.success("Đặt lịch khám thành công!");
       setTimeout(() => {
@@ -463,9 +492,14 @@ const BookingPage = () => {
                     />
                   </div>
 
+
+
+
                   {/* Invoice Preview - only show when all main info is selected */}
                   {selectedPackage && selectedDoctor && selectedDate && selectedSlot && (
+                    
                     <div className="booking-section">
+                      
                       <InvoicePreview
                         selectedPackage={selectedPackage}
                         doctorDetails={doctorDetails}
