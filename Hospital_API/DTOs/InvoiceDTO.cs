@@ -11,7 +11,8 @@ namespace Hospital_API.DTOs
         public string Status { get; set; }
         public string? Note { get; set; }
         public DateTime CreatedAt { get; set; }
-
+        public List<InvoiceDetailDTO> InvoiceDetails { get; set; } = new();
+        public List<PaymentDTO> Payments { get; set; } = new();
     }
 
 }

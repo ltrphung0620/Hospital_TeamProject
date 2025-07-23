@@ -21,6 +21,7 @@ import ReviewPage from './pages/ReviewPage';
 import PricingPage from './pages/PricingPage';
 import GalleryPage from './pages/GalleryPage';
 import AppointmentsPage from './pages/AppointmentsPage';
+import InvoicePatientPage from './pages/InvoicePatientPage';
 import UserInfoPage from './pages/UserInfoPage';
 import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -86,6 +87,7 @@ function App() {
           <Route path="team" element={<TeamPage />} />
           <Route path="doctors" element={<TeamPage />} />
           <Route path="review" element={<ReviewPage />} />
+          <Route path="invoices" element={<InvoicePatientPage />} />
           <Route path="pricing" element={<PricingPage />} />
           <Route path="gallery" element={<GalleryPage />} />
           <Route path="user-info" element={<UserInfoPage />} />

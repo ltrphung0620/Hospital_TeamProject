@@ -97,10 +97,55 @@ namespace Hospital_API.Services
                 CreatedAt = entity.CreatedAt
             };
         }
-         public async Task<int> CreateWithDetailsAsync(InvoiceCreateDTO dto)
+        public async Task<List<InvoiceDTO>> GetInvoicesByPatientIdAsync(int patientId)
+        {
+            var invoices = await _repo.GetInvoicesByPatientIdAsync(patientId);
+            return invoices.Select(MapToDTOPatientPage).ToList();
+        }
+        private InvoiceDTO MapToDTOPatientPage(Invoice entity)
+        {
+            return new InvoiceDTO
             {
-                return await _repo.CreateWithDetailsAsync(dto);
-            }
+                Id = entity.Id,
+                AppointmentId = entity.AppointmentId,
+                PatientId = entity.PatientId,
+                IssuedDate = entity.IssuedDate,
+                TotalAmount = entity.TotalAmount,
+                Status = entity.Status,
+                Note = entity.Note,
+                CreatedAt = entity.CreatedAt,
+
+                InvoiceDetails = entity.InvoiceDetails != null
+                    ? entity.InvoiceDetails.Select(detail => new InvoiceDetailDTO
+                    {
+                        Id = detail.Id,
+                        InvoiceId = detail.InvoiceId,
+                        ItemType = detail.ItemType,
+                        ItemId = detail.ItemId,
+                        Description = detail.Description,
+                        Quantity = detail.Quantity,
+                        UnitPrice = detail.UnitPrice,
+                        TotalPrice = detail.TotalPrice
+                    }).ToList()
+                    : new List<InvoiceDetailDTO>(),
+
+                Payments = entity.Payments != null
+                    ? entity.Payments.Select(p => new PaymentDTO
+                    {
+                        Id = p.Id,
+                        InvoiceId = p.InvoiceId,
+                        Amount = p.Amount,
+                        PaymentDate = p.PaymentDate,
+                        PaymentMethod = p.PaymentMethod,
+                        TransactionCode = p.TransactionCode
+                    }).ToList()
+                    : new List<PaymentDTO>()
+            };
+        }
+        public async Task<int> CreateWithDetailsAsync(InvoiceCreateDTO dto)
+        {
+            return await _repo.CreateWithDetailsAsync(dto);
+        }
     }
 
 }

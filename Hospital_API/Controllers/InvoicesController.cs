@@ -41,7 +41,16 @@ namespace Hospital_API.Controllers
 
             return Ok(result);
         }
+        [HttpGet("by-patient/{patientId}")]
+        public async Task<ActionResult<List<InvoiceDTO>>> GetInvoicesByPatientId(int patientId)
+        {
+            var result = await _service.GetInvoicesByPatientIdAsync(patientId);
 
+            if (result == null || result.Count == 0)
+                return NotFound("No invoices found for this patient.");
+
+            return Ok(result);
+        }
         /// <summary>
         /// Lấy hóa đơn theo lịch hẹn
         /// </summary>
@@ -106,7 +115,7 @@ namespace Hospital_API.Controllers
             return NoContent();
         }
 
-         [HttpPost("createdetails")]
+        [HttpPost("createdetails")]
         public async Task<IActionResult> CreateWithDetails([FromBody] InvoiceCreateDTO dto)
         {
             if (!ModelState.IsValid)
@@ -127,6 +136,6 @@ namespace Hospital_API.Controllers
             {
                 return StatusCode(500, new { message = "Đã xảy ra lỗi trong quá trình tạo hóa đơn.", detail = ex.Message });
             }
-                }
-            }
+        }
+    }
 }

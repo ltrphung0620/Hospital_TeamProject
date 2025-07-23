@@ -87,7 +87,7 @@ export const deleteMedicalRecord = (id) => api.delete(`/medicalrecords/${id}`);
 
 // Invoice
 export const createInvoiced = (data) => api.post('/Invoice/createddetails', data);
-
+export const getInvoicesByPatientId = (patientId) => api.get(`/Invoices/by-patient/${patientId}`);
 
 // Blog APIs
 export const getAllBlogs = async () => {
