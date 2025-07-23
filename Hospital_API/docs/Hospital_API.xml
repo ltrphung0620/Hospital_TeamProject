@@ -109,6 +109,16 @@
             Xoá 1 quyền khỏi role
             </summary>
         </member>
+        <member name="M:Hospital_API.Controllers.TestController.FixMedicinePrices">
+            <summary>
+            Fix medicine prices
+            </summary>
+        </member>
+        <member name="M:Hospital_API.Controllers.TestController.FixPatient">
+            <summary>
+            Quick fix patient password
+            </summary>
+        </member>
         <member name="M:Hospital_API.Repositories.UserRepository.Update(Hospital_API.Models.User)">
             <summary>
             Chỉ đánh dấu entity để update. Không gọi SaveChangesAsync.
@@ -309,6 +319,18 @@
             <inheritdoc />
         </member>
         <member name="M:Hospital_API.Migrations.AddMedicalPackageTables.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:Hospital_API.Migrations.AddPrescriptionDetails">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.AddPrescriptionDetails.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.AddPrescriptionDetails.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hospital_API.Migrations.AddPrescriptionDetails.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
     </members>

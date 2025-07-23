@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, Input, Select, InputNumber, Space, message, Card, Row, Col, Descriptions } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { API_BASE_URL } from '../../services/api';
 
 const { Option } = Select;
 
@@ -26,7 +27,7 @@ const PrescriptionManagementPage = () => {
   const fetchPrescriptions = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/Prescriptions');
+      const response = await axios.get(`${API_BASE_URL}/Prescriptions`);
       const data = response.data;
       setPrescriptions(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -40,7 +41,7 @@ const PrescriptionManagementPage = () => {
 
   const fetchMedicines = async () => {
     try {
-      const response = await axios.get('/api/Medicines');
+      const response = await axios.get(`${API_BASE_URL}/Medicines`);
       const data = response.data;
       setMedicines(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -52,7 +53,7 @@ const PrescriptionManagementPage = () => {
 
   const fetchMedicalRecords = async () => {
     try {
-      const response = await axios.get('/api/MedicalRecords');
+      const response = await axios.get(`${API_BASE_URL}/MedicalRecords`);
       const data = response.data;
       setMedicalRecords(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -64,7 +65,7 @@ const PrescriptionManagementPage = () => {
 
   const handleMedicalRecordChange = async (recordId) => {
     try {
-      const response = await axios.get(`/api/MedicalRecords/${recordId}`);
+      const response = await axios.get(`${API_BASE_URL}/MedicalRecords/${recordId}`);
       const record = response.data;
       if (record && record.appointment) {
         setSelectedMedicalRecord({
@@ -103,7 +104,7 @@ const PrescriptionManagementPage = () => {
 
   const handleDeletePrescription = async (id) => {
     try {
-      await axios.delete(`/api/Prescriptions/${id}`);
+      await axios.delete(`${API_BASE_URL}/Prescriptions/${id}`);
       message.success('Prescription deleted successfully');
       fetchPrescriptions();
     } catch (error) {
@@ -121,10 +122,10 @@ const PrescriptionManagementPage = () => {
       };
 
       if (selectedPrescription) {
-        await axios.put(`/api/Prescriptions/${selectedPrescription.id}`, prescriptionData);
+        await axios.put(`${API_BASE_URL}/Prescriptions/${selectedPrescription.id}`, prescriptionData);
         message.success('Prescription updated successfully');
       } else {
-        await axios.post('/api/Prescriptions', prescriptionData);
+        await axios.post(`${API_BASE_URL}/Prescriptions`, prescriptionData);
         message.success('Prescription created successfully');
       }
 
@@ -139,7 +140,7 @@ const PrescriptionManagementPage = () => {
   const handleCreateInvoice = async (prescriptionId) => {
     try {
       // Get prescription details
-      const prescriptionResponse = await axios.get(`/api/Prescriptions/${prescriptionId}`);
+      const prescriptionResponse = await axios.get(`${API_BASE_URL}/Prescriptions/${prescriptionId}`);
       const prescription = prescriptionResponse.data;
 
       if (!prescription) {
@@ -162,7 +163,7 @@ const PrescriptionManagementPage = () => {
       };
 
       // Create invoice
-      await axios.post('/api/Invoices', invoiceData);
+      await axios.post(`${API_BASE_URL}/Invoices`, invoiceData);
       message.success('Invoice created successfully');
       setInvoiceModalVisible(false);
     } catch (error) {

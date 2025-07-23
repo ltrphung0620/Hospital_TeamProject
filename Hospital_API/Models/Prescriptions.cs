@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -15,5 +17,8 @@ namespace Hospital_API.Models
 
         public string PrescribedBy { get; set; }
         public DateTime CreatedAt { get; set; }
+
+        // Navigation properties
+        public ICollection<PrescriptionDetails> Details { get; set; } = new List<PrescriptionDetails>();
     }
 }

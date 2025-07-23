@@ -252,6 +252,13 @@ builder.Services.AddScoped<IMedicalPackageRepository, MedicalPackageRepository>(
 builder.Services.AddScoped<IMedicalPackageItemRepository, MedicalPackageItemRepository>();
 builder.Services.AddScoped<IMedicalPackageItemService, MedicalPackageItemService>();
 
+builder.Services.AddScoped<IMedicalRecordsService, MedicalRecordsService>();
+builder.Services.AddScoped<IMedicalRecordsRepository, MedicalRecordsRepository>();
+builder.Services.AddScoped<IPrescriptionsService, PrescriptionsService>();
+builder.Services.AddScoped<IPrescriptionsRepository, PrescriptionsRepository>();
+builder.Services.AddScoped<IPrescriptionDetailsService, PrescriptionDetailsService>();
+builder.Services.AddScoped<IPrescriptionDetailsRepository, PrescriptionDetailsRepository>();
+
 
 var app = builder.Build();
 
