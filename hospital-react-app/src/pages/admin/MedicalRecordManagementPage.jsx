@@ -1,195 +1,286 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Card, Button, Table, Modal, Form, Pagination, Badge } from 'react-bootstrap';
-import { FaFileMedicalAlt, FaEdit, FaEye } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { Table, Button, Modal, Form, Input, Select, Space, message, Card, Row, Col, Descriptions } from 'antd';
+import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import axios from 'axios';
 
-// Mock Data
-const initialMedicalRecords = [
-  { 
-    id: 1, 
-    appointmentId: 101, 
-    patientName: 'Peter Jones',
-    doctorName: 'Dr. John Doe',
-    appointmentDate: '2024-07-20',
-    diagnosis: 'Common Cold', 
-    conclusion: 'Prescribed rest and fluids. Follow up if symptoms worsen.',
-    createdAt: '2024-07-20T10:00:00Z'
-  },
-  { 
-    id: 2, 
-    appointmentId: 102, 
-    patientName: 'Mary White',
-    doctorName: 'Dr. Jane Smith',
-    appointmentDate: '2024-07-21',
-    diagnosis: 'Migraine', 
-    conclusion: 'Advised lifestyle changes and prescribed pain relievers.',
-    createdAt: '2024-07-21T11:30:00Z'
-  },
-    { 
-    id: 3, 
-    appointmentId: 103, 
-    patientName: 'Peter Jones',
-    doctorName: 'Dr. John Doe',
-    appointmentDate: '2024-07-28',
-    diagnosis: 'Follow-up check', 
-    conclusion: 'Patient recovering well. No further medication needed at this time.',
-    createdAt: '2024-07-28T09:15:00Z'
-  },
-];
+const { Option } = Select;
+const { TextArea } = Input;
 
-function MedicalRecordManagementPage() {
-  const [records, setRecords] = useState(initialMedicalRecords);
-  const [showModal, setShowModal] = useState(false);
-  const [currentRecord, setCurrentRecord] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
+const MedicalRecordManagementPage = () => {
+  const [records, setRecords] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [form] = Form.useForm();
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  useEffect(() => {
+    fetchRecords();
+    fetchAppointments();
+  }, []);
 
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setCurrentRecord(null);
-    setIsEditing(false);
+  const fetchRecords = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('/api/MedicalRecords');
+      const data = response.data;
+      setRecords(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching medical records:', error);
+      message.error('Failed to fetch medical records');
+      setRecords([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleShowModal = (record, editMode = false) => {
-    setCurrentRecord({ ...record });
-    setIsEditing(editMode);
-    setShowModal(true);
+  const fetchAppointments = async () => {
+    try {
+      const response = await axios.get('/api/Appointments');
+      const data = response.data;
+      // Chỉ lấy các cuộc hẹn đã xác nhận và chưa có bệnh án
+      const confirmedAppointments = Array.isArray(data) ? data.filter(appointment => 
+        appointment.status === 'Confirmed' && 
+        !records.some(record => record.appointmentId === appointment.id)
+      ) : [];
+      setAppointments(confirmedAppointments);
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      message.error('Failed to fetch appointments');
+      setAppointments([]);
+    }
   };
 
-  const handleSave = () => {
-    // In a real app, this would be a PUT/POST request to the API
-    setRecords(records.map(r => r.id === currentRecord.id ? currentRecord : r));
-    handleCloseModal();
+  const handleAppointmentChange = (appointmentId) => {
+    const appointment = appointments.find(a => a.id === appointmentId);
+    setSelectedAppointment(appointment);
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setCurrentRecord(prev => ({ ...prev, [name]: value }));
+  const handleCreateRecord = () => {
+    setSelectedRecord(null);
+    setSelectedAppointment(null);
+    form.resetFields();
+    setModalVisible(true);
   };
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = records.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(records.length / itemsPerPage);
+  const handleEditRecord = (record) => {
+    setSelectedRecord(record);
+    const appointment = appointments.find(a => a.id === record.appointmentId);
+    setSelectedAppointment(appointment);
+    form.setFieldsValue({
+      appointmentId: record.appointmentId,
+      diagnosis: record.diagnosis,
+      conclusion: record.conclusion
+    });
+    setModalVisible(true);
+  };
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const handleDeleteRecord = async (id) => {
+    try {
+      await axios.delete(`/api/MedicalRecords/${id}`);
+      message.success('Medical record deleted successfully');
+      fetchRecords();
+      fetchAppointments(); // Refresh appointments to show the deleted record's appointment
+    } catch (error) {
+      console.error('Error deleting medical record:', error);
+      message.error('Failed to delete medical record');
+    }
+  };
+
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields();
+      const recordData = {
+        ...values,
+        id: selectedRecord?.id,
+        createdAt: new Date().toISOString()
+      };
+
+      if (selectedRecord) {
+        await axios.put(`/api/MedicalRecords/${selectedRecord.id}`, recordData);
+        message.success('Medical record updated successfully');
+      } else {
+        await axios.post('/api/MedicalRecords', recordData);
+        message.success('Medical record created successfully');
+      }
+
+      setModalVisible(false);
+      fetchRecords();
+      fetchAppointments(); // Refresh appointments to hide the one we just created a record for
+    } catch (error) {
+      console.error('Error saving medical record:', error);
+      message.error('Failed to save medical record');
+    }
+  };
+
+  const columns = [
+    {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+    },
+    {
+      title: 'Patient',
+      dataIndex: 'appointment',
+      key: 'patient',
+      render: (appointment) => appointment?.patientName || '-',
+    },
+    {
+      title: 'Doctor',
+      dataIndex: 'appointment',
+      key: 'doctor',
+      render: (appointment) => appointment?.doctorName || '-',
+    },
+    {
+      title: 'Appointment Date',
+      dataIndex: 'appointment',
+      key: 'appointmentDate',
+      render: (appointment) => appointment?.appointmentDate ? new Date(appointment.appointmentDate).toLocaleDateString() : '-',
+    },
+    {
+      title: 'Diagnosis',
+      dataIndex: 'diagnosis',
+      key: 'diagnosis',
+      ellipsis: true,
+    },
+    {
+      title: 'Conclusion',
+      dataIndex: 'conclusion',
+      key: 'conclusion',
+      ellipsis: true,
+    },
+    {
+      title: 'Created At',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (text) => text ? new Date(text).toLocaleString() : '-',
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record) => (
+        <Space>
+          <Button 
+            type="primary" 
+            icon={<EditOutlined />}
+            onClick={() => handleEditRecord(record)}
+          >
+            Edit
+          </Button>
+          <Button 
+            danger 
+            icon={<DeleteOutlined />}
+            onClick={() => handleDeleteRecord(record.id)}
+          >
+            Delete
+          </Button>
+        </Space>
+      ),
+    },
+  ];
 
   return (
-    <Container fluid className="p-4">
-      <Row className="mb-4">
-        <Col>
-          <h2 className="admin-page-title"><FaFileMedicalAlt className="me-2" /> Medical Record Management</h2>
-        </Col>
-      </Row>
+    <div style={{ padding: '24px' }}>
+      <Card title="Medical Record Management">
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={handleCreateRecord}
+          style={{ marginBottom: 16 }}
+        >
+          Create New Medical Record
+        </Button>
 
-      <Card className="admin-card">
-        <Card.Header>
-          <span>Medical Records List</span>
-        </Card.Header>
-        <Card.Body>
-          <Table responsive hover className="admin-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Patient</th>
-                <th>Doctor</th>
-                <th>Appointment Date</th>
-                <th>Diagnosis</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentItems.map((record, index) => (
-                <tr key={record.id}>
-                  <td>{indexOfFirstItem + index + 1}</td>
-                  <td>{record.patientName}</td>
-                  <td>{record.doctorName}</td>
-                  <td>{record.appointmentDate}</td>
-                  <td>{record.diagnosis}</td>
-                  <td>
-                    <Button variant="outline-info" size="sm" className="me-2" onClick={() => handleShowModal(record, false)}>
-                      <FaEye />
-                    </Button>
-                    <Button variant="outline-primary" size="sm" onClick={() => handleShowModal(record, true)}>
-                      <FaEdit />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        </Card.Body>
-        {totalPages > 1 && (
-          <Card.Footer>
-            <Pagination className="justify-content-center mb-0">
-              {Array.from({ length: totalPages }, (_, i) => (
-                <Pagination.Item key={i + 1} active={i + 1 === currentPage} onClick={() => paginate(i + 1)}>
-                  {i + 1}
-                </Pagination.Item>
-              ))}
-            </Pagination>
-          </Card.Footer>
-        )}
-      </Card>
+        <Table
+          columns={columns}
+          dataSource={Array.isArray(records) ? records : []}
+          loading={loading}
+          rowKey="id"
+        />
 
-      {/* View/Edit Modal */}
-      <Modal show={showModal} onHide={handleCloseModal} centered size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>{isEditing ? 'Edit Medical Record' : 'View Medical Record'}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Row className="mb-3">
-              <Col md={6}>
-                <p><strong>Patient:</strong> {currentRecord?.patientName}</p>
-              </Col>
-              <Col md={6}>
-                <p><strong>Doctor:</strong> {currentRecord?.doctorName}</p>
+        <Modal
+          title={selectedRecord ? 'Edit Medical Record' : 'Create Medical Record'}
+          open={modalVisible}
+          onOk={handleModalOk}
+          onCancel={() => setModalVisible(false)}
+          width={800}
+        >
+          <Form
+            form={form}
+            layout="vertical"
+          >
+            <Row gutter={16}>
+              <Col span={24}>
+                <Form.Item
+                  name="appointmentId"
+                  label="Appointment"
+                  rules={[{ required: true, message: 'Please select an appointment' }]}
+                >
+                  <Select 
+                    placeholder="Select appointment"
+                    onChange={handleAppointmentChange}
+                  >
+                    {Array.isArray(appointments) && appointments.map(appointment => (
+                      <Option key={appointment.id} value={appointment.id}>
+                        {`${appointment.patientName} - Dr. ${appointment.doctorName} - ${new Date(appointment.appointmentDate).toLocaleDateString()}`}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
               </Col>
             </Row>
-             <Row className="mb-3">
-              <Col md={6}>
-                <p><strong>Appointment Date:</strong> {currentRecord?.appointmentDate}</p>
-              </Col>
-              <Col md={6}>
-                <p><strong>Record Created At:</strong> {new Date(currentRecord?.createdAt).toLocaleString()}</p>
+
+            {selectedAppointment && (
+              <Descriptions title="Appointment Information" bordered style={{ marginBottom: 16 }}>
+                <Descriptions.Item label="Patient Name" span={2}>
+                  {selectedAppointment.patientName}
+                </Descriptions.Item>
+                <Descriptions.Item label="Doctor Name" span={2}>
+                  {selectedAppointment.doctorName}
+                </Descriptions.Item>
+                <Descriptions.Item label="Appointment Date" span={2}>
+                  {new Date(selectedAppointment.appointmentDate).toLocaleDateString()}
+                </Descriptions.Item>
+                <Descriptions.Item label="Status" span={2}>
+                  {selectedAppointment.status}
+                </Descriptions.Item>
+                {selectedAppointment.note && (
+                  <Descriptions.Item label="Note" span={3}>
+                    {selectedAppointment.note}
+                  </Descriptions.Item>
+                )}
+              </Descriptions>
+            )}
+
+            <Row gutter={16}>
+              <Col span={24}>
+                <Form.Item
+                  name="diagnosis"
+                  label="Diagnosis"
+                  rules={[{ required: true, message: 'Please enter diagnosis' }]}
+                >
+                  <TextArea rows={4} placeholder="Enter detailed diagnosis" />
+                </Form.Item>
               </Col>
             </Row>
-            <hr />
-            <Form.Group className="mb-3">
-              <Form.Label>Diagnosis</Form.Label>
-              <Form.Control 
-                as="textarea" 
-                rows={4} 
-                name="diagnosis" 
-                value={currentRecord?.diagnosis || ''} 
-                onChange={handleChange} 
-                placeholder="Enter diagnosis details" 
-                readOnly={!isEditing} 
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Conclusion & Treatment Plan</Form.Label>
-              <Form.Control 
-                as="textarea" 
-                rows={4} 
-                name="conclusion" 
-                value={currentRecord?.conclusion || ''} 
-                onChange={handleChange} 
-                placeholder="Enter conclusion and treatment plan"
-                readOnly={!isEditing}
-              />
-            </Form.Group>
+
+            <Row gutter={16}>
+              <Col span={24}>
+                <Form.Item
+                  name="conclusion"
+                  label="Conclusion"
+                  rules={[{ required: true, message: 'Please enter conclusion' }]}
+                >
+                  <TextArea rows={4} placeholder="Enter medical conclusion" />
+                </Form.Item>
+              </Col>
+            </Row>
           </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>Close</Button>
-          {isEditing && <Button variant="primary" onClick={handleSave}>Save Changes</Button>}
-        </Modal.Footer>
-      </Modal>
-    </Container>
+        </Modal>
+      </Card>
+    </div>
   );
-}
+};
 
 export default MedicalRecordManagementPage; 
