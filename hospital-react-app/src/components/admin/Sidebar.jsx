@@ -139,6 +139,8 @@ const Sidebar = ({ isOpen }) => {
             <Collapse in={open.pharmacy}>
                <ul className="admin-submenu">
                 <li><NavLink to="/admin/medicines" className="admin-menu-link sub-link">Medicine Management</NavLink></li>
+                <li><NavLink to="/admin/prescriptions" className="admin-menu-link sub-link">Prescription Management</NavLink></li>
+                <li><NavLink to="/admin/suppliers" className="admin-menu-link sub-link">Supplier Management</NavLink></li>
               </ul>
             </Collapse>
           </li>

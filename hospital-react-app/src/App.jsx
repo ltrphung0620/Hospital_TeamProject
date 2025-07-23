@@ -40,6 +40,8 @@ import PrescriptionPaymentPage from './pages/admin/PrescriptionPaymentPage';
 import LabTestPaymentPage from './pages/admin/LabTestPaymentPage';
 import ServicePaymentManagementPage from './pages/admin/ServicePaymentManagementPage';
 import BlogManagementPage from './pages/admin/BlogManagementPage';
+import PrescriptionManagementPage from './pages/admin/PrescriptionManagementPage';
+import SupplierManagementPage from './pages/admin/SupplierManagementPage';
 import { AppProvider } from './contexts/AppContext';
 import AdminRoute from './components/auth/AdminRoute';
 import NotFoundPage from './pages/NotFoundPage';
@@ -111,6 +113,8 @@ function App() {
           <Route path="lab-tests" element={<LabTestManagementPage />} />
           <Route path="test-requests" element={<TestRequestManagementPage />} />
           <Route path="test-results" element={<TestResultManagementPage />} />
+          <Route path="prescriptions" element={<PrescriptionManagementPage />} />
+          <Route path="suppliers" element={<SupplierManagementPage />} />
           <Route path="prescription-payments" element={<PrescriptionPaymentPage />} />
           <Route path="lab-test-payments" element={<LabTestPaymentPage />} />
           <Route path="service-payments" element={<ServicePaymentManagementPage />} />
