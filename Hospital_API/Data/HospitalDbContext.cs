@@ -173,6 +173,25 @@ namespace Hospital_API.Data
             
              modelBuilder.Entity<MedicalPackageItemDb>()
             .HasKey(x => x.Id);
+
+            // Configure relationships
+            modelBuilder.Entity<Prescriptions>()
+                .HasOne(p => p.MedicalRecord)
+                .WithMany()
+                .HasForeignKey(p => p.MedicalRecordID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PrescriptionDetails>()
+                .HasOne(pd => pd.Prescription)
+                .WithMany(p => p.Details)
+                .HasForeignKey(pd => pd.PrescriptionID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PrescriptionDetails>()
+                .HasOne(pd => pd.Medicine)
+                .WithMany()
+                .HasForeignKey(pd => pd.MedicineID)
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
     }

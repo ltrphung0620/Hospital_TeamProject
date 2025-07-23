@@ -15,26 +15,36 @@ namespace Hospital_API.Repositories
 
         public async Task<IEnumerable<Prescriptions>> GetAllAsync()
         {
-            return await _context.Prescriptions.Include(p => p.MedicalRecord).ToListAsync();
+            return await _context.Prescriptions
+                .Include(p => p.MedicalRecord)
+                    .ThenInclude(m => m.Appointment)
+                .Include(p => p.Details)
+                    .ThenInclude(d => d.Medicine)
+                .ToListAsync();
         }
 
         public async Task<Prescriptions> GetByIdAsync(int id)
         {
-            return await _context.Prescriptions.Include(p => p.MedicalRecord).FirstOrDefaultAsync(p => p.Id == id);
+            return await _context.Prescriptions
+                .Include(p => p.MedicalRecord)
+                    .ThenInclude(m => m.Appointment)
+                .Include(p => p.Details)
+                    .ThenInclude(d => d.Medicine)
+                .FirstOrDefaultAsync(p => p.Id == id);
         }
 
         public async Task<Prescriptions> AddAsync(Prescriptions prescription)
         {
             await _context.Prescriptions.AddAsync(prescription);
             await _context.SaveChangesAsync();
-            return prescription;
+            return await GetByIdAsync(prescription.Id);
         }
 
         public async Task<Prescriptions> UpdateAsync(Prescriptions prescription)
         {
             _context.Prescriptions.Update(prescription);
             await _context.SaveChangesAsync();
-            return prescription;
+            return await GetByIdAsync(prescription.Id);
         }
 
         public async Task<Prescriptions> DeleteAsync(int id)

@@ -29,18 +29,26 @@ namespace Hospital_API.Repositories
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
+        public async Task<IEnumerable<PrescriptionDetails>> GetByPrescriptionIdAsync(int prescriptionId)
+        {
+            return await _context.PrescriptionDetails
+                .Include(p => p.Medicine)
+                .Where(p => p.PrescriptionID == prescriptionId)
+                .ToListAsync();
+        }
+
         public async Task<PrescriptionDetails> AddAsync(PrescriptionDetails detail)
         {
             await _context.PrescriptionDetails.AddAsync(detail);
             await _context.SaveChangesAsync();
-            return detail;
+            return await GetByIdAsync(detail.Id);
         }
 
         public async Task<PrescriptionDetails> UpdateAsync(PrescriptionDetails detail)
         {
             _context.PrescriptionDetails.Update(detail);
             await _context.SaveChangesAsync();
-            return detail;
+            return await GetByIdAsync(detail.Id);
         }
 
         public async Task<PrescriptionDetails> DeleteAsync(int id)
