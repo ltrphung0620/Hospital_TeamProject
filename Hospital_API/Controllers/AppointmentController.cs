@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using Hospital_API.DTOs;
 using Hospital_API.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Hospital_API.Controllers
@@ -48,16 +50,19 @@ namespace Hospital_API.Controllers
         /// Create a new appointment
         /// </summary>
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Create([FromBody] AppointmentCreateDTO dto)
         {
-           
+
             if (!ModelState.IsValid)
                 return BadRequest(new { message = "Account Admin không thể book lịch khám." });
-       
+
 
             try
             {
-                var result = await _service.CreateAsync(dto);
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+                var result = await _service.CreateAsync(dto, userId);
                 return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
             }
             catch (InvalidOperationException ex)

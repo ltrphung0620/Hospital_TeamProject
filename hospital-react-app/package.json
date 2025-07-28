@@ -17,7 +17,7 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@tinymce/tinymce-react": "^6.2.1",
     "antd": "^5.26.3",
-    "axios": "^1.10.0",
+    "axios": "^1.11.0",
     "bootstrap": "^5.3.7",
     "chart.js": "^4.5.0",
     "esbuild": "^0.25.5",

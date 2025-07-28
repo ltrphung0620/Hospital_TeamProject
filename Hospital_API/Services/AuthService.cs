@@ -188,6 +188,25 @@ namespace Hospital_API.Services
             if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash))
                 throw new Exception("Current password is incorrect");
 
+            var templatePath = Path.Combine(_env.ContentRootPath, "Templates", "ChangePasswordNoti.html");
+            var html = await File.ReadAllTextAsync(templatePath);
+           
+            html = html.Replace("{{FullName}}", user.FullName)
+               .Replace("{{Username}}", user.Username)
+               .Replace("{{Email}}", user.Email)
+               .Replace("{{Phone}}", user.Phone)
+               .Replace("{{ChangedDate}}", DateTime.Now.ToString("dd/MM/yyyy"));
+
+            var emailDto = new EmailDTO
+            {
+                To = user.Email,
+                Subject = "Đổi mật khẩu tài khoản - Medical Care Support",
+                Body = html
+            };
+            await _emailService.SendEmailAsync(emailDto);
+
+
+
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
             await _authRepository.SaveChangesAsync();
             return true;
