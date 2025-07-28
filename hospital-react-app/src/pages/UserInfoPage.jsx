@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { Container, Row, Col, Card, Nav, Tab, Form, Button, Alert } from 'react-bootstrap';
 import { useSearchParams } from 'react-router-dom';
 import Avatar from '../components/common/Avatar';
 import { mockUserData } from '../data/mockData';
+import axios from 'axios';
+import api, { API_BASE_URL } from '../services/api';
 
 const UserInfoPage = () => {
   const [searchParams] = useSearchParams();
@@ -16,6 +18,29 @@ const UserInfoPage = () => {
   });
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [userData, setUserData] = useState([]);
+
+
+  useEffect(() => {
+  const authData = JSON.parse(localStorage.getItem("authData"));
+  if (!authData || !authData.token || !authData.userId) return;
+
+  const fetchUserData = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/User/${authData.userId}`, {
+        headers: {
+          Authorization: `Bearer ${authData.token}`
+        }
+      });
+      setUserData(res.data);
+    } catch (err) {
+      console.error("Failed to fetch user info", err);
+    }
+  };
+
+  fetchUserData();
+}, []);
+
 
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
@@ -27,23 +52,48 @@ const UserInfoPage = () => {
     setPasswordSuccess('');
   };
 
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async  (e) => {
     e.preventDefault();
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
+
+    const { currentPassword, newPassword, confirmPassword } = passwordData;
+    if (newPassword !== confirmPassword) {
       setPasswordError('New passwords do not match');
       return;
     }
-    if (passwordData.newPassword.length < 6) {
+    if (newPassword.length < 6) {
       setPasswordError('Password must be at least 6 characters long');
       return;
     }
-    // Here you would typically make an API call to change the password
+    try {
+    const authData = JSON.parse(localStorage.getItem('authData'));
+    const token = authData?.token;
+    console.log(token); 
+    const response = await axios.post(
+     `${API_BASE_URL}/Auth/change-password`,
+      {
+        currentPassword,
+        newPassword
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
     setPasswordSuccess('Password changed successfully!');
     setPasswordData({
       currentPassword: '',
       newPassword: '',
       confirmPassword: ''
     });
+    } catch (error) {
+    if (error.response && error.response.data?.message) {
+      setPasswordError(error.response.data.message);
+    } else {
+      setPasswordError('Something went wrong. Please try again.');
+    }
+  }
   };
 
   return (
@@ -53,11 +103,11 @@ const UserInfoPage = () => {
           <Card className="border-0 shadow-sm">
             <Card.Body className="text-center p-4">
               <div className="position-relative d-inline-block mb-4">
-                <Avatar name={mockUserData.fullName} size={120} className="border-3 border-primary" />
+                <Avatar name={userData.username} size={120} className="border-3 border-primary" />
                 <span className="position-absolute bottom-0 end-0 bg-success rounded-circle p-2 border border-white"></span>
               </div>
-              <h4 className="mb-1">{mockUserData.fullName}</h4>
-              <p className="text-muted mb-3">{mockUserData.email}</p>
+              <h4 className="mb-1">{userData.fullName}</h4>
+              <p className="text-muted mb-3">{userData.email}</p>
               <div className="d-grid">
                 <Button variant="outline-primary" onClick={() => setShowPasswordForm(!showPasswordForm)}>
                   <i className="fas fa-key me-2"></i>

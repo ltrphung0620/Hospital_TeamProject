@@ -6,7 +6,7 @@ namespace Hospital_API.Services.Interfaces
     {
         Task<IEnumerable<AppointmentDTO>> GetAllAsync();
         Task<AppointmentDTO?> GetByIdAsync(int id);
-        Task<AppointmentDTO> CreateAsync(AppointmentCreateDTO dto);
+        Task<AppointmentDTO> CreateAsync(AppointmentCreateDTO dto, int userId);
         Task<List<AppointmentDTO>> GetAppointmentsByPatientIdAsync(int patientId);
 
         Task<string> GenerateAppointmentNoAsync();
