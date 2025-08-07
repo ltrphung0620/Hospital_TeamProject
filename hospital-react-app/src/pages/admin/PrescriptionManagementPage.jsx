@@ -1,397 +1,194 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, Select, InputNumber, Space, message, Card, Row, Col, Descriptions } from 'antd';
-import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import axios from 'axios';
-import { API_BASE_URL } from '../../services/api';
-
-const { Option } = Select;
+import {
+  Table, Button, Modal, Form, Container, Card, Row, Col, Pagination, Badge
+} from 'react-bootstrap';
+import { FaPlus, FaEdit, FaTrash, FaPrescriptionBottle, FaEye } from 'react-icons/fa';
+import api from '../../services/api';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { toast } from 'react-toastify';
 
 const PrescriptionManagementPage = () => {
   const [prescriptions, setPrescriptions] = useState([]);
-  const [medicines, setMedicines] = useState([]);
-  const [medicalRecords, setMedicalRecords] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [selectedPrescription, setSelectedPrescription] = useState(null);
-  const [form] = Form.useForm();
-  const [prescriptionDetails, setPrescriptionDetails] = useState([]);
-  const [invoiceModalVisible, setInvoiceModalVisible] = useState(false);
-  const [selectedMedicalRecord, setSelectedMedicalRecord] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchPrescriptions();
-    fetchMedicines();
-    fetchMedicalRecords();
   }, []);
 
   const fetchPrescriptions = async () => {
     try {
-      setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/Prescriptions`);
-      const data = response.data;
-      setPrescriptions(Array.isArray(data) ? data : []);
+      setIsLoading(true);
+      const response = await api.get('/prescriptions');
+      setPrescriptions(response.data);
     } catch (error) {
-      console.error('Error fetching prescriptions:', error);
-      message.error('Failed to fetch prescriptions');
-      setPrescriptions([]);
+      console.error('Failed to fetch prescriptions:', error);
+      toast.error('Không thể tải danh sách đơn thuốc');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const fetchMedicines = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/Medicines`);
-      const data = response.data;
-      setMedicines(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Error fetching medicines:', error);
-      message.error('Failed to fetch medicines');
-      setMedicines([]);
-    }
+  const handleViewDetails = (prescription) => {
+    setSelectedPrescription(prescription);
+    setShowModal(true);
   };
 
-  const fetchMedicalRecords = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/MedicalRecords`);
-      const data = response.data;
-      setMedicalRecords(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Error fetching medical records:', error);
-      message.error('Failed to fetch medical records');
-      setMedicalRecords([]);
-    }
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('vi-VN');
   };
 
-  const handleMedicalRecordChange = async (recordId) => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/MedicalRecords/${recordId}`);
-      const record = response.data;
-      if (record && record.appointment) {
-        setSelectedMedicalRecord({
-          id: record.id,
-          diagnosis: record.diagnosis,
-          patientName: record.appointment.patientName,
-          doctorName: record.appointment.doctorName,
-          appointmentDate: new Date(record.appointment.appointmentDate).toLocaleDateString(),
-          patientId: record.appointment.patientId,
-          doctorId: record.appointment.doctorId
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching medical record details:', error);
-      message.error('Failed to fetch medical record details');
-    }
-  };
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = prescriptions.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(prescriptions.length / itemsPerPage);
 
-  const handleCreatePrescription = () => {
-    setSelectedPrescription(null);
-    setSelectedMedicalRecord(null);
-    form.resetFields();
-    setModalVisible(true);
-  };
-
-  const handleEditPrescription = (record) => {
-    setSelectedPrescription(record);
-    handleMedicalRecordChange(record.medicalRecordId);
-    form.setFieldsValue({
-      medicalRecordId: record.medicalRecordId,
-      prescribedBy: record.prescribedBy,
-      details: prescriptionDetails
-    });
-    setModalVisible(true);
-  };
-
-  const handleDeletePrescription = async (id) => {
-    try {
-      await axios.delete(`${API_BASE_URL}/Prescriptions/${id}`);
-      message.success('Prescription deleted successfully');
-      fetchPrescriptions();
-    } catch (error) {
-      console.error('Error deleting prescription:', error);
-      message.error('Failed to delete prescription');
-    }
-  };
-
-  const handleModalOk = async () => {
-    try {
-      const values = await form.validateFields();
-      const prescriptionData = {
-        ...values,
-        id: selectedPrescription?.id
-      };
-
-      if (selectedPrescription) {
-        await axios.put(`${API_BASE_URL}/Prescriptions/${selectedPrescription.id}`, prescriptionData);
-        message.success('Prescription updated successfully');
-      } else {
-        await axios.post(`${API_BASE_URL}/Prescriptions`, prescriptionData);
-        message.success('Prescription created successfully');
-      }
-
-      setModalVisible(false);
-      fetchPrescriptions();
-    } catch (error) {
-      console.error('Error saving prescription:', error);
-      message.error('Failed to save prescription');
-    }
-  };
-
-  const handleCreateInvoice = async (prescriptionId) => {
-    try {
-      // Get prescription details
-      const prescriptionResponse = await axios.get(`${API_BASE_URL}/Prescriptions/${prescriptionId}`);
-      const prescription = prescriptionResponse.data;
-
-      if (!prescription) {
-        throw new Error('Prescription not found');
-      }
-
-      // Create invoice data
-      const invoiceData = {
-        appointmentId: prescription.medicalRecord?.appointmentId,
-        patientId: prescription.medicalRecord?.appointment?.patientId,
-        totalAmount: calculateTotalAmount(prescriptionDetails),
-        status: 'Unpaid',
-        invoiceDetails: prescriptionDetails.map(detail => ({
-          itemType: 'Medicine',
-          itemId: detail.medicineId,
-          quantity: detail.quantity,
-          unitPrice: medicines.find(m => m.id === detail.medicineId)?.price || 0,
-          description: detail.instructions
-        }))
-      };
-
-      // Create invoice
-      await axios.post(`${API_BASE_URL}/Invoices`, invoiceData);
-      message.success('Invoice created successfully');
-      setInvoiceModalVisible(false);
-    } catch (error) {
-      console.error('Error creating invoice:', error);
-      message.error('Failed to create invoice: ' + (error.message || 'Unknown error'));
-    }
-  };
-
-  const calculateTotalAmount = (details) => {
-    if (!Array.isArray(details)) return 0;
-    return details.reduce((total, detail) => {
-      const medicine = medicines.find(m => m.id === detail.medicineId);
-      return total + (medicine?.price || 0) * (detail.quantity || 0);
-    }, 0);
-  };
-
-  const columns = [
-    {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-    },
-    {
-      title: 'Medical Record ID',
-      dataIndex: 'medicalRecordId',
-      key: 'medicalRecordId',
-    },
-    {
-      title: 'Patient',
-      dataIndex: 'medicalRecord',
-      key: 'patient',
-      render: (record) => record?.appointment?.patientName || '-',
-    },
-    {
-      title: 'Doctor',
-      dataIndex: 'medicalRecord',
-      key: 'doctor',
-      render: (record) => record?.appointment?.doctorName || '-',
-    },
-    {
-      title: 'Prescribed By',
-      dataIndex: 'prescribedBy',
-      key: 'prescribedBy',
-    },
-    {
-      title: 'Created At',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (text) => text ? new Date(text).toLocaleString() : '-',
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space>
-          <Button 
-            type="primary" 
-            icon={<EditOutlined />}
-            onClick={() => handleEditPrescription(record)}
-          >
-            Edit
-          </Button>
-          <Button 
-            type="primary" 
-            onClick={() => handleCreateInvoice(record.id)}
-          >
-            Create Invoice
-          </Button>
-          <Button 
-            danger 
-            icon={<DeleteOutlined />}
-            onClick={() => handleDeletePrescription(record.id)}
-          >
-            Delete
-          </Button>
-        </Space>
-      ),
-    },
-  ];
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div style={{ padding: '24px' }}>
-      <Card title="Prescription Management">
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleCreatePrescription}
-          style={{ marginBottom: 16 }}
-        >
-          Create New Prescription
-        </Button>
+    <Container fluid className="p-4">
+      <Row className="mb-4">
+        <Col>
+          <h2 className="admin-page-title">
+            <FaPrescriptionBottle className="me-2" /> Quản lý đơn thuốc
+          </h2>
+        </Col>
+      </Row>
 
-        <Table
-          columns={columns}
-          dataSource={Array.isArray(prescriptions) ? prescriptions : []}
-          loading={loading}
-          rowKey="id"
-        />
-
-        <Modal
-          title={selectedPrescription ? 'Edit Prescription' : 'Create Prescription'}
-          open={modalVisible}
-          onOk={handleModalOk}
-          onCancel={() => setModalVisible(false)}
-          width={800}
-        >
-          <Form
-            form={form}
-            layout="vertical"
-          >
-            <Row gutter={16}>
-              <Col span={24}>
-                <Form.Item
-                  name="medicalRecordId"
-                  label="Medical Record"
-                  rules={[{ required: true, message: 'Please select a medical record' }]}
-                >
-                  <Select 
-                    placeholder="Select medical record"
-                    onChange={handleMedicalRecordChange}
-                  >
-                    {Array.isArray(medicalRecords) && medicalRecords.map(record => (
-                      <Option key={record.id} value={record.id}>
-                        {`Record #${record.id} - ${record.diagnosis || 'No diagnosis'}`}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
-
-            {selectedMedicalRecord && (
-              <Descriptions title="Patient & Doctor Information" bordered style={{ marginBottom: 16 }}>
-                <Descriptions.Item label="Patient Name" span={2}>
-                  {selectedMedicalRecord.patientName}
-                </Descriptions.Item>
-                <Descriptions.Item label="Doctor Name" span={2}>
-                  {selectedMedicalRecord.doctorName}
-                </Descriptions.Item>
-                <Descriptions.Item label="Appointment Date" span={2}>
-                  {selectedMedicalRecord.appointmentDate}
-                </Descriptions.Item>
-                <Descriptions.Item label="Diagnosis" span={3}>
-                  {selectedMedicalRecord.diagnosis}
-                </Descriptions.Item>
-              </Descriptions>
-            )}
-
-            <Row gutter={16}>
-              <Col span={24}>
-                <Form.Item
-                  name="prescribedBy"
-                  label="Prescribed By"
-                  rules={[{ required: true, message: 'Please enter prescriber name' }]}
-                >
-                  <Input />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Form.List name="details">
-              {(fields, { add, remove }) => (
-                <>
-                  {fields.map(({ key, name, ...restField }) => (
-                    <Row gutter={16} key={key}>
-                      <Col span={8}>
-                        <Form.Item
-                          {...restField}
-                          name={[name, 'medicineId']}
-                          label="Medicine"
-                          rules={[{ required: true, message: 'Please select medicine' }]}
-                        >
-                          <Select placeholder="Select medicine">
-                            {Array.isArray(medicines) && medicines.map(medicine => (
-                              <Option key={medicine.id} value={medicine.id}>
-                                {medicine.name}
-                              </Option>
-                            ))}
-                          </Select>
-                        </Form.Item>
-                      </Col>
-                      <Col span={4}>
-                        <Form.Item
-                          {...restField}
-                          name={[name, 'quantity']}
-                          label="Quantity"
-                          rules={[{ required: true, message: 'Please enter quantity' }]}
-                        >
-                          <InputNumber min={1} />
-                        </Form.Item>
-                      </Col>
-                      <Col span={6}>
-                        <Form.Item
-                          {...restField}
-                          name={[name, 'dosage']}
-                          label="Dosage"
-                          rules={[{ required: true, message: 'Please enter dosage' }]}
-                        >
-                          <Input placeholder="e.g., 1 pill 3 times a day" />
-                        </Form.Item>
-                      </Col>
-                      <Col span={6}>
-                        <Form.Item
-                          {...restField}
-                          name={[name, 'instructions']}
-                          label="Instructions"
-                        >
-                          <Input placeholder="Special instructions" />
-                        </Form.Item>
-                      </Col>
-                      <Button type="link" danger onClick={() => remove(name)}>
-                        Delete
+      <Card className="admin-card">
+        <Card.Header className="d-flex justify-content-between align-items-center">
+          <h5 className="mb-0">Danh sách đơn thuốc</h5>
+        </Card.Header>
+        <Card.Body>
+          <Table responsive striped bordered hover>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Mã đơn thuốc</th>
+                <th>Bệnh nhân</th>
+                <th>Bác sĩ kê đơn</th>
+                <th>Ngày kê đơn</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr>
+                  <td colSpan="7" className="text-center p-3">
+                    <LoadingSpinner />
+                  </td>
+                </tr>
+              ) : currentItems.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="text-center">Không có đơn thuốc nào</td>
+                </tr>
+              ) : (
+                currentItems.map((prescription, index) => (
+                  <tr key={prescription.id}>
+                    <td>{indexOfFirstItem + index + 1}</td>
+                    <td>#{prescription.id}</td>
+                    <td>{prescription.patientName}</td>
+                    <td>{prescription.prescribedBy}</td>
+                    <td>{formatDate(prescription.createdAt)}</td>
+                    <td>
+                      <Badge bg={prescription.status === 'Completed' ? 'success' : 'warning'}>
+                        {prescription.status === 'Completed' ? 'Đã hoàn thành' : 'Chờ xử lý'}
+                      </Badge>
+                    </td>
+                    <td>
+                      <Button 
+                        variant="outline-info" 
+                        size="sm" 
+                        className="me-2"
+                        onClick={() => handleViewDetails(prescription)}
+                      >
+                        <FaEye />
                       </Button>
-                    </Row>
-                  ))}
-                  <Form.Item>
-                    <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                      Add Medicine
-                    </Button>
-                  </Form.Item>
-                </>
+                    </td>
+                  </tr>
+                ))
               )}
-            </Form.List>
-          </Form>
-        </Modal>
+            </tbody>
+          </Table>
+          {!isLoading && prescriptions.length > 0 && (
+            <div className="d-flex justify-content-center mt-4">
+              <Pagination>
+                <Pagination.First onClick={() => paginate(1)} disabled={currentPage === 1} />
+                <Pagination.Prev onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} />
+                {[...Array(totalPages)].map((_, index) => (
+                  <Pagination.Item
+                    key={index + 1}
+                    active={index + 1 === currentPage}
+                    onClick={() => paginate(index + 1)}
+                  >
+                    {index + 1}
+                  </Pagination.Item>
+                ))}
+                <Pagination.Next onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} />
+                <Pagination.Last onClick={() => paginate(totalPages)} disabled={currentPage === totalPages} />
+              </Pagination>
+            </div>
+          )}
+        </Card.Body>
       </Card>
-    </div>
+
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Chi tiết đơn thuốc #{selectedPrescription?.id}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedPrescription && (
+            <>
+              <Row className="mb-4">
+                <Col md={6}>
+                  <h6>Thông tin bệnh nhân</h6>
+                  <p>Tên: {selectedPrescription.patientName}</p>
+                  <p>Mã bệnh nhân: {selectedPrescription.patientId}</p>
+                </Col>
+                <Col md={6}>
+                  <h6>Thông tin bác sĩ</h6>
+                  <p>Bác sĩ kê đơn: {selectedPrescription.prescribedBy}</p>
+                  <p>Ngày kê: {formatDate(selectedPrescription.createdAt)}</p>
+                </Col>
+              </Row>
+              <h6>Chi tiết đơn thuốc</h6>
+              <Table responsive striped bordered>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Tên thuốc</th>
+                    <th>Liều lượng</th>
+                    <th>Số lượng</th>
+                    <th>Hướng dẫn</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedPrescription.details?.map((detail, index) => (
+                    <tr key={detail.id}>
+                      <td>{index + 1}</td>
+                      <td>{detail.medicineName}</td>
+                      <td>{detail.dosage}</td>
+                      <td>{detail.quantity}</td>
+                      <td>{detail.instructions}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Đóng
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </Container>
   );
 };
 
-export default PrescriptionManagementPage; 
+export default PrescriptionManagementPage;

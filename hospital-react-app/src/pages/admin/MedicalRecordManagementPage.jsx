@@ -1,286 +1,399 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, Select, Space, message, Card, Row, Col, Descriptions } from 'antd';
-import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import axios from 'axios';
-
-const { Option } = Select;
-const { TextArea } = Input;
+import {
+  Table, Button, Modal, Form, Container, Card, Row, Col, Pagination, Badge
+} from 'react-bootstrap';
+import { FaPlus, FaEdit, FaTrash, FaFileMedical, FaUserInjured, FaUserMd, FaCalendarAlt, FaNotesMedical } from 'react-icons/fa';
+import api from '../../services/api';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { toast } from 'react-toastify';
+import { format } from 'date-fns';
 
 const MedicalRecordManagementPage = () => {
-  const [records, setRecords] = useState([]);
-  const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState(null);
-  const [form] = Form.useForm();
-  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [medicalRecords, setMedicalRecords] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [patients, setPatients] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const itemsPerPage = 10;
+
+  const [formData, setFormData] = useState({
+    patientId: '',
+    doctorId: '',
+    diagnosis: '',
+    treatment: '',
+    prescription: '',
+    notes: '',
+    recordDate: format(new Date(), 'yyyy-MM-dd'),
+    status: 'Active'
+  });
 
   useEffect(() => {
-    fetchRecords();
-    fetchAppointments();
+    fetchMedicalRecords();
+    fetchPatients();
+    fetchDoctors();
   }, []);
 
-  const fetchRecords = async () => {
+  const fetchMedicalRecords = async () => {
     try {
-      setLoading(true);
-      const response = await axios.get('/api/MedicalRecords');
-      const data = response.data;
-      setRecords(Array.isArray(data) ? data : []);
+      setIsLoading(true);
+      const response = await api.get('/MedicalRecords');
+      setMedicalRecords(response.data);
     } catch (error) {
-      console.error('Error fetching medical records:', error);
-      message.error('Failed to fetch medical records');
-      setRecords([]);
+      console.error('Failed to fetch medical records:', error);
+      toast.error('Không thể tải danh sách hồ sơ bệnh án');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const fetchAppointments = async () => {
+  const fetchPatients = async () => {
     try {
-      const response = await axios.get('/api/Appointments');
-      const data = response.data;
-      // Chỉ lấy các cuộc hẹn đã xác nhận và chưa có bệnh án
-      const confirmedAppointments = Array.isArray(data) ? data.filter(appointment => 
-        appointment.status === 'Confirmed' && 
-        !records.some(record => record.appointmentId === appointment.id)
-      ) : [];
-      setAppointments(confirmedAppointments);
+      const response = await api.get('/Patient');
+      setPatients(response.data);
     } catch (error) {
-      console.error('Error fetching appointments:', error);
-      message.error('Failed to fetch appointments');
-      setAppointments([]);
+      console.error('Failed to fetch patients:', error);
+      toast.error('Không thể tải danh sách bệnh nhân');
     }
   };
 
-  const handleAppointmentChange = (appointmentId) => {
-    const appointment = appointments.find(a => a.id === appointmentId);
-    setSelectedAppointment(appointment);
-  };
-
-  const handleCreateRecord = () => {
-    setSelectedRecord(null);
-    setSelectedAppointment(null);
-    form.resetFields();
-    setModalVisible(true);
-  };
-
-  const handleEditRecord = (record) => {
-    setSelectedRecord(record);
-    const appointment = appointments.find(a => a.id === record.appointmentId);
-    setSelectedAppointment(appointment);
-    form.setFieldsValue({
-      appointmentId: record.appointmentId,
-      diagnosis: record.diagnosis,
-      conclusion: record.conclusion
-    });
-    setModalVisible(true);
-  };
-
-  const handleDeleteRecord = async (id) => {
+  const fetchDoctors = async () => {
     try {
-      await axios.delete(`/api/MedicalRecords/${id}`);
-      message.success('Medical record deleted successfully');
-      fetchRecords();
-      fetchAppointments(); // Refresh appointments to show the deleted record's appointment
+      const response = await api.get('/Doctor');
+      setDoctors(response.data);
     } catch (error) {
-      console.error('Error deleting medical record:', error);
-      message.error('Failed to delete medical record');
+      console.error('Failed to fetch doctors:', error);
+      toast.error('Không thể tải danh sách bác sĩ');
     }
   };
 
-  const handleModalOk = async () => {
-    try {
-      const values = await form.validateFields();
-      const recordData = {
-        ...values,
-        id: selectedRecord?.id,
-        createdAt: new Date().toISOString()
-      };
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
-      if (selectedRecord) {
-        await axios.put(`/api/MedicalRecords/${selectedRecord.id}`, recordData);
-        message.success('Medical record updated successfully');
+  const openModal = (record = null) => {
+    if (record) {
+      setEditingId(record.id);
+      setFormData({
+        patientId: record.patientId,
+        doctorId: record.doctorId,
+        diagnosis: record.diagnosis,
+        treatment: record.treatment,
+        prescription: record.prescription,
+        notes: record.notes,
+        recordDate: format(new Date(record.recordDate), 'yyyy-MM-dd'),
+        status: record.status
+      });
+    } else {
+      setEditingId(null);
+      setFormData({
+        patientId: '',
+        doctorId: '',
+        diagnosis: '',
+        treatment: '',
+        prescription: '',
+        notes: '',
+        recordDate: format(new Date(), 'yyyy-MM-dd'),
+        status: 'Active'
+      });
+    }
+    setShowModal(true);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingId) {
+        await api.put(`/MedicalRecords/${editingId}`, formData);
+        toast.success('Cập nhật hồ sơ bệnh án thành công');
       } else {
-        await axios.post('/api/MedicalRecords', recordData);
-        message.success('Medical record created successfully');
+        await api.post('/MedicalRecords', formData);
+        toast.success('Thêm hồ sơ bệnh án thành công');
       }
-
-      setModalVisible(false);
-      fetchRecords();
-      fetchAppointments(); // Refresh appointments to hide the one we just created a record for
+      setShowModal(false);
+      fetchMedicalRecords();
     } catch (error) {
       console.error('Error saving medical record:', error);
-      message.error('Failed to save medical record');
+      toast.error('Không thể lưu thông tin hồ sơ bệnh án');
     }
   };
 
-  const columns = [
-    {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-    },
-    {
-      title: 'Patient',
-      dataIndex: 'appointment',
-      key: 'patient',
-      render: (appointment) => appointment?.patientName || '-',
-    },
-    {
-      title: 'Doctor',
-      dataIndex: 'appointment',
-      key: 'doctor',
-      render: (appointment) => appointment?.doctorName || '-',
-    },
-    {
-      title: 'Appointment Date',
-      dataIndex: 'appointment',
-      key: 'appointmentDate',
-      render: (appointment) => appointment?.appointmentDate ? new Date(appointment.appointmentDate).toLocaleDateString() : '-',
-    },
-    {
-      title: 'Diagnosis',
-      dataIndex: 'diagnosis',
-      key: 'diagnosis',
-      ellipsis: true,
-    },
-    {
-      title: 'Conclusion',
-      dataIndex: 'conclusion',
-      key: 'conclusion',
-      ellipsis: true,
-    },
-    {
-      title: 'Created At',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (text) => text ? new Date(text).toLocaleString() : '-',
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space>
-          <Button 
-            type="primary" 
-            icon={<EditOutlined />}
-            onClick={() => handleEditRecord(record)}
-          >
-            Edit
-          </Button>
-          <Button 
-            danger 
-            icon={<DeleteOutlined />}
-            onClick={() => handleDeleteRecord(record.id)}
-          >
-            Delete
-          </Button>
-        </Space>
-      ),
-    },
-  ];
+  const handleDelete = async (id) => {
+    if (window.confirm('Bạn có chắc muốn xóa hồ sơ bệnh án này?')) {
+      try {
+        await api.delete(`/MedicalRecords/${id}`);
+        toast.success('Xóa hồ sơ bệnh án thành công');
+        fetchMedicalRecords();
+      } catch (error) {
+        console.error('Error deleting medical record:', error);
+        toast.error('Không thể xóa hồ sơ bệnh án');
+      }
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    const variants = {
+      'Active': 'success',
+      'Completed': 'primary',
+      'Cancelled': 'danger'
+    };
+    return <Badge bg={variants[status] || 'secondary'}>{status}</Badge>;
+  };
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = medicalRecords.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(medicalRecords.length / itemsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div style={{ padding: '24px' }}>
-      <Card title="Medical Record Management">
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleCreateRecord}
-          style={{ marginBottom: 16 }}
-        >
-          Create New Medical Record
-        </Button>
+    <Container fluid className="p-4">
+      <Row className="mb-4">
+        <Col>
+          <h2 className="admin-page-title">
+            <FaFileMedical className="me-2" /> Quản lý hồ sơ bệnh án
+          </h2>
+        </Col>
+        <Col xs="auto">
+          <Button variant="primary" onClick={() => openModal()}>
+            <FaPlus className="me-2" /> Thêm hồ sơ bệnh án
+          </Button>
+        </Col>
+      </Row>
 
-        <Table
-          columns={columns}
-          dataSource={Array.isArray(records) ? records : []}
-          loading={loading}
-          rowKey="id"
-        />
-
-        <Modal
-          title={selectedRecord ? 'Edit Medical Record' : 'Create Medical Record'}
-          open={modalVisible}
-          onOk={handleModalOk}
-          onCancel={() => setModalVisible(false)}
-          width={800}
-        >
-          <Form
-            form={form}
-            layout="vertical"
-          >
-            <Row gutter={16}>
-              <Col span={24}>
-                <Form.Item
-                  name="appointmentId"
-                  label="Appointment"
-                  rules={[{ required: true, message: 'Please select an appointment' }]}
-                >
-                  <Select 
-                    placeholder="Select appointment"
-                    onChange={handleAppointmentChange}
+      <Card className="admin-card">
+        <Card.Header className="d-flex justify-content-between align-items-center">
+          <h5 className="mb-0">Danh sách hồ sơ bệnh án</h5>
+        </Card.Header>
+        <Card.Body>
+          <Table responsive striped bordered hover>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Bệnh nhân</th>
+                <th>Bác sĩ</th>
+                <th>Ngày khám</th>
+                <th>Chẩn đoán</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr>
+                  <td colSpan="7" className="text-center p-3">
+                    <LoadingSpinner />
+                  </td>
+                </tr>
+              ) : currentItems.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="text-center">Không có hồ sơ bệnh án nào</td>
+                </tr>
+              ) : (
+                currentItems.map((record, index) => (
+                  <tr key={record.id}>
+                    <td>{indexOfFirstItem + index + 1}</td>
+                    <td>
+                      <FaUserInjured className="me-1" />
+                      {patients.find(p => p.id === record.patientId)?.fullName || 'N/A'}
+                    </td>
+                    <td>
+                      <FaUserMd className="me-1" />
+                      {doctors.find(d => d.id === record.doctorId)?.fullName || 'N/A'}
+                    </td>
+                    <td>
+                      <FaCalendarAlt className="me-1" />
+                      {format(new Date(record.recordDate), 'dd/MM/yyyy')}
+                    </td>
+                    <td>{record.diagnosis}</td>
+                    <td>{getStatusBadge(record.status)}</td>
+                    <td>
+                      <Button 
+                        variant="outline-primary" 
+                        size="sm" 
+                        className="me-2"
+                        onClick={() => openModal(record)}
+                      >
+                        <FaEdit />
+                      </Button>
+                      <Button 
+                        variant="outline-danger" 
+                        size="sm"
+                        onClick={() => handleDelete(record.id)}
+                      >
+                        <FaTrash />
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </Table>
+          {!isLoading && medicalRecords.length > 0 && (
+            <div className="d-flex justify-content-center mt-4">
+              <Pagination>
+                <Pagination.First onClick={() => paginate(1)} disabled={currentPage === 1} />
+                <Pagination.Prev onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} />
+                {[...Array(totalPages)].map((_, index) => (
+                  <Pagination.Item
+                    key={index + 1}
+                    active={index + 1 === currentPage}
+                    onClick={() => paginate(index + 1)}
                   >
-                    {Array.isArray(appointments) && appointments.map(appointment => (
-                      <Option key={appointment.id} value={appointment.id}>
-                        {`${appointment.patientName} - Dr. ${appointment.doctorName} - ${new Date(appointment.appointmentDate).toLocaleDateString()}`}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
-
-            {selectedAppointment && (
-              <Descriptions title="Appointment Information" bordered style={{ marginBottom: 16 }}>
-                <Descriptions.Item label="Patient Name" span={2}>
-                  {selectedAppointment.patientName}
-                </Descriptions.Item>
-                <Descriptions.Item label="Doctor Name" span={2}>
-                  {selectedAppointment.doctorName}
-                </Descriptions.Item>
-                <Descriptions.Item label="Appointment Date" span={2}>
-                  {new Date(selectedAppointment.appointmentDate).toLocaleDateString()}
-                </Descriptions.Item>
-                <Descriptions.Item label="Status" span={2}>
-                  {selectedAppointment.status}
-                </Descriptions.Item>
-                {selectedAppointment.note && (
-                  <Descriptions.Item label="Note" span={3}>
-                    {selectedAppointment.note}
-                  </Descriptions.Item>
-                )}
-              </Descriptions>
-            )}
-
-            <Row gutter={16}>
-              <Col span={24}>
-                <Form.Item
-                  name="diagnosis"
-                  label="Diagnosis"
-                  rules={[{ required: true, message: 'Please enter diagnosis' }]}
-                >
-                  <TextArea rows={4} placeholder="Enter detailed diagnosis" />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col span={24}>
-                <Form.Item
-                  name="conclusion"
-                  label="Conclusion"
-                  rules={[{ required: true, message: 'Please enter conclusion' }]}
-                >
-                  <TextArea rows={4} placeholder="Enter medical conclusion" />
-                </Form.Item>
-              </Col>
-            </Row>
-          </Form>
-        </Modal>
+                    {index + 1}
+                  </Pagination.Item>
+                ))}
+                <Pagination.Next onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} />
+                <Pagination.Last onClick={() => paginate(totalPages)} disabled={currentPage === totalPages} />
+              </Pagination>
+            </div>
+          )}
+        </Card.Body>
       </Card>
-    </div>
+
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <FaNotesMedical className="me-2" />
+            {editingId ? 'Cập nhật hồ sơ bệnh án' : 'Thêm hồ sơ bệnh án mới'}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleSubmit}>
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Bệnh nhân</Form.Label>
+                  <Form.Select
+                    name="patientId"
+                    value={formData.patientId}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">Chọn bệnh nhân</option>
+                    {patients.map(patient => (
+                      <option key={patient.id} value={patient.id}>
+                        {patient.fullName}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Bác sĩ</Form.Label>
+                  <Form.Select
+                    name="doctorId"
+                    value={formData.doctorId}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">Chọn bác sĩ</option>
+                    {doctors.map(doctor => (
+                      <option key={doctor.id} value={doctor.id}>
+                        {doctor.fullName}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Ngày khám</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="recordDate"
+                    value={formData.recordDate}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Trạng thái</Form.Label>
+                  <Form.Select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="Active">Đang điều trị</option>
+                    <option value="Completed">Hoàn thành</option>
+                    <option value="Cancelled">Đã hủy</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Chẩn đoán</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                name="diagnosis"
+                value={formData.diagnosis}
+                onChange={handleInputChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Phương pháp điều trị</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                name="treatment"
+                value={formData.treatment}
+                onChange={handleInputChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Đơn thuốc</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                name="prescription"
+                value={formData.prescription}
+                onChange={handleInputChange}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Ghi chú</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={2}
+                name="notes"
+                value={formData.notes}
+                onChange={handleInputChange}
+              />
+            </Form.Group>
+
+            <div className="d-flex justify-content-end gap-2">
+              <Button variant="secondary" onClick={() => setShowModal(false)}>
+                Hủy
+              </Button>
+              <Button variant="primary" type="submit">
+                {editingId ? 'Cập nhật' : 'Thêm mới'}
+              </Button>
+            </div>
+          </Form>
+        </Modal.Body>
+      </Modal>
+    </Container>
   );
 };
 
-export default MedicalRecordManagementPage; 
+export default MedicalRecordManagementPage;

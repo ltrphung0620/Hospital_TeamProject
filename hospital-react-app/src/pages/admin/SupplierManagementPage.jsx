@@ -1,15 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, Space, message, Card, Popconfirm } from 'antd';
-import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import axios from 'axios';
-import { API_BASE_URL } from '../../services/api';
+import {
+  Table, Button, Modal, Form, Container, Card, Row, Col, Pagination
+} from 'react-bootstrap';
+import { FaPlus, FaEdit, FaTrash, FaTruck, FaPhone, FaEnvelope, FaMapMarkerAlt } from 'react-icons/fa';
+import api from '../../services/api';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { toast } from 'react-toastify';
 
 const SupplierManagementPage = () => {
   const [suppliers, setSuppliers] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedSupplier, setSelectedSupplier] = useState(null);
-  const [form] = Form.useForm();
+  const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const [formData, setFormData] = useState({
+    supplierName: '',
+    address: '',
+    phone: '',
+    email: '',
+    contactPerson: '',
+    description: ''
+  });
 
   useEffect(() => {
     fetchSuppliers();
@@ -17,202 +30,279 @@ const SupplierManagementPage = () => {
 
   const fetchSuppliers = async () => {
     try {
-      setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/MedicineSupplier`);
-      const data = response.data;
-      setSuppliers(Array.isArray(data) ? data : []);
+      setIsLoading(true);
+      const response = await api.get('/MedicineSupplier');
+      setSuppliers(response.data);
     } catch (error) {
-      console.error('Error fetching suppliers:', error);
-      message.error('Failed to fetch suppliers');
-      setSuppliers([]);
+      console.error('Failed to fetch suppliers:', error);
+      toast.error('Không thể tải danh sách nhà cung cấp');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleCreateSupplier = () => {
-    setSelectedSupplier(null);
-    form.resetFields();
-    setModalVisible(true);
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
-  const handleEditSupplier = (supplier) => {
-    setSelectedSupplier(supplier);
-    form.setFieldsValue({
-      supplierName: supplier.supplierName,
-      phone: supplier.phone,
-      address: supplier.address
-    });
-    setModalVisible(true);
-  };
-
-  const handleDeleteSupplier = async (id) => {
-    try {
-      await axios.delete(`${API_BASE_URL}/MedicineSupplier/${id}`);
-      message.success('Supplier deleted successfully');
-      fetchSuppliers();
-    } catch (error) {
-      console.error('Error deleting supplier:', error);
-      message.error('Failed to delete supplier');
+  const openModal = (supplier = null) => {
+    if (supplier) {
+      setEditingId(supplier.id);
+      setFormData({
+        supplierName: supplier.supplierName,
+        address: supplier.address,
+        phone: supplier.phone,
+        email: supplier.email,
+        contactPerson: supplier.contactPerson,
+        description: supplier.description
+      });
+    } else {
+      setEditingId(null);
+      setFormData({
+        supplierName: '',
+        address: '',
+        phone: '',
+        email: '',
+        contactPerson: '',
+        description: ''
+      });
     }
+    setShowModal(true);
   };
 
-  const handleModalOk = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const values = await form.validateFields();
-      
-      if (selectedSupplier) {
-        await axios.put(`${API_BASE_URL}/MedicineSupplier/${selectedSupplier.supplierId}`, values);
-        message.success('Supplier updated successfully');
+      if (editingId) {
+        await api.put(`/MedicineSupplier/${editingId}`, formData);
+        toast.success('Cập nhật nhà cung cấp thành công');
       } else {
-        await axios.post(`${API_BASE_URL}/MedicineSupplier`, values);
-        message.success('Supplier created successfully');
+        await api.post('/MedicineSupplier', formData);
+        toast.success('Thêm nhà cung cấp thành công');
       }
-
-      setModalVisible(false);
+      setShowModal(false);
       fetchSuppliers();
     } catch (error) {
-      if (error.isAxiosError) {
-        console.error('Error saving supplier:', error);
-        message.error('Failed to save supplier: ' + (error.response?.data?.message || error.message));
-      }
-      // Don't close modal if it's a validation error
+      console.error('Error saving supplier:', error);
+      toast.error('Không thể lưu thông tin nhà cung cấp');
     }
   };
 
-  const columns = [
-    {
-      title: 'ID',
-      dataIndex: 'supplierId',
-      key: 'supplierId',
-    },
-    {
-      title: 'Name',
-      dataIndex: 'supplierName',
-      key: 'supplierName',
-    },
-    {
-      title: 'Phone',
-      dataIndex: 'phone',
-      key: 'phone',
-    },
-    {
-      title: 'Address',
-      dataIndex: 'address',
-      key: 'address',
-      ellipsis: true,
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space>
-          <Button 
-            type="primary" 
-            icon={<EditOutlined />}
-            onClick={() => handleEditSupplier(record)}
-          >
-            Edit
-          </Button>
-          <Popconfirm
-            title="Delete Supplier"
-            description="Are you sure you want to delete this supplier? This action cannot be undone."
-            onConfirm={() => handleDeleteSupplier(record.supplierId)}
-            okText="Yes"
-            cancelText="No"
-            okButtonProps={{ danger: true }}
-          >
-            <Button 
-              danger 
-              icon={<DeleteOutlined />}
-            >
-              Delete
-            </Button>
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
+  const handleDelete = async (id) => {
+    if (window.confirm('Bạn có chắc muốn xóa nhà cung cấp này?')) {
+      try {
+        await api.delete(`/MedicineSupplier/${id}`);
+        toast.success('Xóa nhà cung cấp thành công');
+        fetchSuppliers();
+      } catch (error) {
+        console.error('Error deleting supplier:', error);
+        toast.error('Không thể xóa nhà cung cấp');
+      }
+    }
+  };
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = suppliers.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(suppliers.length / itemsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div style={{ padding: '24px' }}>
-      <Card title="Supplier Management">
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleCreateSupplier}
-          style={{ marginBottom: 16 }}
-        >
-          Create New Supplier
-        </Button>
+    <Container fluid className="p-4">
+      <Row className="mb-4">
+        <Col>
+          <h2 className="admin-page-title">
+            <FaTruck className="me-2" /> Quản lý nhà cung cấp
+          </h2>
+        </Col>
+        <Col xs="auto">
+          <Button variant="primary" onClick={() => openModal()}>
+            <FaPlus className="me-2" /> Thêm nhà cung cấp
+          </Button>
+        </Col>
+      </Row>
 
-        <Table
-          columns={columns}
-          dataSource={Array.isArray(suppliers) ? suppliers : []}
-          loading={loading}
-          rowKey="supplierId"
-        />
-
-        <Modal
-          title={selectedSupplier ? 'Edit Supplier' : 'Create Supplier'}
-          open={modalVisible}
-          onOk={handleModalOk}
-          onCancel={() => setModalVisible(false)}
-          width={600}
-        >
-          <Form
-            form={form}
-            layout="vertical"
-            validateMessages={{
-              required: '${label} is required',
-              types: {
-                email: '${label} is not a valid email',
-                number: '${label} is not a valid number',
-              },
-              pattern: {
-                mismatch: '${label} is not in the correct format',
-              },
-            }}
-          >
-            <Form.Item
-              name="supplierName"
-              label="Supplier Name"
-              rules={[
-                { required: true },
-                { min: 3, message: 'Supplier name must be at least 3 characters' },
-                { max: 100, message: 'Supplier name cannot exceed 100 characters' }
-              ]}
-            >
-              <Input placeholder="Enter supplier name" />
-            </Form.Item>
-
-            <Form.Item
-              name="phone"
-              label="Phone"
-              rules={[
-                { required: true },
-                { pattern: /^[0-9]{10,11}$/, message: 'Phone number must be 10-11 digits' }
-              ]}
-            >
-              <Input placeholder="Enter phone number" />
-            </Form.Item>
-
-            <Form.Item
-              name="address"
-              label="Address"
-              rules={[
-                { required: true },
-                { min: 10, message: 'Address must be at least 10 characters' },
-                { max: 200, message: 'Address cannot exceed 200 characters' }
-              ]}
-            >
-              <Input.TextArea rows={3} placeholder="Enter address" />
-            </Form.Item>
-          </Form>
-        </Modal>
+      <Card className="admin-card">
+        <Card.Header className="d-flex justify-content-between align-items-center">
+          <h5 className="mb-0">Danh sách nhà cung cấp</h5>
+        </Card.Header>
+        <Card.Body>
+          <Table responsive striped bordered hover>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Tên nhà cung cấp</th>
+                <th>Người liên hệ</th>
+                <th>Số điện thoại</th>
+                <th>Email</th>
+                <th>Địa chỉ</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr>
+                  <td colSpan="7" className="text-center p-3">
+                    <LoadingSpinner />
+                  </td>
+                </tr>
+              ) : currentItems.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="text-center">Không có nhà cung cấp nào</td>
+                </tr>
+              ) : (
+                currentItems.map((supplier, index) => (
+                  <tr key={supplier.id}>
+                    <td>{indexOfFirstItem + index + 1}</td>
+                    <td>{supplier.supplierName}</td>
+                    <td>{supplier.contactPerson}</td>
+                    <td>
+                      <FaPhone className="me-1" />
+                      {supplier.phone}
+                    </td>
+                    <td>
+                      <FaEnvelope className="me-1" />
+                      {supplier.email}
+                    </td>
+                    <td>
+                      <FaMapMarkerAlt className="me-1" />
+                      {supplier.address}
+                    </td>
+                    <td>
+                      <Button 
+                        variant="outline-primary" 
+                        size="sm" 
+                        className="me-2"
+                        onClick={() => openModal(supplier)}
+                      >
+                        <FaEdit />
+                      </Button>
+                      <Button 
+                        variant="outline-danger" 
+                        size="sm"
+                        onClick={() => handleDelete(supplier.id)}
+                      >
+                        <FaTrash />
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </Table>
+          {!isLoading && suppliers.length > 0 && (
+            <div className="d-flex justify-content-center mt-4">
+              <Pagination>
+                <Pagination.First onClick={() => paginate(1)} disabled={currentPage === 1} />
+                <Pagination.Prev onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} />
+                {[...Array(totalPages)].map((_, index) => (
+                  <Pagination.Item
+                    key={index + 1}
+                    active={index + 1 === currentPage}
+                    onClick={() => paginate(index + 1)}
+                  >
+                    {index + 1}
+                  </Pagination.Item>
+                ))}
+                <Pagination.Next onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} />
+                <Pagination.Last onClick={() => paginate(totalPages)} disabled={currentPage === totalPages} />
+              </Pagination>
+            </div>
+          )}
+        </Card.Body>
       </Card>
-    </div>
+
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>{editingId ? 'Cập nhật nhà cung cấp' : 'Thêm nhà cung cấp mới'}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3">
+              <Form.Label>Tên nhà cung cấp</Form.Label>
+              <Form.Control
+                type="text"
+                name="supplierName"
+                value={formData.supplierName}
+                onChange={handleInputChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Người liên hệ</Form.Label>
+              <Form.Control
+                type="text"
+                name="contactPerson"
+                value={formData.contactPerson}
+                onChange={handleInputChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Số điện thoại</Form.Label>
+              <Form.Control
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Địa chỉ</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={2}
+                name="address"
+                value={formData.address}
+                onChange={handleInputChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Mô tả</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+              />
+            </Form.Group>
+
+            <div className="d-flex justify-content-end gap-2">
+              <Button variant="secondary" onClick={() => setShowModal(false)}>
+                Hủy
+              </Button>
+              <Button variant="primary" type="submit">
+                {editingId ? 'Cập nhật' : 'Thêm mới'}
+              </Button>
+            </div>
+          </Form>
+        </Modal.Body>
+      </Modal>
+    </Container>
   );
 };
 
-export default SupplierManagementPage; 
+export default SupplierManagementPage;

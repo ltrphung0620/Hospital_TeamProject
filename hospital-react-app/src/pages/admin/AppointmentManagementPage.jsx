@@ -1,91 +1,95 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Pagination, Badge, Row, Col } from 'react-bootstrap';
 import Avatar from '../../components/common/Avatar';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { FaUserMd, FaUserInjured, FaCalendarAlt, FaClock, FaStethoscope, FaInfoCircle, FaBirthdayCake, FaPhone, FaEnvelope } from 'react-icons/fa';
+import { getAllAppointments } from '../../services/api';
+import api from '../../services/api';
+import { toast } from 'react-toastify';
 
 const AppointmentManagementPage = () => {
-    const [appointments, setAppointments] = useState([
-        { 
-            id: 1, 
-            patient: { name: 'Trần Thị B', avatar: null, dob: '15/05/1990', phone: '0905123456' }, 
-            doctor: { name: 'Nguyễn Văn A', avatar: 'https://broken.link/a.jpg', specialty: 'Tim mạch', email: 'nguyenvana@hospital.com' }, 
-            date: '2023-10-28', time: '09:00 AM', status: 'Đã xác nhận', reason: 'Khám định kỳ' 
-        },
-        { 
-            id: 2, 
-            patient: { name: 'Phạm Văn D', avatar: 'https://via.placeholder.com/150', dob: '20/08/1985', phone: '0912987654' }, 
-            doctor: { name: 'Lê Thị E', avatar: null, specialty: 'Nội tổng quát', email: 'lethie@hospital.com' }, 
-            date: '2023-10-28', time: '10:30 AM', status: 'Chờ xác nhận', reason: 'Đau bụng' 
-        },
-        { 
-            id: 3, 
-            patient: { name: 'Vũ Thị F', avatar: null, dob: '10/11/2001', phone: '0988111222' }, 
-            doctor: { name: 'Nguyễn Văn A', avatar: 'https://broken.link/a.jpg', specialty: 'Tim mạch', email: 'nguyenvana@hospital.com' }, 
-            date: '2023-10-29', time: '11:00 AM', status: 'Hoàn thành', reason: 'Tái khám' 
-        },
-        { 
-            id: 4, 
-            patient: { name: 'Đặng Văn G', avatar: null, dob: '01/02/1978', phone: '0934555666' }, 
-            doctor: { name: 'Bùi Thị H', avatar: null, specialty: 'Da liễu', email: 'buithih@hospital.com' }, 
-            date: '2023-10-29', time: '01:00 PM', status: 'Đã hủy', reason: 'Dị ứng' 
-        },
-        { 
-            id: 5, 
-            patient: { name: 'Ngô Thị K', avatar: 'https://via.placeholder.com/150', dob: '03/04/1995', phone: '0977888999' }, 
-            doctor: { name: 'Lê Thị E', avatar: null, specialty: 'Nội tổng quát', email: 'lethie@hospital.com' }, 
-            date: '2023-10-30', time: '08:00 AM', status: 'Chờ xác nhận', reason: 'Ho, sốt' 
-        },
-        { 
-            id: 6, 
-            patient: { name: 'Hoàng Văn L', avatar: null, dob: '12/12/1992', phone: '0915123789' }, 
-            doctor: { name: 'Bùi Thị H', avatar: null, specialty: 'Da liễu', email: 'buithih@hospital.com' }, 
-            date: '2023-10-31', time: '09:30 AM', status: 'Đã xác nhận', reason: 'Kiểm tra da' 
-        },
-        { 
-            id: 7, 
-            patient: { name: 'Mai Thị M', avatar: 'https://via.placeholder.com/150', dob: '07/07/1988', phone: '0987654321' }, 
-            doctor: { name: 'Nguyễn Văn A', avatar: 'https://broken.link/a.jpg', specialty: 'Tim mạch', email: 'nguyenvana@hospital.com' }, 
-            date: '2023-10-31', time: '10:00 AM', status: 'Hoàn thành', reason: 'Theo dõi huyết áp' 
-        },
-        { 
-            id: 8, 
-            patient: { name: 'Lý Văn N', avatar: null, dob: '09/01/2000', phone: '0909090909' }, 
-            doctor: { name: 'Lê Thị E', avatar: null, specialty: 'Nội tổng quát', email: 'lethie@hospital.com' }, 
-            date: '2023-11-01', time: '02:00 PM', status: 'Chờ xác nhận', reason: 'Cảm cúm' 
-        },
-        { 
-            id: 9, 
-            patient: { name: 'Trịnh Thị P', avatar: null, dob: '25/03/1997', phone: '0966555444' }, 
-            doctor: { name: 'Bùi Thị H', avatar: null, specialty: 'Da liễu', email: 'buithih@hospital.com' }, 
-            date: '2023-11-01', time: '03:00 PM', status: 'Đã hủy', reason: 'Việc đột xuất' 
-        },
-        { 
-            id: 10, 
-            patient: { name: 'Đỗ Văn Q', avatar: 'https://via.placeholder.com/150', dob: '18/06/1980', phone: '0944333222' }, 
-            doctor: { name: 'Nguyễn Văn A', avatar: 'https://broken.link/a.jpg', specialty: 'Tim mạch', email: 'nguyenvana@hospital.com' }, 
-            date: '2023-11-02', time: '08:30 AM', status: 'Đã xác nhận', reason: 'Đau ngực' 
-        },
-    ]);
-
+    const [appointments, setAppointments] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [loading, setLoading] = useState(true);
     const appointmentsPerPage = 5;
+
+    useEffect(() => {
+        fetchAppointments();
+    }, []);
+
+    const fetchAppointments = async () => {
+        try {
+            const response = await getAllAppointments();
+            setAppointments(response.data);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching appointments:', error);
+            toast.error('Không thể tải danh sách lịch hẹn');
+            setLoading(false);
+        }
+    };
 
     const handleShowModal = (appointment) => {
         setSelectedAppointment(appointment);
         setShowModal(true);
     };
+    
     const handleCloseModal = () => setShowModal(false);
 
+    const handleConfirmAppointment = async (id) => {
+        try {
+            await api.put(`/appointment/${id}/confirm`);
+            toast.success('Xác nhận lịch hẹn thành công');
+            fetchAppointments(); // Refresh the list
+            handleCloseModal();
+        } catch (error) {
+            console.error('Error confirming appointment:', error);
+            toast.error('Không thể xác nhận lịch hẹn');
+        }
+    };
+
+    const handleCancelAppointment = async (id) => {
+        try {
+            await api.put(`/appointment/cancel/${id}`);
+            toast.success('Hủy lịch hẹn thành công');
+            fetchAppointments(); // Refresh the list
+            handleCloseModal();
+        } catch (error) {
+            console.error('Error canceling appointment:', error);
+            toast.error('Không thể hủy lịch hẹn');
+        }
+    };
+
     const getStatusBadge = (status) => {
-        switch (status) {
-            case 'Đã xác nhận': return 'primary';
-            case 'Hoàn thành': return 'success';
-            case 'Đã hủy': return 'danger';
-            case 'Chờ xác nhận': return 'warning';
+        switch (status.toLowerCase()) {
+            case 'confirmed': return 'primary';
+            case 'completed': return 'success';
+            case 'cancelled': return 'danger';
+            case 'pending': return 'warning';
             default: return 'secondary';
         }
+    };
+
+    const getStatusText = (status) => {
+        switch (status.toLowerCase()) {
+            case 'confirmed': return 'Đã xác nhận';
+            case 'completed': return 'Hoàn thành';
+            case 'cancelled': return 'Đã hủy';
+            case 'pending': return 'Chờ xác nhận';
+            default: return status;
+        }
+    };
+
+    const formatTime = (time) => {
+        if (!time) return '';
+        return time.substring(0, 5); // Format "HH:mm" from "HH:mm:ss"
+    };
+
+    const formatDate = (date) => {
+        if (!date) return '';
+        return new Date(date).toLocaleDateString('vi-VN');
     };
 
     const indexOfLastAppointment = currentPage * appointmentsPerPage;
@@ -102,6 +106,7 @@ const AppointmentManagementPage = () => {
                     <thead>
                         <tr>
                             <th>ID</th>
+                            <th>Mã lịch hẹn</th>
                             <th>Bệnh nhân</th>
                             <th>Bác sĩ</th>
                             <th>Ngày</th>
@@ -111,18 +116,29 @@ const AppointmentManagementPage = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {currentAppointments.map(apt => (
+                        {loading ? (
+                            <tr>
+                                <td colSpan="8" className="text-center p-3">
+                                    <LoadingSpinner />
+                                </td>
+                            </tr>
+                        ) : currentAppointments.map(apt => (
                             <tr key={apt.id}>
                                 <td style={{ verticalAlign: 'middle' }}>{apt.id}</td>
-                                <td style={{ verticalAlign: 'middle' }}>{apt.patient.name}</td>
-                                <td style={{ verticalAlign: 'middle' }}>{apt.doctor.name}</td>
-                                <td style={{ verticalAlign: 'middle' }}>{apt.date}</td>
-                                <td style={{ verticalAlign: 'middle' }}>{apt.time}</td>
-                                <td className="text-center" style={{ verticalAlign: 'middle' }}>
-                                    <Badge bg={getStatusBadge(apt.status)}>{apt.status}</Badge>
+                                <td style={{ verticalAlign: 'middle' }}>{apt.appointmentNo}</td>
+                                <td style={{ verticalAlign: 'middle' }}>{apt.patientName}</td>
+                                <td style={{ verticalAlign: 'middle' }}>{apt.doctorName}</td>
+                                <td style={{ verticalAlign: 'middle' }}>{formatDate(apt.appointmentDate)}</td>
+                                <td style={{ verticalAlign: 'middle' }}>
+                                    {formatTime(apt.startTime)} - {formatTime(apt.endTime)}
                                 </td>
                                 <td className="text-center" style={{ verticalAlign: 'middle' }}>
-                                    <Button variant="outline-info" size="sm" onClick={() => handleShowModal(apt)}>Xem chi tiết</Button>
+                                    <Badge bg={getStatusBadge(apt.status)}>{getStatusText(apt.status)}</Badge>
+                                </td>
+                                <td className="text-center" style={{ verticalAlign: 'middle' }}>
+                                    <Button variant="outline-info" size="sm" onClick={() => handleShowModal(apt)}>
+                                        Xem chi tiết
+                                    </Button>
                                 </td>
                             </tr>
                         ))}
@@ -131,7 +147,11 @@ const AppointmentManagementPage = () => {
                 {totalPages > 1 && (
                     <Pagination className="justify-content-center">
                         {[...Array(totalPages).keys()].map(number => (
-                            <Pagination.Item key={number + 1} active={number + 1 === currentPage} onClick={() => paginate(number + 1)}>
+                            <Pagination.Item 
+                                key={number + 1} 
+                                active={number + 1 === currentPage} 
+                                onClick={() => paginate(number + 1)}
+                            >
                                 {number + 1}
                             </Pagination.Item>
                         ))}
@@ -142,55 +162,100 @@ const AppointmentManagementPage = () => {
             <AppointmentDetailModal 
                 show={showModal} 
                 onHide={handleCloseModal} 
-                appointment={selectedAppointment} 
+                appointment={selectedAppointment}
                 getStatusBadge={getStatusBadge}
+                getStatusText={getStatusText}
+                onConfirm={handleConfirmAppointment}
+                onCancel={handleCancelAppointment}
+                formatTime={formatTime}
+                formatDate={formatDate}
             />
         </div>
     );
 };
 
-const AppointmentDetailModal = ({ show, onHide, appointment, getStatusBadge }) => {
+const AppointmentDetailModal = ({ 
+    show, 
+    onHide, 
+    appointment, 
+    getStatusBadge, 
+    getStatusText,
+    onConfirm,
+    onCancel,
+    formatTime,
+    formatDate
+}) => {
     if (!appointment) return null;
 
     return (
         <Modal show={show} onHide={onHide} size="lg" centered>
             <Modal.Header closeButton>
-                <Modal.Title>Chi tiết Lịch hẹn #{appointment.id}</Modal.Title>
+                <Modal.Title>Chi tiết Lịch hẹn #{appointment.appointmentNo}</Modal.Title>
             </Modal.Header>
             <Modal.Body className="appointment-modal-body">
                 <Row className="g-4">
                     <Col xs={6} className="d-flex">
                         <div className="info-block h-100 w-100">
-                            <div className="avatar-container"><Avatar src={appointment.patient.avatar} name={appointment.patient.name} size={90} /></div>
-                            <div className="name">{appointment.patient.name}</div>
-                            <div className="specialty text-muted"><FaUserInjured className="me-2" /> Bệnh nhân</div>
-                            <div className="info-block-detail"><FaBirthdayCake /> {appointment.patient.dob}</div>
-                            <div className="info-block-detail"><FaPhone /> {appointment.patient.phone}</div>
+                            <div className="name">{appointment.patientName}</div>
+                            <div className="specialty text-muted">
+                                <FaUserInjured className="me-2" /> Bệnh nhân
+                            </div>
+                            <div className="info-block-detail">
+                                <FaPhone /> ID: {appointment.patientId}
+                            </div>
                         </div>
                     </Col>
                     <Col xs={6} className="d-flex">
                         <div className="info-block h-100 w-100">
-                            <div className="avatar-container"><Avatar src={appointment.doctor.avatar} name={appointment.doctor.name} size={90} /></div>
-                            <div className="name">{appointment.doctor.name}</div>
-                            <div className="specialty text-muted"><FaUserMd className="me-2" /> {appointment.doctor.specialty}</div>
-                            <div className="info-block-detail"><FaEnvelope /> {appointment.doctor.email}</div>
+                            <div className="name">{appointment.doctorName}</div>
+                            <div className="specialty text-muted">
+                                <FaUserMd className="me-2" /> {appointment.specialization || 'Bác sĩ'}
+                            </div>
+                            <div className="info-block-detail">
+                                <FaStethoscope /> ID: {appointment.doctorId}
+                            </div>
                         </div>
                     </Col>
                 </Row>
 
-                <div className="details-block">
-                    <div className="detail-item"><div className="detail-item-icon"><FaCalendarAlt /></div><div><strong>Ngày:</strong> {appointment.date}</div></div>
-                    <div className="detail-item"><div className="detail-item-icon"><FaClock /></div><div><strong>Giờ:</strong> {appointment.time}</div></div>
-                    <div className="detail-item"><div className="detail-item-icon"><FaStethoscope /></div><div><strong>Lý do khám:</strong> {appointment.reason}</div></div>
-                    <div className="detail-item"><div className="detail-item-icon"><FaInfoCircle /></div><div><strong>Trạng thái:</strong> <Badge bg={getStatusBadge(appointment.status)}>{appointment.status}</Badge></div></div>
+                <div className="details-block mt-4">
+                    <div className="detail-item">
+                        <div className="detail-item-icon"><FaCalendarAlt /></div>
+                        <div><strong>Ngày:</strong> {formatDate(appointment.appointmentDate)}</div>
+                    </div>
+                    <div className="detail-item">
+                        <div className="detail-item-icon"><FaClock /></div>
+                        <div>
+                            <strong>Giờ:</strong> {formatTime(appointment.startTime)} - {formatTime(appointment.endTime)}
+                        </div>
+                    </div>
+                    {appointment.note && (
+                        <div className="detail-item">
+                            <div className="detail-item-icon"><FaStethoscope /></div>
+                            <div><strong>Ghi chú:</strong> {appointment.note}</div>
+                        </div>
+                    )}
+                    <div className="detail-item">
+                        <div className="detail-item-icon"><FaInfoCircle /></div>
+                        <div>
+                            <strong>Trạng thái:</strong>{' '}
+                            <Badge bg={getStatusBadge(appointment.status)}>
+                                {getStatusText(appointment.status)}
+                            </Badge>
+                        </div>
+                    </div>
                 </div>
             </Modal.Body>
             <Modal.Footer>
                 <Button variant="secondary" onClick={onHide}>Đóng</Button>
-                {appointment.status === 'Chờ xác nhận' && (
+                {appointment.status.toLowerCase() === 'pending' && (
                     <>
-                        <Button variant="success">Xác nhận</Button>
-                        <Button variant="danger">Hủy lịch</Button>
+                        <Button variant="success" onClick={() => onConfirm(appointment.id)}>
+                            Xác nhận
+                        </Button>
+                        <Button variant="danger" onClick={() => onCancel(appointment.id)}>
+                            Hủy lịch
+                        </Button>
                     </>
                 )}
             </Modal.Footer>
