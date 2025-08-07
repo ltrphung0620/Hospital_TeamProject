@@ -1,10 +1,11 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Nav, Tab, Form, Button, Alert } from 'react-bootstrap';
 import { useSearchParams } from 'react-router-dom';
 import Avatar from '../components/common/Avatar';
-import { mockUserData } from '../data/mockData';
-import axios from 'axios';
-import api, { API_BASE_URL } from '../services/api';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import api, { API_BASE_URL, getInvoicesByPatientId } from '../services/api';
+import { toast } from 'react-toastify';
+import { FaCalendarCheck, FaClock, FaPrescription, FaFileInvoiceDollar, FaKey, FaInfoCircle, FaCapsules } from 'react-icons/fa';
 
 const UserInfoPage = () => {
   const [searchParams] = useSearchParams();
@@ -18,29 +19,62 @@ const UserInfoPage = () => {
   });
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
-  const [userData, setUserData] = useState([]);
-
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [appointments, setAppointments] = useState([]);
+  const [waitingList, setWaitingList] = useState([]);
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [invoices, setInvoices] = useState([]);
 
   useEffect(() => {
-  const authData = JSON.parse(localStorage.getItem("authData"));
-  if (!authData || !authData.token || !authData.userId) return;
+    const authData = JSON.parse(localStorage.getItem("authData"));
+    if (!authData || !authData.token || !authData.userId) return;
 
-  const fetchUserData = async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/User/${authData.userId}`, {
-        headers: {
-          Authorization: `Bearer ${authData.token}`
+    const fetchAllData = async () => {
+      try {
+        setLoading(true);
+        const [
+          userResponse,
+          appointmentsResponse,
+          waitingResponse,
+          prescriptionsResponse,
+        ] = await Promise.all([
+          api.get(`/User/${authData.userId}`),
+          api.get(`/Appointment/by-patient/${authData.userId}`),
+          api.get('/WaitingList'),
+          api.get('/Prescriptions'),
+        ]);
+
+        // Gọi API invoices riêng để xử lý lỗi
+        let invoicesData = [];
+        try {
+          const invoicesResponse = await getInvoicesByPatientId(authData.userId);
+          invoicesData = invoicesResponse.data;
+        } catch (error) {
+          if (error.response?.status === 404) {
+            // Nếu không có hóa đơn, set mảng rỗng
+            invoicesData = [];
+          } else {
+            // Nếu lỗi khác, throw để xử lý ở catch bên ngoài
+            throw error;
+          }
         }
-      });
-      setUserData(res.data);
-    } catch (err) {
-      console.error("Failed to fetch user info", err);
-    }
-  };
 
-  fetchUserData();
-}, []);
+        setUserData(userResponse.data);
+        setAppointments(appointmentsResponse.data);
+        setWaitingList(waitingResponse.data.filter(item => item.patientId === authData.userId));
+        setPrescriptions(prescriptionsResponse.data);
+        setInvoices(invoicesData);
+        setLoading(false);
+      } catch (error) {
+        console.error("Failed to fetch data", error);
+        toast.error("Không thể tải dữ liệu. Vui lòng thử lại sau.");
+        setLoading(false);
+      }
+    };
 
+    fetchAllData();
+  }, []);
 
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
@@ -52,49 +86,76 @@ const UserInfoPage = () => {
     setPasswordSuccess('');
   };
 
-  const handlePasswordSubmit = async  (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
 
     const { currentPassword, newPassword, confirmPassword } = passwordData;
     if (newPassword !== confirmPassword) {
-      setPasswordError('New passwords do not match');
+      setPasswordError('Mật khẩu mới không khớp');
       return;
     }
     if (newPassword.length < 6) {
-      setPasswordError('Password must be at least 6 characters long');
+      setPasswordError('Mật khẩu phải có ít nhất 6 ký tự');
       return;
     }
+
     try {
-    const authData = JSON.parse(localStorage.getItem('authData'));
-    const token = authData?.token;
-    console.log(token); 
-    const response = await axios.post(
-     `${API_BASE_URL}/Auth/change-password`,
-      {
+      await api.post('/Auth/change-password', {
         currentPassword,
         newPassword
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    );
+      });
 
-    setPasswordSuccess('Password changed successfully!');
-    setPasswordData({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
+      setPasswordSuccess('Đổi mật khẩu thành công!');
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
     } catch (error) {
-    if (error.response && error.response.data?.message) {
-      setPasswordError(error.response.data.message);
-    } else {
-      setPasswordError('Something went wrong. Please try again.');
+      setPasswordError(error.response?.data?.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
     }
-  }
   };
+
+  const getStatusBadge = (status) => {
+    if (!status) return 'secondary';
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+      case 'completed':
+      case 'paid':
+        return 'success';
+      case 'pending':
+      case 'waiting':
+        return 'warning';
+      case 'cancelled':
+        return 'danger';
+      case 'in_progress':
+        return 'primary';
+      default:
+        return 'secondary';
+    }
+  };
+
+  const getStatusText = (status) => {
+    if (!status) return '';
+    switch (status.toLowerCase()) {
+      case 'confirmed': return 'Đã xác nhận';
+      case 'completed': return 'Hoàn thành';
+      case 'pending': return 'Chờ xác nhận';
+      case 'waiting': return 'Đang chờ';
+      case 'cancelled': return 'Đã hủy';
+      case 'in_progress': return 'Đang thực hiện';
+      case 'paid': return 'Đã thanh toán';
+      default: return status;
+    }
+  };
+
+  if (loading) {
+    return (
+      <Container className="py-5 text-center">
+        <LoadingSpinner />
+      </Container>
+    );
+  }
 
   return (
     <Container className="py-5">
@@ -103,15 +164,15 @@ const UserInfoPage = () => {
           <Card className="border-0 shadow-sm">
             <Card.Body className="text-center p-4">
               <div className="position-relative d-inline-block mb-4">
-                <Avatar name={userData.username} size={120} className="border-3 border-primary" />
+                <Avatar name={userData?.username} size={120} className="border-3 border-primary" />
                 <span className="position-absolute bottom-0 end-0 bg-success rounded-circle p-2 border border-white"></span>
               </div>
-              <h4 className="mb-1">{userData.fullName}</h4>
-              <p className="text-muted mb-3">{userData.email}</p>
+              <h4 className="mb-1">{userData?.fullName}</h4>
+              <p className="text-muted mb-3">{userData?.email}</p>
               <div className="d-grid">
                 <Button variant="outline-primary" onClick={() => setShowPasswordForm(!showPasswordForm)}>
-                  <i className="fas fa-key me-2"></i>
-                  Change Password
+                  <FaKey className="me-2" />
+                  Đổi mật khẩu
                 </Button>
               </div>
               
@@ -121,7 +182,7 @@ const UserInfoPage = () => {
                   {passwordSuccess && <Alert variant="success">{passwordSuccess}</Alert>}
                   
                   <Form.Group className="mb-3">
-                    <Form.Label>Current Password</Form.Label>
+                    <Form.Label>Mật khẩu hiện tại</Form.Label>
                     <Form.Control
                       type="password"
                       name="currentPassword"
@@ -132,7 +193,7 @@ const UserInfoPage = () => {
                   </Form.Group>
                   
                   <Form.Group className="mb-3">
-                    <Form.Label>New Password</Form.Label>
+                    <Form.Label>Mật khẩu mới</Form.Label>
                     <Form.Control
                       type="password"
                       name="newPassword"
@@ -143,7 +204,7 @@ const UserInfoPage = () => {
                   </Form.Group>
                   
                   <Form.Group className="mb-3">
-                    <Form.Label>Confirm New Password</Form.Label>
+                    <Form.Label>Xác nhận mật khẩu mới</Form.Label>
                     <Form.Control
                       type="password"
                       name="confirmPassword"
@@ -155,7 +216,7 @@ const UserInfoPage = () => {
                   
                   <div className="d-grid">
                     <Button type="submit" variant="primary">
-                      Update Password
+                      Cập nhật mật khẩu
                     </Button>
                   </div>
                 </Form>
@@ -165,18 +226,18 @@ const UserInfoPage = () => {
 
           <Card className="border-0 shadow-sm mt-4">
             <Card.Body className="p-4">
-              <h5 className="mb-3">Personal Information</h5>
+              <h5 className="mb-3">Thông tin cá nhân</h5>
               <div className="mb-3">
-                <small className="text-muted d-block">Phone</small>
-                <div>{mockUserData.phone}</div>
+                <small className="text-muted d-block">Số điện thoại</small>
+                <div>{userData?.phoneNumber}</div>
               </div>
               <div className="mb-3">
-                <small className="text-muted d-block">Address</small>
-                <div>{mockUserData.address}</div>
+                <small className="text-muted d-block">Địa chỉ</small>
+                <div>{userData?.address}</div>
               </div>
               <div>
-                <small className="text-muted d-block">Member Since</small>
-                <div>{new Date(mockUserData.joinDate).toLocaleDateString()}</div>
+                <small className="text-muted d-block">Ngày tham gia</small>
+                <div>{new Date(userData?.createdAt).toLocaleDateString('vi-VN')}</div>
               </div>
             </Card.Body>
           </Card>
@@ -189,213 +250,194 @@ const UserInfoPage = () => {
                 <Nav variant="tabs" className="nav-fill border-bottom">
                   <Nav.Item>
                     <Nav.Link eventKey="appointments" className="border-0 px-4 py-3">
-                      <i className="fas fa-calendar-check me-2"></i>
-                      Appointments
+                      <FaCalendarCheck className="me-2" />
+                      Lịch hẹn
                     </Nav.Link>
                   </Nav.Item>
                   <Nav.Item>
                     <Nav.Link eventKey="waiting" className="border-0 px-4 py-3">
-                      <i className="fas fa-clock me-2"></i>
-                      Waiting List
+                      <FaClock className="me-2" />
+                      Danh sách chờ
                     </Nav.Link>
                   </Nav.Item>
                   <Nav.Item>
                     <Nav.Link eventKey="prescriptions" className="border-0 px-4 py-3">
-                      <i className="fas fa-prescription me-2"></i>
-                      Prescriptions
+                      <FaPrescription className="me-2" />
+                      Đơn thuốc
                     </Nav.Link>
                   </Nav.Item>
                   <Nav.Item>
                     <Nav.Link eventKey="invoices" className="border-0 px-4 py-3">
-                      <i className="fas fa-file-invoice-dollar me-2"></i>
-                      Invoices
+                      <FaFileInvoiceDollar className="me-2" />
+                      Hóa đơn
                     </Nav.Link>
                   </Nav.Item>
                 </Nav>
 
                 <Tab.Content>
                   <Tab.Pane eventKey="appointments" className="p-4">
-                    {mockUserData.appointments.map((appointment, index) => (
-                      <Card key={index} className="border-0 shadow-sm mb-3">
-                        <Card.Body className="p-3">
-                          <Row className="align-items-center">
-                            <Col xs={12} md={2} className="mb-3 mb-md-0">
-                              <div className="text-center text-md-start">
-                                <div className="fw-bold">{new Date(appointment.date).toLocaleDateString()}</div>
-                                <div className="text-muted small">{appointment.time}</div>
-                              </div>
-                            </Col>
-                            <Col xs={12} md={4} className="mb-3 mb-md-0">
-                              <div className="d-flex align-items-center">
-                                <Avatar name={appointment.doctorName} size={40} className="me-3" />
-                                <div>
-                                  <div className="fw-bold">{appointment.doctorName}</div>
-                                  <div className="text-muted small">{appointment.department}</div>
+                    {appointments.length === 0 ? (
+                      <Alert variant="info">Bạn chưa có lịch hẹn nào.</Alert>
+                    ) : (
+                      appointments.map((appointment) => (
+                        <Card key={appointment.id} className="border-0 shadow-sm mb-3">
+                          <Card.Body className="p-3">
+                            <Row className="align-items-center">
+                              <Col xs={12} md={2} className="mb-3 mb-md-0">
+                                <div className="text-center text-md-start">
+                                  <div className="fw-bold">
+                                    {new Date(appointment.appointmentDate).toLocaleDateString('vi-VN')}
+                                  </div>
+                                  <div className="text-muted small">
+                                    {appointment.startTime} - {appointment.endTime}
+                                  </div>
                                 </div>
-                              </div>
-                            </Col>
-                            <Col xs={12} md={4} className="mb-3 mb-md-0">
-                              <div className="text-muted small mb-1">Reason</div>
-                              <div>{appointment.reason}</div>
-                              <div className="text-muted small mt-1">Room {appointment.roomNumber}</div>
-                              {appointment.notes && (
-                                <div className="text-muted small mt-1">
-                                  <i className="fas fa-info-circle me-1"></i>
-                                  {appointment.notes}
+                              </Col>
+                              <Col xs={12} md={4} className="mb-3 mb-md-0">
+                                <div className="d-flex align-items-center">
+                                  <Avatar name={appointment.doctorName} size={40} className="me-3" />
+                                  <div>
+                                    <div className="fw-bold">{appointment.doctorName}</div>
+                                    <div className="text-muted small">{appointment.specialization}</div>
+                                  </div>
                                 </div>
-                              )}
-                            </Col>
-                            <Col xs={12} md={2}>
-                              <div className={`badge bg-${appointment.status === 'Completed' ? 'success' : appointment.status === 'Cancelled' ? 'danger' : 'primary'}`}>
-                                {appointment.status}
-                              </div>
-                            </Col>
-                          </Row>
-                        </Card.Body>
-                      </Card>
-                    ))}
+                              </Col>
+                              <Col xs={12} md={4} className="mb-3 mb-md-0">
+                                <div className="text-muted small mb-1">Phòng khám</div>
+                                <div>{appointment.branchName}</div>
+                                {appointment.note && (
+                                  <div className="text-muted small mt-1">
+                                    <FaInfoCircle className="me-1" />
+                                    {appointment.note}
+                                  </div>
+                                )}
+                              </Col>
+                              <Col xs={12} md={2}>
+                                <div className={`badge bg-${getStatusBadge(appointment.status)}`}>
+                                  {getStatusText(appointment.status)}
+                                </div>
+                              </Col>
+                            </Row>
+                          </Card.Body>
+                        </Card>
+                      ))
+                    )}
                   </Tab.Pane>
 
                   <Tab.Pane eventKey="waiting" className="p-4">
-                    {mockUserData.waitingList.map((item, index) => (
-                      <Card key={index} className="border-0 shadow-sm mb-3">
-                        <Card.Body className="p-3">
-                          <Row className="align-items-center">
-                            <Col xs={12} md={3} className="mb-3 mb-md-0">
-                              <div className="text-center text-md-start">
-                                <div className="fw-bold">{new Date(item.date).toLocaleDateString()}</div>
-                                <div className="text-muted small">Queue #{item.queueNumber}</div>
-                              </div>
-                            </Col>
-                            <Col xs={12} md={3} className="mb-3 mb-md-0">
-                              <div className="text-muted small mb-1">Department</div>
-                              <div>{item.department}</div>
-                            </Col>
-                            <Col xs={12} md={3} className="mb-3 mb-md-0">
-                              <div className="text-muted small mb-1">Current Number</div>
-                              <div>{item.currentNumber}</div>
-                              <div className="text-muted small mt-1">
-                                Est. Wait: {item.estimatedTime}
-                              </div>
-                            </Col>
-                            <Col xs={12} md={3}>
-                              <div className={`badge bg-${item.status === 'Called' ? 'success' : 'warning'} mb-2`}>
-                                {item.status}
-                              </div>
-                              {item.priority === 'Urgent' && (
-                                <div className="badge bg-danger ms-2">Urgent</div>
-                              )}
-                            </Col>
-                          </Row>
-                        </Card.Body>
-                      </Card>
-                    ))}
+                    {waitingList.length === 0 ? (
+                      <Alert variant="info">Bạn không có trong danh sách chờ.</Alert>
+                    ) : (
+                      waitingList.map((item) => (
+                        <Card key={item.id} className="border-0 shadow-sm mb-3">
+                          <Card.Body className="p-3">
+                            <Row className="align-items-center">
+                              <Col xs={12} md={3} className="mb-3 mb-md-0">
+                                <div className="text-center text-md-start">
+                                  <div className="fw-bold">Số thứ tự: {item.queueNumber}</div>
+                                  <div className="text-muted small">Mã lịch hẹn: {item.appointmentID}</div>
+                                </div>
+                              </Col>
+                              <Col xs={12} md={6} className="mb-3 mb-md-0">
+                                <div className="text-muted small mb-1">Trạng thái</div>
+                                <div className={`badge bg-${getStatusBadge(item.status)}`}>
+                                  {getStatusText(item.status)}
+                                </div>
+                              </Col>
+                            </Row>
+                          </Card.Body>
+                        </Card>
+                      ))
+                    )}
                   </Tab.Pane>
 
                   <Tab.Pane eventKey="prescriptions" className="p-4">
-                    {mockUserData.prescriptions.map((prescription, index) => (
-                      <Card key={index} className="border-0 shadow-sm mb-3">
-                        <Card.Body className="p-3">
-                          <Row>
-                            <Col xs={12} md={3} className="mb-3 mb-md-0">
-                              <div className="text-center text-md-start">
-                                <div className="fw-bold">{new Date(prescription.date).toLocaleDateString()}</div>
-                                <div className="text-muted small">Prescription #{prescription.id}</div>
-                                <div className="badge bg-success mt-2">{prescription.status}</div>
-                              </div>
-                            </Col>
-                            <Col xs={12} md={4} className="mb-3 mb-md-0">
-                              <div className="d-flex align-items-center">
-                                <Avatar name={prescription.doctorName} size={40} className="me-3" />
-                                <div>
-                                  <div className="fw-bold">{prescription.doctorName}</div>
-                                  <div className="text-muted small">{prescription.department}</div>
+                    {prescriptions.length === 0 ? (
+                      <Alert variant="info">Bạn chưa có đơn thuốc nào.</Alert>
+                    ) : (
+                      prescriptions.map((prescription) => (
+                        <Card key={prescription.id} className="border-0 shadow-sm mb-3">
+                          <Card.Body className="p-3">
+                            <Row>
+                              <Col xs={12} md={3} className="mb-3 mb-md-0">
+                                <div className="text-center text-md-start">
+                                  <div className="fw-bold">
+                                    {new Date(prescription.createdAt).toLocaleDateString('vi-VN')}
+                                  </div>
+                                  <div className="text-muted small">Đơn thuốc #{prescription.id}</div>
                                 </div>
-                              </div>
-                              <div className="mt-2">
-                                <div className="text-muted small">Diagnosis</div>
-                                <div>{prescription.diagnosis}</div>
-                              </div>
-                            </Col>
-                            <Col xs={12}>
-                              <hr className="my-3" />
-                              <div className="text-muted mb-2">
-                                Medications (Valid until: {new Date(prescription.validUntil).toLocaleDateString()})
-                              </div>
-                              {prescription.medications.map((med, idx) => (
-                                <div key={idx} className="d-flex align-items-start mb-3">
-                                  <i className="fas fa-capsules text-primary mt-1 me-2"></i>
+                              </Col>
+                              <Col xs={12} md={4} className="mb-3 mb-md-0">
+                                <div className="d-flex align-items-center">
                                   <div>
-                                    <div className="fw-bold">{med.name}</div>
-                                    <div className="text-muted small">{med.dosage} - {med.frequency}</div>
-                                    <div className="text-muted small">{med.instructions}</div>
-                                    <div className="text-muted small">
-                                      Duration: {med.duration} | Quantity: {med.quantity} | Refills: {med.refills}
-                                    </div>
+                                    <div className="fw-bold">Bác sĩ kê đơn</div>
+                                    <div className="text-muted small">{prescription.prescribedBy}</div>
                                   </div>
                                 </div>
-                              ))}
-                            </Col>
-                          </Row>
-                        </Card.Body>
-                      </Card>
-                    ))}
-                  </Tab.Pane>
-
-                  <Tab.Pane eventKey="invoices" className="p-4">
-                    {mockUserData.invoices.map((invoice, index) => (
-                      <Card key={index} className="border-0 shadow-sm mb-3">
-                        <Card.Body className="p-3">
-                          <Row>
-                            <Col xs={12} md={3} className="mb-3 mb-md-0">
-                              <div className="text-center text-md-start">
-                                <div className="fw-bold">{new Date(invoice.date).toLocaleDateString()}</div>
-                                <div className="text-muted small">Invoice #{invoice.id}</div>
-                              </div>
-                            </Col>
-                            <Col xs={12} md={6} className="mb-3 mb-md-0">
-                              <div className="text-muted small mb-1">Description</div>
-                              <div>{invoice.description}</div>
-                              {invoice.paymentMethod && (
-                                <div className="text-muted small mt-1">
-                                  Paid via {invoice.paymentMethod} on {new Date(invoice.paymentDate).toLocaleDateString()}
-                                </div>
-                              )}
-                              {invoice.insuranceClaim && (
-                                <div className="text-muted small mt-1">
-                                  Insurance: {invoice.insuranceClaim.provider} (Claim #{invoice.insuranceClaim.claimNumber})
-                                </div>
-                              )}
-                            </Col>
-                            <Col xs={12} md={3} className="text-md-end">
-                              <div className="text-muted small mb-1">Amount</div>
-                              <div className="fw-bold">${invoice.amount.toFixed(2)}</div>
-                              <div className={`badge bg-${invoice.status === 'Paid' ? 'success' : 'warning'} mt-2`}>
-                                {invoice.status}
-                              </div>
-                            </Col>
-                            {invoice.items && (
+                              </Col>
                               <Col xs={12}>
                                 <hr className="my-3" />
-                                <div className="text-muted mb-2">Items:</div>
-                                {invoice.items.map((item, idx) => (
-                                  <div key={idx} className="d-flex justify-content-between align-items-center mb-2">
+                                <div className="text-muted mb-2">Chi tiết đơn thuốc</div>
+                                {prescription.details.map((detail, idx) => (
+                                  <div key={idx} className="d-flex align-items-start mb-3">
+                                    <FaCapsules className="text-primary mt-1 me-2" />
                                     <div>
-                                      <div>{item.name}</div>
-                                      <div className="text-muted small">{item.description}</div>
-                                    </div>
-                                    <div className="text-end">
-                                      <div>${item.amount.toFixed(2)}</div>
-                                      <div className="text-muted small">Qty: {item.quantity}</div>
+                                      <div className="fw-bold">{detail.medicineName}</div>
+                                      <div className="text-muted small">Liều lượng: {detail.dosage}</div>
+                                      <div className="text-muted small">Số lượng: {detail.quantity}</div>
+                                      <div className="text-muted small">Hướng dẫn: {detail.instructions}</div>
                                     </div>
                                   </div>
                                 ))}
                               </Col>
-                            )}
-                          </Row>
-                        </Card.Body>
-                      </Card>
-                    ))}
+                            </Row>
+                          </Card.Body>
+                        </Card>
+                      ))
+                    )}
+                  </Tab.Pane>
+
+                  <Tab.Pane eventKey="invoices" className="p-4">
+                    {invoices.length === 0 ? (
+                      <Alert variant="info">Bạn chưa có hóa đơn nào.</Alert>
+                    ) : (
+                      invoices.map((invoice) => (
+                        <Card key={invoice.id} className="border-0 shadow-sm mb-3">
+                          <Card.Body className="p-3">
+                            <Row>
+                              <Col xs={12} md={3} className="mb-3 mb-md-0">
+                                <div className="text-center text-md-start">
+                                  <div className="fw-bold">
+                                    {new Date(invoice.createdAt).toLocaleDateString('vi-VN')}
+                                  </div>
+                                  <div className="text-muted small">Hóa đơn #{invoice.id}</div>
+                                </div>
+                              </Col>
+                              <Col xs={12} md={6} className="mb-3 mb-md-0">
+                                <div className="text-muted small mb-1">Chi tiết</div>
+                                {invoice.invoiceDetails?.map((detail, idx) => (
+                                  <div key={idx} className="mb-2">
+                                    <div>{detail.serviceName || detail.medicineName}</div>
+                                    <div className="text-muted small">
+                                      Số lượng: {detail.quantity} x {detail.price.toLocaleString('vi-VN')} VNĐ
+                                    </div>
+                                  </div>
+                                ))}
+                              </Col>
+                              <Col xs={12} md={3} className="text-md-end">
+                                <div className="text-muted small mb-1">Tổng tiền</div>
+                                <div className="fw-bold">
+                                  {invoice.totalAmount.toLocaleString('vi-VN')} VNĐ
+                                </div>
+                                <div className={`badge bg-${getStatusBadge(invoice.status)} mt-2`}>
+                                  {getStatusText(invoice.status)}
+                                </div>
+                              </Col>
+                            </Row>
+                          </Card.Body>
+                        </Card>
+                      ))
+                    )}
                   </Tab.Pane>
                 </Tab.Content>
               </Tab.Container>
@@ -407,4 +449,4 @@ const UserInfoPage = () => {
   );
 };
 
-export default UserInfoPage; 
+export default UserInfoPage;

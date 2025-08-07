@@ -46,8 +46,8 @@ namespace Hospital_API.Controllers
         {
             var result = await _service.GetInvoicesByPatientIdAsync(patientId);
 
-            if (result == null || result.Count == 0)
-                return NotFound("No invoices found for this patient.");
+            if (result == null)
+                return Ok(new List<InvoiceDTO>());
 
             return Ok(result);
         }

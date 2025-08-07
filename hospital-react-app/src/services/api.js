@@ -86,7 +86,7 @@ export const updateMedicalRecord = (id, data) => api.put(`/medicalrecords/${id}`
 export const deleteMedicalRecord = (id) => api.delete(`/medicalrecords/${id}`);
 
 // Invoice
-export const createInvoiced = (data) => api.post('/Invoice/createddetails', data);
+export const createInvoiced = (data) => api.post('/Invoices/createddetails', data);
 export const getInvoicesByPatientId = (patientId) => api.get(`/Invoices/by-patient/${patientId}`);
 
 // Blog APIs
@@ -129,5 +129,26 @@ export const deleteBlog = async (id) => {
   const response = await api.delete(`/blog/${id}`);
   return response.data;
 };
+
+// Waiting List APIs
+export const getAllWaitingList = () => api.get('/WaitingList');
+export const getWaitingListById = (id) => api.get(`/WaitingList/${id}`);
+export const createWaitingList = (data) => api.post('/WaitingList', data);
+export const updateWaitingList = (id, data) => api.put(`/WaitingList/${id}`, data);
+export const deleteWaitingList = (id) => api.delete(`/WaitingList/${id}`);
+
+// Prescriptions APIs
+export const getAllPrescriptions = () => api.get('/prescriptions');
+export const getPrescriptionById = (id) => api.get(`/prescriptions/${id}`);
+export const createPrescription = (data) => api.post('/prescriptions', data);
+export const updatePrescription = (id, data) => api.put(`/prescriptions/${id}`, data);
+export const deletePrescription = (id) => api.delete(`/prescriptions/${id}`);
+
+// Prescription Details APIs
+export const getAllPrescriptionDetails = () => api.get('/prescriptiondetails');
+export const getPrescriptionDetailById = (id) => api.get(`/prescriptiondetails/${id}`);
+export const createPrescriptionDetail = (data) => api.post('/prescriptiondetails', data);
+export const updatePrescriptionDetail = (id, data) => api.put(`/prescriptiondetails/${id}`, data);
+export const deletePrescriptionDetail = (id) => api.delete(`/prescriptiondetails/${id}`);
 
 export default api; 
